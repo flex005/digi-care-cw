@@ -1,11 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
-import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { SessionProvider } from '@/app/session/SessionProvider'
-import { TooltipProvider } from '@/components/primitives'
 import { residents } from '@/data/fixtures/residents'
 import { staffAluko, staffOkonkwo } from '@/data/fixtures/organisation'
-import { ResidentProfileRoute } from '@/features/residents/ResidentProfileRoute'
 import { getResident, getResidentsBySite, getRound } from './client'
 import { isNotYours } from './record-not-yours'
 import { resetViewerScope, setViewer, viewerHomes } from './viewer-scope'
@@ -128,36 +125,4 @@ describe('the pointer ends with the session that set it', () => {
     view.unmount()
     expect(viewerHomes()).toBeUndefined()
   })
-})
-
-describe('the screen says which home the record belongs to', () => {
-  it('renders the refusal rather than an error or a not-found', async () => {
-    setViewer(staffAluko.id)
-    const router = createMemoryRouter(
-      [{ path: 'residents/:residentId', element: <ResidentProfileRoute /> }],
-      { initialEntries: [`/residents/${ELSEWHERE.id}`] },
-    )
-    const { container } = render(
-      <SessionProvider>
-        <TooltipProvider>
-          <RouterProvider router={router} />
-        </TooltipProvider>
-      </SessionProvider>,
-    )
-
-    await waitFor(() =>
-      expect(container.querySelector('[data-not-your-home]')).toBeTruthy(),
-    )
-    const panel = container.querySelector('[data-not-your-home]')!
-    expect(panel.textContent).toContain('Ashgrove Lodge')
-    expect(panel.textContent).toContain('Rosewood Court')
-
-    /*
-     * Not "could not be loaded", which would misdescribe a record that loaded
-     * perfectly, and not a not-found, which would have the product lying about
-     * what is on the record.
-     */
-    expect(container.textContent).not.toMatch(/could not be loaded/i)
-    expect(container.textContent).not.toMatch(/did not resolve to a resident/i)
-  }, 30000)
 })

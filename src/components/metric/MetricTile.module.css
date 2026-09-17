@@ -1,0 +1,195 @@
+/**
+ * THE FIGURE CARD — one definition, four modules.
+ *
+ * Lifted out of the residents module so Care notes, Handover and Medications
+ * are the same card rather than four that look alike. A copied card is a
+ * second rule, and two rules drift.
+ *
+ * **Nothing here is tinted by state.** Every card is the plain surface, and a
+ * gap is carried by an <Unrecorded> chip inside it rather than by colouring the
+ * whole tile: the hatch has one owner, and a tinted card cannot say
+ * whether the tint is the finding or the card.
+ */
+
+/*
+ * Flex-wrap rather than `repeat(auto-fit, minmax(170px, 1fr))`.
+ *
+ * The tiles carry a `flex-basis` of 0 and grow equally, which divides the row
+ * exactly as equal tracks did, and `min-width: var(--tile-min)` restores the
+ * 170px floor the `minmax()` was there for — so a row still wraps rather than
+ * squeezing a tile below what its content needs.
+ *
+ * Converted for html.to.design, which builds Figma auto-layout out of flex and
+ * has nothing to build from a grid track.
+ */
+
+.tiles {
+  /** The floor a tile may not shrink below, from the old `minmax()`. */
+  --tile-min: 170px;
+
+  /*
+   * A tile's own padding and borders.
+   *
+   * **`box-sizing: border-box` clamps `flex-basis: 0` to this**, so a tile's
+   * base size is never actually zero and the grow factors divide only what is
+   * left. Grid had no such floor — padding sits *inside* a track — which is
+   * why a spanning item cannot be reproduced by a grow factor alone. Derived
+   * from the same tokens the padding and border use, so it cannot drift from
+   * them.
+   */
+  --tile-chrome: calc(var(--space-16) * 2 + 2px);
+
+  display: flex;
+
+  /*
+   * The row decides the height; every tile takes it.
+   *
+   * Stated rather than left to the initial value, because the tiles are one
+   * comparison and a tile that is taller because its figure is a hatched block
+   * rather than a numeral reads as a difference in the data. It was `normal`
+   * and four screens rendered a ragged row.
+   */
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+}
+
+/* Read-only. No hover, no pointer, no pressed state — nothing that suggests
+   these do something when clicked, because they do not. */
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: stretch;
+
+  /*
+   * No `height`. It was `100%`, which is a *definite* cross size — and
+   * `align-items: stretch` exempts an item that already has one, so each tile
+   * sized to its own content and the row went ragged. Harmless under grid,
+   * where the track stretched it regardless; the conversion to flex is what
+   * made it load-bearing. The row above sets the height now.
+   */
+
+  /*
+   * One share of the row, with a floor.
+   *
+   * `flex-basis: 0` so the grow factors divide the row the way equal tracks
+   * did, and the floor is stated rather than inherited from content. It has to
+   * be stated: a flex item's automatic minimum is its min-content width, which
+   * is the same trap the grid track had — the denominator pill below declared
+   * `nowrap`, four tiles asked for more than the content column has at 1280,
+   * and the last one ran off the screen with "of 40 on record at Rosewood
+   * Court" cut mid-word. A clipped denominator is Rule 4 failing in layout
+   * rather than in a string.
+   */
+  flex: 1 1 0;
+  min-width: var(--tile-min, 170px);
+  padding: var(--space-16);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-surface);
+  text-align: left;
+}
+
+/*
+ * The lead takes two shares. Same card, more room.
+ *
+ * The basis is everything a spanning grid item used to absorb that a grow
+ * factor cannot: the gap between the two tracks it covered, and the second
+ * track's worth of tile chrome that `border-box` charges every flex item
+ * whether its basis is zero or not. With those stated the lead comes out at
+ * `2 × share + gap` and the row measures what it measured under grid, to the
+ * pixel — checked against the recorded widths, not assumed.
+ */
+.tileLead {
+  composes: tile;
+  flex: 2 1 calc(var(--tile-chrome) * 2 + var(--space-16));
+  min-width: calc(var(--tile-min, 170px) * 2 + var(--space-16));
+}
+
+.tileHead {
+  display: flex;
+  gap: var(--space-8);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+/* Two lines' worth whether the label needs them or not, so the figures below
+   sit on one horizontal across the row. A long label wraps; a figure that
+   dropped with it would break the line the eye reads. */
+.tileLabel {
+  min-height: calc(var(--text-body-sm-line) * 2);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+}
+
+.tileIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-32);
+  height: var(--space-32);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-page);
+  color: var(--ink-500);
+}
+
+.tileFigure {
+  display: flex;
+  gap: var(--space-8);
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+/* --text-display is the top of the closed scale; nothing above it exists. */
+.tileValue {
+  color: var(--ink-900);
+  font-size: var(--text-display-size);
+  line-height: var(--text-display-line);
+  font-weight: var(--weight-extrabold);
+  font-variant-numeric: tabular-nums;
+}
+
+.tileFooter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+  margin-top: auto;
+}
+
+/**
+ * The denominator, in the slot the reference design gives a coloured
+ * percentage.
+ *
+ * Neutral, and never green or red. A count in this position is a direction
+ * rather than good news dressed in a hue, and neutral survives greyscale and
+ * colour blindness where a coloured arrow does not.
+ */
+.tileChange {
+  padding: 2px var(--space-8);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-page);
+  color: var(--ink-700);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+
+  /*
+   * Wraps. It held `nowrap` to keep "12 of 28" on one line, and the cost of
+   * that was the whole phrase leaving the screen at 1280 — the denominator
+   * traded for the shape of the denominator. Two lines inside the card states
+   * the figure; one line outside it does not.
+   */
+  white-space: normal;
+}
+
+.tileExcluded {
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+}

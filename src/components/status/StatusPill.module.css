@@ -1,0 +1,121 @@
+/**
+ * A recorded status. Rule 3: a recorded value looks SETTLED.
+ *
+ * Solid tint, solid border, closed shape. Everything about it says finished,
+ * because "Not Given — resident refused — C. Nwosu, 08:04" is a complete and
+ * correct clinical record, not a gap. The contrast with the dashed, hatched,
+ * open-looking unrecorded treatment has to be readable peripherally, without
+ * reading the words.
+ *
+ * Text always uses --status-X-ink, never --status-X. The fill tokens are for
+ * dots, bars, borders and icons; on text they fail contrast, and that is a
+ * review blocker.
+ */
+
+/**
+ * Deliberately quiet geometry: 1px border, small radius, tight padding.
+ *
+ * A pill-radius badge with a heavy border and generous padding reads as a
+ * BUTTON, and none of these are pressable. Looking clickable is not a cosmetic
+ * complaint — it spends the reader's attention on the wrong thing, and on a
+ * list of 32 residents the attention belongs on the gaps.
+ *
+ * The text is already at --text-micro, the smallest step in the scale. It is
+ * not going lower: a tenth step is a conversation, not a local override
+ * (CLAUDE.md §4).
+ */
+.pill {
+  display: inline-flex;
+
+  /*
+   * Never wider than what holds it. As an inline-flex with a nowrap line, the
+   * pill's floor was the sum of its two children's min-content, so a long
+   * detail pushed it past its table cell — "3 months overdue" ran 3px into the
+   * next column. Small, and the same shape as the tile denominator that ran
+   * off the screen: a box declaring a width its container never agreed to.
+   */
+  max-width: 100%;
+  gap: var(--space-4);
+  align-items: center;
+
+  /* So the detail wraps inside the pill rather than widening it. The table it
+     sits in is `table-layout: fixed`, so the column cannot grow to meet it. */
+  flex-wrap: wrap;
+  padding: var(--space-4) var(--space-8);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/**
+ * There is no dot.
+ *
+ * It was justified as "a second, non-textual carrier so the pill survives
+ * greyscale" — but that was never true. In greyscale a red dot and an amber
+ * dot are the same grey, exactly as their fills and borders are. The dot
+ * carried hue, and hue only; it was the fourth encoding of the same thing and
+ * the one that made a badge look like a control.
+ *
+ * What actually survives greyscale is the LABEL — "Falls — HIGH" against
+ * "Falls — MODERATE" — and, for the distinction that matters most, the solid
+ * border against the dashed hatch of <Unrecorded>. Neither depends on colour.
+ */
+
+.detail {
+  font-weight: var(--weight-regular);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.positive {
+  border-color: var(--status-positive);
+  background-color: var(--status-positive-tint);
+  color: var(--status-positive-ink);
+}
+
+.caution {
+  border-color: var(--status-caution);
+  background-color: var(--status-caution-tint);
+  color: var(--status-caution-ink);
+}
+
+.critical {
+  border-color: var(--status-critical);
+  background-color: var(--status-critical-tint);
+  color: var(--status-critical-ink);
+}
+
+.info {
+  border-color: var(--status-info);
+  background-color: var(--status-info-tint);
+  color: var(--status-info-ink);
+}
+
+/* Brand tone. DNAR uses it because a DNAR in place is neither good news nor
+   bad news — it is a recorded clinical decision, and colouring it red or
+   green would editorialise. */
+.brand {
+  border-color: var(--purple-600);
+  background-color: var(--purple-50);
+  color: var(--purple-900);
+}
+
+/* Block form, for a cell in the MAR grid rather than an inline badge. */
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--space-40);
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  text-transform: none;
+  letter-spacing: normal;
+}

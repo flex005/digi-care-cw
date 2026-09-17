@@ -1,0 +1,84 @@
+.topbar {
+  display: flex;
+  gap: var(--space-16);
+  align-items: center;
+  height: var(--layout-topbar-height);
+  padding: 0 var(--layout-gutter);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-surface);
+  color: var(--ink-900);
+}
+
+/* The sidebar carries the lockup on a wide screen; the bar carries the mark on
+   a compact one, where there is no sidebar. */
+.mark {
+  display: none;
+}
+
+.site {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-width: 0;
+  min-height: var(--space-32);
+  padding: var(--space-4) var(--space-12);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--purple-50);
+  color: var(--purple-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.siteName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.user {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--space-40);
+  padding: var(--space-4) var(--space-12) var(--space-4) var(--space-4);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-page);
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.user:hover,
+.user[data-state='open'] {
+  background-color: var(--purple-200);
+}
+
+@media (width < 1024px) {
+  .topbar {
+    gap: var(--space-8);
+    padding: 0 var(--space-12);
+  }
+
+  .mark {
+    display: flex;
+    flex-shrink: 0;
+  }
+
+  /* The name moves into the menu's label; the avatar stays a 40px target. */
+  .userName {
+    display: none;
+  }
+
+  .user {
+    padding: var(--space-4);
+  }
+}

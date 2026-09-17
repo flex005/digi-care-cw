@@ -1,0 +1,312 @@
+/**
+ * diGi-Care Care Worker design tokens.
+ *
+ * This is the ONLY file in the repository where a colour, size or shadow
+ * literal may appear. Everywhere else, colour reaches a component as
+ * var(--token). Stylelint enforces that mechanically (stylelint.config.mjs),
+ * and scripts/check-tokens.mjs fails on a var() naming a token that does not
+ * exist here.
+ *
+ * Carried across from the Admin & Manager build value for value, because both
+ * products describe one home and a developer reading the two side by side must
+ * not find two purples. The palette, surfaces and status values are the ones
+ * the brief states. The rest — ink, borders, type, spacing, radii, shadows —
+ * are the Admin build's, and the ones marked "unverified" there are still
+ * unverified: read by eye off a screenshot rather than measured. They live only
+ * here, so a verified value later is one edit that touches no component.
+ *
+ * One palette. No dark mode, no theme switching, no prefers-color-scheme.
+ */
+
+/* ==================================================================
+   THE TYPE FAMILY — Manrope, self-hosted, five static weights.
+
+   **The files are committed under src/assets/fonts/ rather than pulled from a
+   package, because the packaged ones lie about their own identity.**
+   `@fontsource/manrope@5.3.0` ships woff2 whose internal name table reads
+   "Manrope ExtraLight SemiBold", "Manrope ExtraLight Medium" and so on, while
+   its woff files of the same weights are named correctly. The outlines and
+   usWeightClass are right — the screen renders correctly and the weights
+   measure distinctly — so nothing in the CSS, the app or the rendering shows
+   it. Every tool that reads a font's *name* reports ExtraLight.
+
+   It is inherited, not invented: Google's own Manrope[wght].ttf declares
+   family(1) "Manrope ExtraLight" at usWeightClass 200, because name IDs 1 and
+   2 describe a variable font's default instance. Anyone instancing from it
+   gets this.
+
+   Provenance, the subsetting command and the check to re-run before trusting a
+   replacement are in src/assets/fonts/README.md. The check belongs on the
+   subsetter's *output*: subsetters rewrite name tables.
+
+   Latin and Latin Extended only. Cyrillic, Greek and Vietnamese are
+   unreachable by anything in this build.
+
+   **Here rather than in a fonts.css because `var()` is invalid in an
+   @font-face descriptor**, so these weights cannot be tokens, and this file is
+   the one place the project allows a literal. A face declaration introduces no
+   type step — it says which file *is* weight 500 — where the closed-scale rule
+   is about components inventing a tenth. Its own sheet would need a stylelint
+   exemption, which CLAUDE.md §4 forbids adding without asking.
+   ================================================================== */
+
+@font-face {
+  font-family: Manrope;
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('../assets/fonts/Manrope-Regular.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF,
+    U+FFFD, U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: Manrope;
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url('../assets/fonts/Manrope-Medium.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF,
+    U+FFFD, U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: Manrope;
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url('../assets/fonts/Manrope-SemiBold.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF,
+    U+FFFD, U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: Manrope;
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url('../assets/fonts/Manrope-Bold.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF,
+    U+FFFD, U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: Manrope;
+  font-style: normal;
+  font-display: swap;
+  font-weight: 800;
+  src: url('../assets/fonts/Manrope-ExtraBold.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF,
+    U+FFFD, U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  /* ==================================================================
+     BRAND PALETTE
+     ================================================================== */
+  --purple-900: #1e0059; /* App header, primary text on light, headings */
+  --purple-600: #6935cf; /* Primary action, active nav, focus ring */
+  --purple-400: #a284f1; /* Secondary accent, chart series, hover */
+  --purple-200: #d5c6fb; /* Selected rows, subtle fills, disabled primary */
+  --purple-50: #f1ecff; /* Tinted card backgrounds, tag fills */
+
+  /* ==================================================================
+     SURFACES AND NEUTRALS.
+     ================================================================== */
+  --bg-page: #f2f6fe; /* ✅ Application background */
+  --bg-surface: #ffffff; /* ✅ Cards, tables, drawers, dialogs */
+  --bg-surface-sunken: #f8fafe; /* ⚠️ unverified — table headers, inset panels */
+
+  --ink-900: #1e0059; /* ✅ Primary text (reuses brand deep purple) */
+  --ink-700: #443b63; /* ⚠️ unverified — body text */
+  --ink-500: #6e6688; /* ⚠️ unverified — secondary text, labels */
+  --ink-400: #9a93b0; /* ⚠️ unverified — placeholder, disabled text */
+
+  --border-strong: #e7e4fd; /* ✅ Input borders, dividers under headers */
+  --border-subtle: #efeafe; /* ✅ Card borders, table row rules */
+
+  /* ==================================================================
+     STATUS PALETTE.
+
+     Each status carries three tokens, because one value cannot do both
+     jobs. --status-X is the house fill: solid fills, dots, bars, borders,
+     icons, chart series — non-text UI, so the bar is 3:1.
+     --status-X-ink is the darker same-hue value for TEXT on the tint.
+
+     Using a fill token for text fails contrast and is a review blocker. CLAUDE.md §4.
+     ================================================================== */
+
+  /* Green. Recorded, complete, within tolerance. Given. Low risk. */
+  --status-positive: #46bc4a; /* ✅ */
+  --status-positive-ink: #1f7a33;
+  --status-positive-tint: #eef9ee; /* ✅ */
+
+  /* Amber. Recorded and needs attention. Due soon. Moderate risk. */
+  --status-caution: #f07d13; /* ✅ */
+  --status-caution-ink: #a65200;
+  --status-caution-tint: #ffefe1; /* ✅ */
+
+  /* Red. Recorded and bad. High risk. Overdue. Critical incident. */
+  --status-critical: #dd4347; /* ✅ */
+  --status-critical-ink: #b3272b;
+  --status-critical-tint: #ffefef; /* ✅ */
+
+  /* Blue. Neutral information. "Medications due at 08:00" banner. */
+  --status-info: #1563ff; /* ✅ */
+  --status-info-ink: #0b45b8;
+  --status-info-tint: #ecf2ff; /* ✅ */
+
+  /* Unrecorded / Insufficient Evidence. Deliberately muted — it must never
+     compete with a recorded status for attention. This is the only state in
+     the system carried by PATTERN rather than hue; see
+     src/styles/unrecorded.module.css, which holds the only copy of it. */
+  --status-unrecorded: #8e86a8;
+  --status-unrecorded-ink: #5c5470;
+  --status-unrecorded-tint: #f2f1f6;
+
+  /* The dashed border of the hatch. Deliberately the same value as
+     --status-unrecorded rather than a separate literal: as its own colour it
+     measured 2.20:1 on the tint, below the 3:1 required of a status
+     boundary. At --status-unrecorded it measures 3.05:1 and passes, and there
+     is now one value that cannot drift from the other. */
+  --border-unrecorded: var(--status-unrecorded);
+
+  /* ==================================================================
+     TYPE.
+
+     The scale is CLOSED. Nine steps, five weights. No component may
+     introduce a size, line height or weight outside it; stylelint rejects
+     any font-size / line-height / font-weight that is not var(--*).
+     A tenth step is a conversation, not a local override.
+
+     Sizes are in rem so the app stays usable at 200% zoom.
+     One family only — no secondary. --text-mono-num is the same face with
+     tabular numerals, not a monospace one.
+
+     The faces are declared above, from files whose name tables agree with
+     this string. That is not a given — see the comment there.
+     ================================================================== */
+  --font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* ⚠️ unverified — sizes are proportioned to the screenshot, not measured. */
+  --text-display-size: 2rem; /* 32 — dashboard greeting, one per page */
+  --text-display-line: 2.5rem; /* 40 */
+  --text-h1-size: 1.5rem; /* 24 — page titles */
+  --text-h1-line: 2rem; /* 32 */
+  --text-h2-size: 1.25rem; /* 20 — card and section titles */
+  --text-h2-line: 1.75rem; /* 28 */
+  --text-h3-size: 1.0625rem; /* 17 — sub-sections, drawer titles */
+  --text-h3-line: 1.5rem; /* 24 */
+  --text-body-size: 0.9375rem; /* 15 — default body, form inputs */
+  --text-body-line: 1.375rem; /* 22 */
+  --text-body-sm-size: 0.8125rem; /* 13 — table cells, secondary text */
+  --text-body-sm-line: 1.25rem; /* 20 */
+  --text-caption-size: 0.75rem; /* 12 — labels, metadata, timestamps */
+  --text-caption-line: 1rem; /* 16 */
+  --text-micro-size: 0.6875rem; /* 11 — badge text, denominators */
+  --text-micro-line: 0.875rem; /* 14 */
+  --text-mono-num-size: 0.8125rem; /* 13 — MAR grid, controlled drug balances */
+  --text-mono-num-line: 1.25rem; /* 20 */
+
+  --weight-regular: 400; /* body */
+  --weight-medium: 500; /* emphasis */
+  --weight-semibold: 600; /* headings and buttons */
+  --weight-bold: 700; /* page titles */
+  --weight-extrabold: 800; /* display only */
+
+  /* ==================================================================
+     SPACING. 4px base. Nothing off-scale.
+     Named by value, so an off-scale step is obvious on sight.
+     ================================================================== */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+  --space-64: 64px;
+
+  /* ==================================================================
+     SHAPE AND ELEVATION.
+     ================================================================== */
+  --radius-sm: 8px; /* ⚠️ unverified — inputs, small buttons */
+  --radius-md: 12px; /* ⚠️ unverified — buttons, tags */
+  --radius-lg: 16px; /* ⚠️ unverified — cards */
+  --radius-xl: 20px; /* ⚠️ unverified — drawers, large panels */
+  --radius-pill: 999px; /* ✅ status pills, avatars */
+
+  /* ⚠️ unverified */
+  --shadow-card: 0 1px 2px rgba(30, 0, 89, 0.04), 0 4px 12px rgba(30, 0, 89, 0.06);
+
+  /* -------------------------------------------------------------------------
+   * The document viewer's stage. Values from docs/documents-medication-intake.
+   *
+   * A dark *neutral* rather than brand purple, and the reference says why: the
+   * page the stage holds has to read as paper. On --purple-900 it reads as part
+   * of the product, which is the one thing a sample of somebody else's form
+   * must not do.
+   * ---------------------------------------------------------------------- */
+  --stage-ground: #2a2140;
+  --stage-banner: #3a3154;
+  --shadow-page: 0 10px 40px rgb(0 0 0 / 35%);
+  --shadow-overlay: 0 8px 32px rgba(30, 0, 89, 0.16);
+
+  /* ==================================================================
+     LAYOUT
+
+     Desktop-first, with one compact layout for phones. Two layouts, one
+     breakpoint, and the breakpoint cannot be a token: a custom property is not
+     valid inside a media query. So its value is written here once, in prose,
+     and scripts/check-figma-export.mjs fails on any @media condition other
+     than these two (plus prefers-reduced-motion):
+
+         @media (width < 1024px)    the compact layout
+         @media (width >= 1024px)   the wide layout
+
+     Below 1024px the sidebar gives way to a bottom tab bar and the gutter
+     narrows. 1024 rather than a phone width because a tablet held upright is
+     a handheld device in a care home, and a 248px sidebar would leave it a
+     520px column. There is no minimum width: the Admin build refused to render
+     below 1280px, and this product is used on a phone during a shift.
+
+     --layout-max-width is `none`: content fills the viewport. Prose keeps a
+     readable measure through a `ch` bound on the text itself.
+     ================================================================== */
+  --layout-max-width: none;
+  --layout-gutter: 24px;
+  --layout-gutter-compact: 16px;
+  --layout-sidebar-width: 248px;
+  --layout-sidebar-width-collapsed: 72px;
+  --layout-topbar-height: 64px;
+  --layout-tabbar-height: 64px;
+
+  /* ==================================================================
+     FOCUS. 2px --purple-600 with 2px offset. Never removed.
+     ================================================================== */
+  --focus-ring: var(--purple-600);
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+}

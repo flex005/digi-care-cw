@@ -1,0 +1,72 @@
+.trigger {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  justify-content: space-between;
+  min-width: var(--space-64);
+  min-height: var(--space-40);
+  padding: var(--space-8) var(--space-12);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  cursor: pointer;
+}
+
+.trigger[data-placeholder] {
+  color: var(--ink-400);
+}
+
+.trigger[data-disabled] {
+  background-color: var(--bg-surface-sunken);
+  color: var(--ink-400);
+  cursor: not-allowed;
+}
+
+/* Radix wraps the chevron in its own span, which becomes the flex item. The
+   icon inside it centres here rather than relying on the trigger's
+   align-items, which never reaches it. */
+.chevron {
+  display: inline-flex;
+  align-items: center;
+}
+
+.viewport {
+  padding: var(--space-4);
+}
+
+.indicator {
+  display: inline-flex;
+  width: var(--space-16);
+  color: var(--purple-600);
+}
+
+/**
+ * The field wrapper, for a select that carries a visible label.
+ *
+ * Same shape as a text field's, so a select and an input sitting side by side
+ * in a two-up grid line their labels up and therefore line their controls up.
+ */
+.field {
+  display: flex;
+  flex-direction: column;
+
+  /*
+   * The same gap a text field uses, or a select and an input side by side sit
+   * four pixels out — labels level, controls not, which is the misalignment
+   * you see rather than the one you can find in the grid.
+   */
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.label {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

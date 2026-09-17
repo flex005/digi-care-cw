@@ -26,6 +26,19 @@
 
 import { ROUND_TIMES, minutesOfDay, roundInProgressAt } from './rounds'
 
+/*
+ * **Refuses to generate on a server.** Added in the Care Worker build, which
+ * runs on Next.js: every record is generated against the instant this module
+ * loads, and a server loading it would generate a second record of the same
+ * home against a different instant. The build keeps every product module out
+ * of the server (src/app/client-only.tsx); this is what fails loudly if that
+ * boundary is ever broken some other way, rather than rendering two records.
+ */
+if (typeof window === 'undefined')
+  throw new Error(
+    'The fixtures were loaded without a window. They are generated against the moment the page loads, so they may only be generated in the browser: see src/app/client-only.tsx.',
+  )
+
 /** `?at=HH:MM` on today's date, or `?at=<ISO instant>` for another day. */
 export const CLOCK_PARAM = 'at'
 

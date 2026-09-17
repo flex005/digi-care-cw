@@ -1,0 +1,14 @@
+/* Quiet on purpose. It is a statement of fact, not a finding, and the caution
+   colour is kept for findings. */
+.line {
+  display: flex;
+  gap: var(--space-8);
+  align-items: flex-start;
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.line > svg {
+  flex-shrink: 0;
+}

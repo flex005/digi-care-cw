@@ -1,0 +1,78 @@
+.avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--purple-50);
+  color: var(--purple-900);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/**
+ * Brand tone — the account pill, and nothing that represents a resident.
+ *
+ * Solid primary with white initials: 6.97:1, past AA for text. The border goes
+ * transparent rather than away, so the box is exactly the size it is in the
+ * neutral tone and the two cannot drift apart.
+ */
+.brand {
+  border-color: transparent;
+  background-color: var(--purple-600);
+  color: var(--bg-surface);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.small {
+  width: var(--space-32);
+  height: var(--space-32);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+}
+
+.medium {
+  width: var(--space-48);
+  height: var(--space-48);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.large {
+  width: var(--space-64);
+  height: var(--space-64);
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
+}
+
+/**
+ * The subject's photograph where it leads a page, at 128px.
+ *
+ * Composed from --space-64 rather than introducing a token for it: the scale
+ * tops out at 64 and one avatar is not a reason to extend it. The arithmetic
+ * keeps the result on the 4px scale, which is the rule the token was
+ * protecting.
+ *
+ * It fits the 260px identity card with room to spare — 220px of content width
+ * once the card's padding is off — so the photograph can lead without the
+ * column having to grow around it.
+ *
+ * The initials step up with it. A monogram set at a heading size inside a
+ * 128px circle reads as a small mark in a large empty ring, and the monogram
+ * is doing the photograph's job here: the wrong-subject rule makes it a check against
+ * writing to the wrong record, so it has to be legible at a glance.
+ */
+.xlarge {
+  width: calc(var(--space-64) * 2);
+  height: calc(var(--space-64) * 2);
+  font-size: var(--text-display-size);
+  line-height: var(--text-display-line);
+}

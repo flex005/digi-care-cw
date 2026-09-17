@@ -1,0 +1,64 @@
+/**
+ * The shell fills the viewport and does not itself scroll; the content column
+ * does. Both chrome surfaces are cards on the page background, inset by the
+ * same --space-12: a frame around the work, not a wall behind it.
+ */
+.shell {
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--bg-page);
+}
+
+.sidebar {
+  flex-shrink: 0;
+  padding: var(--space-12) 0 var(--space-12) var(--space-12);
+}
+
+.column {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar {
+  flex-shrink: 0;
+  padding: var(--space-12);
+}
+
+/* The only scrolling region. */
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-12) var(--layout-gutter) var(--space-32);
+  overflow-y: auto;
+}
+
+.tabbar {
+  display: none;
+}
+
+/* The compact layout. The breakpoint is written out in tokens.css. */
+@media (width < 1024px) {
+  .shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .topbar {
+    padding: var(--space-8);
+  }
+
+  .main {
+    padding: var(--space-8) var(--layout-gutter-compact) var(--space-24);
+  }
+
+  .tabbar {
+    display: block;
+    flex-shrink: 0;
+  }
+}

@@ -1,0 +1,196 @@
+/**
+ * THE UNRECORDED TREATMENT.
+ *
+ * This file holds the ONLY copy of the hatch in the entire project.
+ * Every consumer reaches it with CSS Modules `composes:`, never by
+ * reimplementing it:
+ *
+ *     .myCell {
+ *       composes: unrecorded from '../../styles/unrecorded.module.css';
+ *     }
+ *
+ * scripts/check-hatch.mjs fails `npm run lint` if `repeating-linear-gradient`
+ * or the dashed unrecorded border appears in any other file, because stylelint
+ * cannot tell a hand-rolled hatch from a legitimate gradient.
+ *
+ * Why pattern and not hue: unrecorded is the only state in the system carried
+ * by a pattern. That makes it distinguishable at a glance, distinguishable in
+ * greyscale, and distinguishable to a colour-blind user — which matters
+ * because on the MAR chart the distinction is clinical, not cosmetic.
+ *
+ * Three things this must never become:
+ *   - a solid neutral fill, because a solid neutral fill reads as "fine";
+ *   - empty space;
+ *   - the same treatment as a recorded negative. A recorded "Not Given" uses
+ *     --status-caution with a SOLID tint and a settled, closed appearance.
+ *     An omission uses this hatch and reads as an open loop.
+ *
+ * The pattern is reinforcement, never the sole carrier of meaning. Every
+ * unrecorded element carries visible text saying what is missing — which is
+ * why components/status/Unrecorded.tsx makes `label` a required prop and is
+ * the only component permitted to apply these classes.
+ *
+ * Under prefers-reduced-motion nothing changes here; the hatch is static
+ * by design.
+ *
+ * **This gradient survives a Figma import; the SVG half does not.**
+ * html.to.design renders `repeating-linear-gradient`, so every box carrying
+ * this treatment arrives hatched. What it drops is `url(#…)`, which is how the
+ * charts in features/dashboard/charts.tsx fill and stroke their hatch — so the
+ * loss is confined to the Dashboard's bar gaps, donut arc and ring tracks.
+ * See docs/FIGMA-HANDOFF.md.
+ */
+
+.unrecorded {
+  border: 1.5px dashed var(--border-unrecorded);
+  background: repeating-linear-gradient(
+    45deg,
+    var(--status-unrecorded-tint) 0 6px,
+    transparent 6px 12px
+  );
+  color: var(--status-unrecorded-ink);
+}
+
+/**
+ * THE CHART SIZE — the same hatch, banded in the solid colour.
+ *
+ * **Two sizes, one owner. This is the rule stated properly, not the guard
+ * weakening.** The treatment above bands `--status-unrecorded-tint` and is
+ * correct on a box: a cell, a chip, a panel, a tile. It is 1.12:1 against the
+ * surface, which reads as texture across 170px and reads as nothing across
+ * seven.
+ *
+ * A chart's gap regions are 7–20px tall. At that size the tint is invisible,
+ * and **a hatch nobody can see is a solid neutral fill** — the one thing Rule 2
+ * says this treatment must never become, in the direction that hides a gap
+ * rather than inventing one. So the chart bands `--status-unrecorded` instead,
+ * at 3.43:1, which clears WCAG 1.4.11's 3:1 for non-text contrast where the
+ * tint is a twelfth of the way there.
+ *
+ * The split is not new. It has always existed — the SVG `<pattern>` in
+ * charts.tsx banded the solid colour for exactly this reason, and this makes
+ * the same decision explicit in one medium and one file rather than implicit
+ * across two.
+ *
+ * Same 45°, same 6px rhythm. Only the band colour differs, and only because
+ * the size does.
+ */
+.unrecordedChart {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--status-unrecorded) 0 6px,
+    var(--bg-surface) 6px 12px
+  );
+}
+
+/**
+ * Inline badge / pill form — profile header badge strip, chips, list rows.
+ *
+ * Sentence case, unlike <StatusPill>, which is uppercase and stays that way.
+ * That is not an inconsistency, it follows from Rule 2: a recorded status can
+ * be one word ("Complete", "Refused"), but an unrecorded one must say what is
+ * missing, which makes it a sentence — "Dietary requirements and preferences
+ * not recorded". Uppercase suits a word and defeats a sentence, and the label
+ * is the carrier of meaning here, not the pattern.
+ *
+ * Set at --text-body-sm rather than --text-micro for the same reason: at 11px
+ * without the uppercase and letterspacing there was not enough of it left to
+ * read. What tells these two apart peripherally is the dashed border and the
+ * hatch, which is unchanged and does not depend on case or size.
+ */
+.unrecordedBadge {
+  composes: unrecorded;
+  display: inline-flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4) var(--space-12);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+/* Table and MAR grid cell form. Fills the cell; no rounding, so the grid
+   keeps its rhythm and the hatch reads continuously down a column. */
+.unrecordedCell {
+  composes: unrecorded;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: var(--space-40);
+  padding: var(--space-4);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-medium);
+  text-align: center;
+}
+
+/* Panel form — Insufficient Evidence on a compliance Key Question, an
+   unstarted care plan domain, a timeline gap marker. */
+.unrecordedPanel {
+  composes: unrecorded;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-16) var(--space-20);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* Compact stacked form for a table cell — a label with its named detail
+   beneath. Deliberately not uppercase: "CRITICAL RECORDS MISSING" plus seven
+   gap names in a column of a table wraps into an unreadable block, and the
+   names are the point. */
+.unrecordedChip {
+  composes: unrecorded;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-md);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+/* Flag form — a card in the profile's risk strip, three lines: the field, the
+   answer, and what is missing. The left edge is thicker so an unrecorded flag
+   carries the same bar as its recorded neighbours and the strip reads level. */
+.unrecordedFlag {
+  composes: unrecorded;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  justify-content: space-between;
+
+  /* Both axes. The height alone was enough while this was the only rule that
+     mattered, but the card sits inside a flex row — where a flex item does not
+     grow unless told to — so it sized to its text and left a gap between
+     itself and the cards either side. The recorded card has always had this;
+     the hatched one has to match, or a gap in the record shows up as a gap in
+     the layout. */
+  width: 100%;
+  height: 100%;
+  padding: var(--space-12) var(--space-12) var(--space-12) var(--space-16);
+  border-left-width: 3px;
+  border-radius: var(--radius-md);
+}
+
+/* Block form — a full-width row inside a list, e.g. a risk assessment
+   template that has never been completed. Absence from a list is the same
+   bug as a blank cell, so these are rendered, never omitted. */
+.unrecordedRow {
+  composes: unrecorded;
+  display: flex;
+  gap: var(--space-12);
+  align-items: center;
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-md);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
