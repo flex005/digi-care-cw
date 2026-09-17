@@ -49,6 +49,7 @@ If you find yourself writing a fallback like `?? 'Low risk'`, `|| 'None'`, `?? 0
 
 - **Colour only from tokens.** No hex, `rgb()`, `hsl()`, or named colours in any component. `src/styles/tokens.css` is the single place a literal may appear. Stylelint and `scripts/check-tokens.mjs` enforce this; do not disable, weaken, or add exceptions.
 - **Each status has a fill, an ink and a tint.** `--status-X` is for fills, dots, bars, borders and icons. `--status-X-ink` is for text on the tint. Text in the fill colour fails contrast and is a review blocker.
+- **The caution fill is below 3:1 by decision, so it never marks a state alone.** `--status-caution` is drawn only by `StatusPill` and `Toast`, which render their required words inside the colour and refuse empty words. A caution dot, bar or edge anywhere else fails `scripts/check-caution-carriers.mjs`, and so does a status token name built from a variable. The guard cannot check that the words name the state; review does. The positive fill was darkened to clear 3:1 instead. `docs/DEPARTURES.md`.
 - **The type scale is closed.** Nine steps, five weights, all in `tokens.css`. A tenth step is a conversation, not a local override.
 - **Fonts are the five committed Manrope files, through plain `@font-face` in `tokens.css`.** Never `next/font`, which renames the family to a hash, and never `@fontsource/manrope`, whose woff2 files name themselves "Manrope ExtraLight". `src/assets/fonts/README.md` has the account.
 - No dark mode. One palette.

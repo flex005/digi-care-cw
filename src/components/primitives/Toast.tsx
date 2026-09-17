@@ -37,6 +37,11 @@ export function Toast({
   description,
   tone = 'info',
 }: ToastProps) {
+  // A toast with no title is an edge of colour alone. See StatusPill.
+  if (title.trim() === '')
+    throw new Error(
+      `A ${tone} Toast was given no title, so its colour would carry the state alone.`,
+    )
   return (
     <RadixToast.Root
       open={open}

@@ -37,6 +37,15 @@ const TONE_CLASS: Record<StatusTone, string> = {
 }
 
 export function StatusPill({ tone, label, detail, block = false }: StatusPillProps) {
+  /*
+   * **Refuses empty words.** A status pill with no label is colour alone, and
+   * the caution fill is under 3:1 by decision precisely because it never is.
+   * An empty string satisfies the type, so the refusal is here, where it renders.
+   */
+  if (label.trim() === '')
+    throw new Error(
+      `A ${tone} StatusPill was given no label, so its colour would carry the state alone.`,
+    )
   const className = [styles.pill, TONE_CLASS[tone], block ? styles.block : '']
     .filter(Boolean)
     .join(' ')

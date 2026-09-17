@@ -127,6 +127,12 @@ export function TokenSheet() {
         {STATUSES.map((status) => (
           <div key={status} className={styles.group}>
             <span className={styles.groupTitle}>{status}</span>
+            {status === 'caution' ? (
+              <p className={styles.sectionNote}>
+                The fill is below 3:1 by decision, not by oversight: it never marks a
+                state alone. Only a status pill or a toast draws it, with words inside.
+              </p>
+            ) : null}
             <div className={styles.swatches}>
               <Swatch
                 token={`--status-${status}`}

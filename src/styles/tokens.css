@@ -156,13 +156,27 @@
      Using a fill token for text fails contrast and is a review blocker. CLAUDE.md §4.
      ================================================================== */
 
-  /* Green. Recorded, complete, within tolerance. Given. Low risk. */
-  --status-positive: #46bc4a; /* ✅ */
+  /* Green. Recorded, complete, within tolerance. Given. Low risk.
+
+     Darkened from #46bc4a, which measured 2.46:1 on the surface and 2.13:1 on
+     --purple-50, under the 3:1 WCAG 1.4.11 asks of a non-text indicator. At
+     #1b9c28 it clears 3.1:1 on every ground a fill sits on: the surface, the
+     sunken surface, the page, --purple-50 and its own tint. Hue held in OKLCH.
+     The token sheet measures it live. docs/DEPARTURES.md. */
+  --status-positive: #1b9c28;
   --status-positive-ink: #1f7a33;
   --status-positive-tint: #eef9ee; /* ✅ */
 
-  /* Amber. Recorded and needs attention. Due soon. Moderate risk. */
-  --status-caution: #f07d13; /* ✅ */
+  /* Amber. Recorded and needs attention. Due soon. Moderate risk.
+
+     **Below 3:1 on purpose, and not an oversight.** 2.75:1 on the surface,
+     2.38:1 on --purple-50. A darker value was measured and declined: the colour
+     never carries a caution state alone, because every caution state names
+     itself in words inside the coloured element. So the fill may be drawn only
+     by StatusPill and Toast, which render their required words inside it, and
+     scripts/check-caution-carriers.mjs fails the build anywhere else.
+     docs/DEPARTURES.md. */
+  --status-caution: #f07d13;
   --status-caution-ink: #a65200;
   --status-caution-tint: #ffefe1; /* ✅ */
 
