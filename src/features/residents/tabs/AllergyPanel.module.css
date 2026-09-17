@@ -1,0 +1,86 @@
+/**
+ * The allergies banner: a full-width panel between the Clinical card's head
+ * and its fields, for the one fact in that section that must not be row twelve
+ * of sixteen. Being easy to miss has a body count, and it is a three-state
+ * union where each state has to look different from the other two at a glance.
+ *
+ * The slot is what holds the panel's place, so every state, including the
+ * hatched one, which is drawn by <Unrecorded> and cannot take layout from here,
+ * sits in exactly the same place.
+ */
+.slot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.banner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-16) var(--space-20);
+  border: 1px solid transparent;
+  border-left-width: var(--space-4);
+  border-radius: var(--radius-lg);
+}
+
+/* The field being answered. Its own line above the answer, so the answer can
+   be read on its own and still be a complete statement. */
+.caption {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* The answer. The largest thing in the panel, and on a tab of 15px values that
+   is the whole point of the panel existing. */
+.headline {
+  display: block;
+  font-size: var(--text-h2-size);
+  line-height: var(--text-h2-line);
+  font-weight: var(--weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.detail {
+  display: block;
+  max-width: 70ch;
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+}
+
+/* A finding. Red wherever allergies appear. */
+.critical {
+  composes: banner;
+  border-color: var(--status-critical);
+  background-color: var(--status-critical-tint);
+  color: var(--status-critical-ink);
+}
+
+/* A recorded NEGATIVE, and a complete clinical record. Solid tint, settled,
+   never hatched: somebody asked and confirmed. */
+.settled {
+  composes: banner;
+  border-color: var(--status-positive);
+  background-color: var(--status-positive-tint);
+  color: var(--status-positive-ink);
+}

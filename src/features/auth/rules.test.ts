@@ -7,6 +7,7 @@ import {
   recordFailure,
   resetLockouts,
 } from './lockout'
+import { destinationFrom } from './destination'
 
 describe('password rules', () => {
   const forbidden = ['ngozi', 'eze', 'rosewood', 'court']
@@ -64,5 +65,31 @@ describe('the lockout', () => {
       'locked',
     )
     expect(lockState('n.eze@rosewoodcourt.example', at + 15 * 60_000).kind).toBe('open')
+  })
+})
+
+describe('where signing in lands', () => {
+  it('is the page the reader was going to, query and all', () => {
+    expect(destinationFrom('?from=%2Fresidents%2Fres-okafor%2Fconsent')).toBe(
+      '/residents/res-okafor/consent',
+    )
+    expect(destinationFrom('?from=%2Fresidents%3Fat%3D20%3A20')).toBe(
+      '/residents?at=20:20',
+    )
+  })
+
+  it('is the start for anything that is not a page in this product', () => {
+    for (const search of [
+      '',
+      '?from=',
+      '?from=https%3A%2F%2Felsewhere.example',
+      '?from=%2F%2Felsewhere.example',
+      '?from=residents',
+      '?from=%2Fsign-in%2Fcode',
+      '?from=%2Fsigned-out',
+      '?from=%2Fsign-out',
+      '?from=%2Finvitation%2Fstaff-n-eze',
+    ])
+      expect(destinationFrom(search), search).toBe('/')
   })
 })

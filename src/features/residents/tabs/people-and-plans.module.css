@@ -1,0 +1,204 @@
+/* Important People and Future Plans: two read-only tabs of a resident's record. */
+
+.tabPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+/* The tab's one act, and on Future Plans the line that says what the tab is.
+   On the grey page, above the cards. */
+.lead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tabIntro {
+  flex: 1 1 320px;
+  max-width: 80ch;
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+/* Fields come from FieldList.module.css, shared with General Information. */
+
+/* ------------------------------------------------------------------ banners */
+
+/* The one fact in a section that must not be row seven: who to ring first, and
+   the resuscitation decision. The slot holds every state, the hatched one
+   included, in the same place. */
+.bannerSlot {
+  display: flex;
+  flex-direction: column;
+}
+
+.banner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-16) var(--space-20);
+  border: 1px solid transparent;
+  border-left-width: var(--space-4);
+  border-radius: var(--radius-lg);
+}
+
+.bannerCaption {
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.bannerHeadline {
+  font-size: var(--text-h2-size);
+  line-height: var(--text-h2-line);
+  font-weight: var(--weight-bold);
+}
+
+.bannerDetail {
+  max-width: 70ch;
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* Keeps the panel's ink: grey on a tint drops below 4.5:1. */
+.bannerAttribution {
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+/* A contradiction the record contains. */
+.bannerCritical {
+  composes: banner;
+  border-color: var(--status-critical);
+  background-color: var(--status-critical-tint);
+  color: var(--status-critical-ink);
+}
+
+/* Recorded: CPR is to be attempted. */
+.bannerSettled {
+  composes: banner;
+  border-color: var(--status-positive);
+  background-color: var(--status-positive-tint);
+  color: var(--status-positive-ink);
+}
+
+/* A signed clinical decision that is neither good news nor bad. */
+.bannerBrand {
+  composes: banner;
+  border-color: var(--purple-600);
+  background-color: var(--purple-50);
+  color: var(--purple-900);
+}
+
+/* Recorded and neutral: who the home rings first. */
+.bannerInfo {
+  composes: banner;
+  border-color: var(--status-info);
+  background-color: var(--status-info-tint);
+  color: var(--status-info-ink);
+}
+
+/* ------------------------------------------------------------------ people */
+
+.person {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.personName {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-semibold);
+}
+
+.personRelationship {
+  color: var(--ink-500);
+  font-weight: var(--weight-regular);
+}
+
+.personLine {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  overflow-wrap: anywhere;
+}
+
+.contactNumber {
+  color: var(--ink-900);
+  font-weight: var(--weight-semibold);
+}
+
+.contactMeta {
+  color: var(--ink-500);
+}
+
+/* A labelled qualifier: "Phone · Yoruba" on its own is not a sentence. */
+.personPreference {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-8);
+  align-items: flex-start;
+  margin-top: var(--space-4);
+}
+
+.personPreferenceLabel {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+}
+
+.personPreferenceValue {
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+/* Several people under one label, ruled between so two never read as one. */
+.personList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.personList > li + li {
+  padding-top: var(--space-16);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ------------------------------------------------------------------ plans */
+
+.planText {
+  display: block;
+  max-width: 78ch;
+  color: var(--ink-900);
+}
+
+.documentLink {
+  display: inline-block;
+  margin-top: var(--space-4);
+  color: var(--purple-600);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-semibold);
+  text-decoration: underline;
+}

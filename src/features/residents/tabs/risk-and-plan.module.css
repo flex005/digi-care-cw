@@ -1,0 +1,345 @@
+/**
+ * The Risk Assessments and Care Plan tabs of a resident's record.
+ *
+ * Cards on the grey page, a flex column between them. The Admin build laid its
+ * rows out on a four-track grid; Figma has no grid, so each row is a wrapping
+ * flex row whose cells hold a basis and stack below 1024px.
+ */
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+/* ------------------------------------------------------------------ figures */
+
+.figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-24);
+  align-items: center;
+  margin-bottom: var(--space-16);
+}
+
+.lead {
+  display: flex;
+  gap: var(--space-16);
+  align-items: flex-start;
+  min-width: 0;
+  padding: var(--space-16) var(--space-20);
+  border-radius: var(--radius-lg);
+}
+
+/*
+ * A count of what nobody has recorded, so the hatch is its surface. Composes
+ * the treatment rather than the panel box: the panel is a column, and this is a
+ * figure beside its sentence.
+ */
+.leadGap {
+  composes: unrecorded from '../../../styles/unrecorded.module.css';
+  composes: lead;
+}
+
+/* A zero is a finding, not a gap. Plain, and never green. */
+.leadPlain {
+  composes: lead;
+  background-color: var(--bg-page);
+  color: var(--ink-900);
+}
+
+/* A share of the row beside its second figure. Only in a row: in a column the
+   same basis became a 320px height. */
+.figures > .lead,
+.figures > .leadGap,
+.figures > .leadPlain {
+  flex: 1 1 320px;
+}
+
+.leadFigure {
+  font-size: var(--text-figure-size);
+  line-height: var(--text-figure-line);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.leadBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  padding-top: var(--space-4);
+}
+
+.leadTitle {
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-bold);
+}
+
+.leadDetail {
+  max-width: 62ch;
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+}
+
+.figurePlain {
+  flex: 0 1 auto;
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.figureFinding {
+  composes: figurePlain;
+  color: var(--status-critical-ink);
+}
+
+.figureValue {
+  font-size: var(--text-h1-size);
+  line-height: var(--text-h1-line);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  max-width: 72ch;
+  margin-bottom: var(--space-16);
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.act {
+  display: flex;
+}
+
+.banner {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--space-8);
+}
+
+/* ------------------------------------------------------------------ owed reviews */
+
+.owed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-12) var(--space-16);
+  border: 1px solid var(--status-critical);
+  border-left-width: var(--space-4);
+  border-radius: var(--radius-md);
+  background-color: var(--status-critical-tint);
+  color: var(--status-critical-ink);
+}
+
+.owedTitle {
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-bold);
+}
+
+.owedItem {
+  font-size: var(--text-caption-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* ------------------------------------------------------------------ rows */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-20);
+  align-items: center;
+  padding-block: var(--space-12);
+}
+
+.domain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding-bottom: var(--space-12);
+}
+
+.list > .row + .row,
+.domain + .domain {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.rowAbout {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.rowName {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-semibold);
+}
+
+.rowMeta {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+/*
+ * The resident's own sentence. Their voice on the list rather than a clinical
+ * summary of it, and absent where nothing has been signed.
+ */
+.rowQuote {
+  max-width: 60ch;
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-style: italic;
+}
+
+.rowSupport {
+  display: flex;
+  margin-top: var(--space-4);
+}
+
+.rowState {
+  display: flex;
+  flex: 0 1 280px;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.rowLevel {
+  display: flex;
+  flex: 0 1 160px;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+/* Signed, in date or approaching it: plain text, no chip. */
+.settled {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+}
+
+.settledDetail {
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-regular);
+}
+
+/* Only the date takes the caution ink, and the words name it. */
+.settledDueSoon {
+  color: var(--status-caution-ink);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-semibold);
+}
+
+/* ------------------------------------------------------------------ reading */
+
+.reading {
+  display: flex;
+  flex-direction: column;
+}
+
+.readingBody {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16) var(--space-24);
+  padding-top: var(--space-8);
+}
+
+.version {
+  display: flex;
+  flex: 1 1 280px;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.versionTitle {
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-bold);
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  margin: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.fieldLabel {
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.fieldText {
+  display: flex;
+  margin: 0;
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+@media (width < 1024px) {
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rowAbout,
+  .rowState,
+  .rowLevel {
+    flex: 0 0 auto;
+  }
+
+  .lead {
+    flex-basis: 100%;
+    padding: var(--space-12) var(--space-16);
+  }
+}

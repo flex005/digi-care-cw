@@ -24,7 +24,9 @@ import IconArrowsSharp_ArrowUp01Sharp from '@/assets/icons-generated/arrows-shar
 import IconBusinessAndFinance_Target01 from '@/assets/icons-generated/business-and-finance/target-01.svg?react'
 import IconCheckValidation_CheckmarkBadge01 from '@/assets/icons-generated/check-validation/checkmark-badge-01.svg?react'
 import IconCheckValidation_Tick02 from '@/assets/icons-generated/check-validation/tick-02.svg?react'
+import IconCommunications_Call from '@/assets/icons-generated/communications/call.svg?react'
 import IconDashboard_DashboardSquare01 from '@/assets/icons-generated/dashboard/dashboard-square-01.svg?react'
+import IconDateAndTime_CalendarRemove01 from '@/assets/icons-generated/date-and-time/calendar-remove-01.svg?react'
 import IconDateAndTime_Clock01 from '@/assets/icons-generated/date-and-time/clock-01.svg?react'
 import IconEditFormatting_Swatch from '@/assets/icons-generated/edit-formatting/swatch.svg?react'
 import IconEditFormatting_View from '@/assets/icons-generated/edit-formatting/view.svg?react'
@@ -40,12 +42,13 @@ import IconMoreMenu_MoreHorizontal from '@/assets/icons-generated/more-menu/more
 import IconNoteTask_Note01 from '@/assets/icons-generated/note-task/note-01.svg?react'
 import IconNoteTask_Note03 from '@/assets/icons-generated/note-task/note-03.svg?react'
 import IconNoteTask_NoteRemove from '@/assets/icons-generated/note-task/note-remove.svg?react'
+import IconSearch_Search02 from '@/assets/icons-generated/search/search-02.svg?react'
 import IconUsers_UserCircle from '@/assets/icons-generated/users/user-circle.svg?react'
 import IconUsers_UserMultiple from '@/assets/icons-generated/users/user-multiple.svg?react'
 import IconUsers_UserSwitch from '@/assets/icons-generated/users/user-switch.svg?react'
 
 /**
- * Only the 33 icons actually used in source. Importing all of them
+ * Only the 36 icons actually used in source. Importing all of them
  * would compile every icon in the set into the bundle.
  *
  * Partial because it is keyed by the full IconName union. A missing entry
@@ -69,7 +72,9 @@ export const iconRegistry: Partial<
   'business-and-finance/target-01': IconBusinessAndFinance_Target01,
   'check-validation/checkmark-badge-01': IconCheckValidation_CheckmarkBadge01,
   'check-validation/tick-02': IconCheckValidation_Tick02,
+  'communications/call': IconCommunications_Call,
   'dashboard/dashboard-square-01': IconDashboard_DashboardSquare01,
+  'date-and-time/calendar-remove-01': IconDateAndTime_CalendarRemove01,
   'date-and-time/clock-01': IconDateAndTime_Clock01,
   'edit-formatting/swatch': IconEditFormatting_Swatch,
   'edit-formatting/view': IconEditFormatting_View,
@@ -85,6 +90,7 @@ export const iconRegistry: Partial<
   'note-task/note-01': IconNoteTask_Note01,
   'note-task/note-03': IconNoteTask_Note03,
   'note-task/note-remove': IconNoteTask_NoteRemove,
+  'search/search-02': IconSearch_Search02,
   'users/user-circle': IconUsers_UserCircle,
   'users/user-multiple': IconUsers_UserMultiple,
   'users/user-switch': IconUsers_UserSwitch,

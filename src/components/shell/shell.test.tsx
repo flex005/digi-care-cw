@@ -38,21 +38,18 @@ const renderAs = (id: string, ui: React.ReactNode) =>
   )
 
 describe('the icon rail', () => {
-  it('lists every module as an icon named for it, links the built one and marks the rest not built', async () => {
+  it('lists every module as an icon named for it, links the built ones and marks the rest not built', async () => {
     renderAs(staffEze.id, <Rail />)
     const nav = await screen.findByRole('navigation', { name: 'Main navigation' })
 
     const specimens = within(nav).getByRole('link', { name: 'Specimens' })
     expect(specimens.getAttribute('href')).toBe('/specimens')
     expect(specimens.getAttribute('aria-current')).toBe('page')
+    expect(
+      within(nav).getByRole('link', { name: 'Residents' }).getAttribute('href'),
+    ).toBe('/residents')
 
-    for (const label of [
-      'Today',
-      'Residents',
-      'Care notes',
-      'Medications',
-      'Documents',
-    ]) {
+    for (const label of ['Today', 'Care notes', 'Medications', 'Documents']) {
       const entry = within(nav).getByRole('button', { name: `${label}, not built` })
       expect(entry.getAttribute('data-built')).toBe('false')
     }

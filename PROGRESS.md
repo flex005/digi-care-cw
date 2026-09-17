@@ -205,7 +205,7 @@ The Admin build's Team and invitation screens were screenshotted with the new fi
 
 ---
 
-## Proposed: how this build says what a role can do (17/09/2026, not built)
+## How this build says what a role can do (proposed 17/09/2026, approved and built in Phase 2)
 
 The CW PRD's role table is the authority for care worker and senior carer access. The Admin build's shape (a level per module) cannot hold what those roles do, so this build needs its own. Proposed here, before anything depends on it.
 
@@ -250,3 +250,32 @@ What each part is for:
 - **Kept to one file, and guarded.** A check fails on `'care_worker'` or `'senior_carer'` in any screen, so no role rule can escape the file. The CW PRD is a draft; this is what makes a disputed row one edit.
 
 It replaces today's `CARE_ACTS`, which says only holds or refused, and folds `resident-scope.ts` in as the reach half of the answer.
+
+---
+
+## Phase 2: the resident record, read side (17/09/2026)
+
+**What was built.** The role table in its approved shape (`capabilities.ts`: per act, per role, a grant with its reach, confirmation, completion and source; `answerFor` and `useViewer().ask`), and `check-role-names.mjs`. The residents list (RES-01). A resident's record (RES-02, RES-03): the head, the five risk flags, the tab strip with gap words, eight read-only tabs, and three tabs that open to the phase that builds them. Departures are in `docs/DEPARTURES.md`, under Resident record.
+
+**How.** The list, the record's frame and the role table were written here; the eight tabs were ported from the Admin build by four agents in parallel, each owning its own files, then merged (their two copies of the field list became one) and reviewed by screenshot: both roles, 1440 and 390, colour and greyscale, 108 captures.
+
+**The role table, and the silences it keeps.** Where Table 3 says only "Can" for a care worker, the reach is `not_stated`, and a screen that reaches it draws the question rather than an answer: recording a dose, reporting an incident, adding a goal progress note, recording attendance, and updating handover status. Where it says only "Can" for a senior carer, the reach is the viewer's list, which for a senior carer is the whole home by Table 3's first row, so there is nothing narrower to be silent about. **One row reads against itself and is left for Phase 4**: "countersign controlled drugs: Both must be Senior+" says the first signer of a controlled drug is a senior carer, and the row above lets a care worker record a dose. The table records both as written.
+
+**The guard's limit.** `check-role-names` fails on either role's name and on a comparison against `.role` or `.roleName`. Its success line would still print over `viewer.roleName.includes('Senior')`, or over a map keyed by the words "Senior carer". Those are review questions, written down as such.
+
+### Found on the way
+
+- **Search did not work in the Admin build's hook, and worked here by accident.** `useResidentFilters` memoises the visible rows on everything but the search text. In the Admin build the list it filters keeps its identity between renders, so typing changes nothing; here the list was rebuilt on every render, which recomputed the memo and hid the bug. Memoising the list for an unrelated reason would have broken search silently. Fixed with the dependency and a test that fails without it. **The Admin build's copy is not fixed**: it is the same line, and changing it is that build's commit.
+- **`RequireSignIn` carried `?from=` and nothing read it.** Its docblock said signing in lands where the reader was going; it landed on the start page. The sign-in screen now reads the parameter as it mounts and the pending sign-in carries it through the code and the choice of home, only ever to a page in this product. The same shape as `?timeout=` in Phase 1: a value in the address read after the navigation that dropped it, here read by nobody at all.
+- **The placeholder-instrument notice was drawn in the hatch.** The Admin build argued a missing validated instrument is an absence. Here the hatch means nobody has recorded something and appears nowhere else, and the assessments under the notice were recorded; it is now a statement in the info tint.
+- **Two cards had no head and so no expand button**, holding only the edit act. The act now sits on the page above the first card on every tab that has no head card of its own.
+- **Default list bullets** after every tab name and in the risk flags: a list without `role="list"` keeps its markers in the reset. The screenshot script now reports any list still drawing them.
+- **The Care Plan's lead figure was 320px tall**: a flex basis written for a row, applied inside a column.
+- From the tab ports, departures from the Admin build rather than the PRD: the box listing what withdrawing a consent did not undo is not hatched (its items are counted facts; only the uncounted one keeps the hatch); a zero among the documents and risk figures is plain rather than red, amber or hatched; the expiring-document finding has no border in the caution fill.
+
+### Open
+
+- **Care plan counts ignore the home's domain settings**, as in the Admin build. Risk assessments and consent count over what the home asks; if a retired domain should leave the Care Plan count, that belongs in `record-gaps.ts` beside the other two.
+- **`ConsentBadge` names a pending request's asker by `displayName`**, so a deactivated person would show without "(deactivated)". Shared with the Admin build.
+- **At 1440 the tab strip shows nine of eleven tabs** and scrolls for the rest, with no mark that it does. The tab you are on is always scrolled into view.
+- **A draft over a signed care plan version** renders and is not reached by any fixture.

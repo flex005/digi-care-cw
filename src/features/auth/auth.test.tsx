@@ -99,6 +99,28 @@ describe('signing in', () => {
     expect(router.push).not.toHaveBeenCalled()
   })
 
+  it('carries where the reader was going from the address it arrived in', () => {
+    window.history.replaceState(null, '', '/sign-in?from=%2Fresidents%2Fres-okafor')
+    const seen: string[] = []
+    function Peek() {
+      const { pending } = useSession()
+      if (pending.kind === 'awaiting_code') seen.push(pending.destination)
+      return null
+    }
+    const { container } = wrap(
+      <>
+        <SignInRoute />
+        <Peek />
+      </>,
+    )
+    // The address changes before Log in, as it would once the page had moved on.
+    window.history.replaceState(null, '', '/sign-in')
+    fireEvent.click(container.querySelector(`[data-sign-in-as="${staffEze.id}"]`)!)
+    fireEvent.click(screen.getByRole('button', { name: 'Log in' }))
+    expect(seen.at(-1)).toBe('/residents/res-okafor')
+    window.history.replaceState(null, '', '/')
+  })
+
   it('sends a recognised person to the code step, and offers nobody without live access', () => {
     const { container } = wrap(<SignInRoute />)
     expect(container.querySelector(`[data-sign-in-as="${staffPrice.id}"]`)).toBeNull()
@@ -112,19 +134,27 @@ describe('signing in', () => {
 })
 
 /** Puts a sign-in part-way through, as the sign-in screen would have. */
-function Awaiting({ id, children }: { id: string; children: React.ReactNode }) {
+function Awaiting({
+  id,
+  destination = '/',
+  children,
+}: {
+  id: string
+  destination?: string
+  children: React.ReactNode
+}) {
   const { pending, awaitCode } = useSession()
   useEffect(() => {
     if (pending.kind === 'none')
-      awaitCode(memberById(id)!, 'someone@example', 'sign_in')
-  }, [pending.kind, awaitCode, id])
+      awaitCode(memberById(id)!, 'someone@example', 'sign_in', destination)
+  }, [pending.kind, awaitCode, id, destination])
   return pending.kind === 'awaiting_code' ? <>{children}</> : null
 }
 
 describe('the code step', () => {
-  const verify = async (id: string) => {
+  const verify = async (id: string, destination = '/') => {
     const { container } = wrap(
-      <Awaiting id={id}>
+      <Awaiting id={id} destination={destination}>
         <CodeStep purpose="sign_in" />
       </Awaiting>,
     )
@@ -152,6 +182,11 @@ describe('the code step', () => {
   it('signs somebody at one home straight in', async () => {
     await verify(staffEze.id)
     expect(router.replace).toHaveBeenCalledWith('/')
+  })
+
+  it('lands where the reader was going before the sign-in gate stopped them', async () => {
+    await verify(staffEze.id, '/residents/res-okafor/consent')
+    expect(router.replace).toHaveBeenCalledWith('/residents/res-okafor/consent')
   })
 
   it('sends somebody at two homes to choose one', async () => {

@@ -1,212 +1,411 @@
-import type { StaffMember, StaffRole } from '@/data/types'
+import type { ResidentId } from '@/data/types'
+import { assertNever } from '@/lib/assert-never'
+import { scopeReaches, type ResidentScope } from './resident-scope'
+import type { SignInRole } from './roles'
+
+export { SIGN_IN_ROLES, isSignInRole, signInRoleOf, type SignInRole } from './roles'
 
 /**
- * The two roles that sign into this product.
+ * Whether a role may perform an act, and over which residents.
  *
- * Every other role in the fixtures (managers, the auditor, the activities
- * coordinator) appears here only as a subject: an author on a record, the
- * person who set a goal. None of them signs in, and no branch in this build
- * exists for them.
- */
-export const SIGN_IN_ROLES = ['care_worker', 'senior_carer'] as const
-export type SignInRole = (typeof SIGN_IN_ROLES)[number]
-
-export const isSignInRole = (role: StaffRole): role is SignInRole =>
-  (SIGN_IN_ROLES as readonly StaffRole[]).includes(role)
-
-/** The role of somebody signed in, narrowed. Throws for a role that cannot sign in. */
-export function signInRoleOf(member: StaffMember): SignInRole {
-  if (!isSignInRole(member.role))
-    throw new Error(
-      `${member.ref.fullName} holds the role ${member.role}, which does not sign into the Care Worker product.`,
-    )
-  return member.role
-}
-
-/**
- * Whether a role may perform an act, and if not, the one line that says why.
+ * **`over` is where "assigned residents only" lives**, which a level per module
+ * cannot hold:
  *
- * **The reason is part of the answer, not decoration added by a screen.** Where
+ * - `your_list`: the residents the viewer can see, their `ResidentScope`. For a
+ *   senior carer that is every resident at the home; for a care worker it is
+ *   the residents somebody gave them.
+ * - `every_resident`: every resident at the home, whatever the viewer's list.
+ * - `no_resident`: the act is about the home, not a person (the controlled drug
+ *   register, signing a handover).
+ * - `not_stated`: **the PRD says the role may, and does not say over whom.** A
+ *   screen reaching this has found a question for review, not a default. Where
+ *   Table 3 says only "Can" for a senior carer, the answer is `your_list`
+ *   without a question, because Table 3's first row gives a senior carer the
+ *   whole home and there is no narrower list to be silent about. For a care
+ *   worker there is.
+ *
+ * **The refusal is part of the answer, not decoration added by a screen.** Where
  * a refused act is drawn at all, it is drawn with this line at the point of the
- * act, and a screen that wrote its own would be a second owner of a fact that
+ * act, and a screen writing its own would be a second owner of a fact that
  * belongs to the role table.
  */
-export type Holding = { kind: 'holds' } | { kind: 'refused'; reason: string }
+export type Grant =
+  | { kind: 'may'; over: 'your_list' | 'every_resident' | 'no_resident' | 'not_stated' }
+  | { kind: 'may_not'; reason: string; whoDoes: WhoDoes }
 
-const holds: Holding = { kind: 'holds' }
-const refused = (reason: string): Holding => ({ kind: 'refused', reason })
+export type WhoDoes =
+  'senior_carer' | 'manager' | 'clinician_or_manager' | 'manager_or_admin' | 'admin'
+
+/**
+ * Whether finishing the act needs somebody else.
+ *
+ * **One signature is half a record, not a finished one.** A handover signed by
+ * one shift and a controlled drug witnessed by one person are both incomplete,
+ * and a screen can only draw that if the act says so.
+ */
+export type Completion =
+  | { kind: 'done_when_done' }
+  | {
+      kind: 'needs_a_second_signature'
+      by: 'the_other_shift' | 'a_second_senior_witness'
+      /** Whether every instance needs one, or only a controlled drug. */
+      when: 'always' | 'controlled_drug'
+    }
+  | { kind: 'handed_on'; next: string; by: 'manager' }
+
+/** Where a rule came from, so a row that moves on review is found by name. */
+export type Source =
+  { kind: 'role_table'; row: string } | { kind: 'screen'; screen: string; says: string }
 
 export interface CareAct {
-  /** What the act is, as the role table names it. */
+  /** What the act is, as a person would say it. */
   name: string
-  care_worker: Holding
-  senior_carer: Holding
+  source: Source
+  care_worker: Grant
+  senior_carer: Grant
   /**
-   * Confirmed with the person's medication PIN.
-   *
    * **The name is the medication PIN, and it signs more than medication.** It
    * is chosen by the person at account setup, and it also signs a handover and
    * a risk assessment. The Admin build's "signing code" was a different thing,
    * derived from a staff id, and is not this.
    */
-  confirmedWithMedicationPin: boolean
+  confirmation: 'none' | 'medication_pin'
+  completion: Completion
 }
+
+const may = (over: Extract<Grant, { kind: 'may' }>['over']): Grant => ({
+  kind: 'may',
+  over,
+})
+const mayNot = (reason: string, whoDoes: WhoDoes): Grant => ({
+  kind: 'may_not',
+  reason,
+  whoDoes,
+})
+const row = (name: string): Source => ({ kind: 'role_table', row: name })
+const done: Completion = { kind: 'done_when_done' }
 
 /**
  * **The authority is the Care Worker PRD's role table**, over the Admin build's
  * permission table, decided 17/09/2026 (CLAUDE.md, Scope). **And it is a draft**:
  * "For Design and Engineering Review", with no approvers named. Every role rule
- * lives here so a row that moves on review moves in one place.
+ * lives here, and `check-role-names.mjs` fails the build if a screen names a
+ * role, so a row that moves on review moves in one place.
  *
- * The Care Worker PRD's role table, Table 3, row by row, plus the two rows its
- * screen specifications add: viewing the controlled drug register (MED-03) and
- * updating a resident's handover status (HO-01).
- *
- * **Which residents a role reaches is not here.** "Assigned only" and "all
- * residents" are a scope, and scope has one owner: `resident-scope.ts`.
+ * Table 3 row by row, with the rows it holds together split where they are two
+ * acts ("acknowledge or close", "create or close"), and the acts the screen
+ * specifications add, each naming its screen.
  */
 export const CARE_ACTS = {
+  open_resident_record: {
+    name: 'Open a resident’s record',
+    source: row('Dashboard — view all residents'),
+    care_worker: may('your_list'),
+    senior_carer: may('every_resident'),
+    confirmation: 'none',
+    completion: done,
+  },
   edit_resident_profile: {
     name: 'Edit a resident’s profile',
-    care_worker: refused('A manager or an admin edits a resident’s profile.'),
-    senior_carer: refused('A manager or an admin edits a resident’s profile.'),
-    confirmedWithMedicationPin: false,
+    source: row('Residents — edit profile'),
+    care_worker: mayNot(
+      'A manager or an admin edits a resident’s profile.',
+      'manager_or_admin',
+    ),
+    senior_carer: mayNot(
+      'A manager or an admin edits a resident’s profile.',
+      'manager_or_admin',
+    ),
+    confirmation: 'none',
+    completion: done,
   },
   write_care_note: {
     name: 'Write a care note',
-    care_worker: holds,
-    senior_carer: holds,
-    confirmedWithMedicationPin: false,
+    source: row('Care Notes — write'),
+    care_worker: may('your_list'),
+    senior_carer: may('every_resident'),
+    confirmation: 'none',
+    completion: done,
   },
   mark_flagged_note_reviewed: {
     name: 'Mark a flagged care note reviewed',
-    care_worker: refused('Marking a flagged note reviewed is for a senior carer.'),
-    senior_carer: holds,
-    confirmedWithMedicationPin: false,
+    source: row('Care Notes — mark flagged reviewed'),
+    care_worker: mayNot(
+      'Marking a flagged note reviewed is for a senior carer.',
+      'senior_carer',
+    ),
+    senior_carer: may('your_list'),
+    confirmation: 'none',
+    completion: done,
   },
   write_care_plan: {
     name: 'Write or finalise a care plan',
-    care_worker: refused('A manager writes and finalises the care plan.'),
-    senior_carer: refused('A manager writes and finalises the care plan.'),
-    confirmedWithMedicationPin: false,
+    source: row('Care Plan — view'),
+    care_worker: mayNot('A manager writes and finalises the care plan.', 'manager'),
+    senior_carer: mayNot('A manager writes and finalises the care plan.', 'manager'),
+    confirmation: 'none',
+    completion: done,
   },
   update_handover_status: {
     name: 'Update a resident’s handover status',
-    care_worker: holds,
-    senior_carer: holds,
-    confirmedWithMedicationPin: false,
+    source: {
+      kind: 'screen',
+      screen: 'HO-01',
+      says: 'both roles update a resident’s status on the board',
+    },
+    care_worker: may('not_stated'),
+    senior_carer: may('your_list'),
+    confirmation: 'none',
+    completion: done,
   },
   sign_handover: {
     name: 'Sign a handover',
-    care_worker: refused('Signing a handover is for a senior carer.'),
-    senior_carer: holds,
-    confirmedWithMedicationPin: true,
+    source: row('Handover — sign off'),
+    care_worker: mayNot('Signing a handover is for a senior carer.', 'senior_carer'),
+    senior_carer: may('no_resident'),
+    confirmation: 'medication_pin',
+    completion: {
+      kind: 'needs_a_second_signature',
+      by: 'the_other_shift',
+      when: 'always',
+    },
   },
   record_medication: {
     name: 'Record a dose given, not given or PRN',
-    care_worker: holds,
-    senior_carer: holds,
-    confirmedWithMedicationPin: true,
+    source: row('Medications — record Given/Not Given/PRN'),
+    care_worker: may('not_stated'),
+    senior_carer: may('your_list'),
+    confirmation: 'medication_pin',
+    completion: {
+      kind: 'needs_a_second_signature',
+      by: 'a_second_senior_witness',
+      when: 'controlled_drug',
+    },
   },
   view_controlled_drug_register: {
     name: 'View the controlled drug register',
-    care_worker: refused('The controlled drug register is for senior carers.'),
-    senior_carer: holds,
-    confirmedWithMedicationPin: false,
+    source: {
+      kind: 'screen',
+      screen: 'MED-03',
+      says: 'the register is for senior carers',
+    },
+    care_worker: mayNot(
+      'The controlled drug register is for senior carers.',
+      'senior_carer',
+    ),
+    senior_carer: may('no_resident'),
+    confirmation: 'none',
+    completion: done,
   },
   countersign_controlled_drug: {
     name: 'Countersign a controlled drug as second witness',
-    care_worker: refused('Countersigning a controlled drug is for a senior carer.'),
-    senior_carer: holds,
-    confirmedWithMedicationPin: true,
+    source: row('Medications — countersign controlled drugs'),
+    care_worker: mayNot(
+      'Countersigning a controlled drug is for a senior carer.',
+      'senior_carer',
+    ),
+    senior_carer: may('your_list'),
+    confirmation: 'medication_pin',
+    completion: done,
   },
   add_interim_medication: {
     name: 'Add an interim medication',
-    care_worker: refused('Only a clinician or a manager adds an interim medication.'),
-    senior_carer: refused('Only a clinician or a manager adds an interim medication.'),
-    confirmedWithMedicationPin: false,
+    source: row('Medications — add interim'),
+    care_worker: mayNot(
+      'Only a clinician or a manager adds an interim medication.',
+      'clinician_or_manager',
+    ),
+    senior_carer: mayNot(
+      'Only a clinician or a manager adds an interim medication.',
+      'clinician_or_manager',
+    ),
+    confirmation: 'none',
+    completion: done,
   },
   report_incident: {
     name: 'Report an incident',
-    care_worker: holds,
-    senior_carer: holds,
-    confirmedWithMedicationPin: false,
+    source: row('Incidents — report'),
+    care_worker: may('not_stated'),
+    senior_carer: may('your_list'),
+    confirmation: 'none',
+    completion: done,
   },
   acknowledge_incident: {
     name: 'Acknowledge an incident',
-    care_worker: refused('Acknowledging an incident is for a senior carer.'),
-    senior_carer: holds,
-    confirmedWithMedicationPin: false,
+    source: row('Incidents — acknowledge or close'),
+    care_worker: mayNot(
+      'Acknowledging an incident is for a senior carer.',
+      'senior_carer',
+    ),
+    senior_carer: may('your_list'),
+    confirmation: 'none',
+    completion: { kind: 'handed_on', next: 'closing it', by: 'manager' },
   },
   close_incident: {
     name: 'Close an incident',
-    care_worker: refused('A manager closes an incident.'),
-    senior_carer: refused('A manager closes an incident.'),
-    confirmedWithMedicationPin: false,
+    source: row('Incidents — acknowledge or close'),
+    care_worker: mayNot('A manager closes an incident.', 'manager'),
+    senior_carer: mayNot('A manager closes an incident.', 'manager'),
+    confirmation: 'none',
+    completion: done,
   },
   score_risk_assessment: {
     name: 'Score or re-score a risk assessment',
-    care_worker: refused('Scoring a risk assessment is for a senior carer.'),
-    senior_carer: holds,
-    confirmedWithMedicationPin: true,
+    source: row('Risk Assessments — score/re-score'),
+    care_worker: mayNot(
+      'Scoring a risk assessment is for a senior carer.',
+      'senior_carer',
+    ),
+    senior_carer: may('your_list'),
+    confirmation: 'medication_pin',
+    completion: done,
   },
   conduct_review: {
     name: 'Conduct a review',
-    care_worker: refused('Conducting a review is for a senior carer.'),
-    senior_carer: holds,
-    confirmedWithMedicationPin: false,
+    source: row('Reviews — conduct'),
+    care_worker: mayNot('Conducting a review is for a senior carer.', 'senior_carer'),
+    senior_carer: may('your_list'),
+    confirmation: 'none',
+    completion: done,
   },
   add_goal_progress_note: {
     name: 'Add a goal progress note',
-    care_worker: holds,
-    senior_carer: holds,
-    confirmedWithMedicationPin: false,
+    source: row('Goals — add progress note'),
+    care_worker: may('not_stated'),
+    senior_carer: may('your_list'),
+    confirmation: 'none',
+    completion: done,
   },
   set_or_close_goal: {
     name: 'Create or close a goal',
-    care_worker: refused('A manager sets and closes goals.'),
-    senior_carer: refused('A manager sets and closes goals.'),
-    confirmedWithMedicationPin: false,
+    source: row('Goals — create or close'),
+    care_worker: mayNot('A manager sets and closes goals.', 'manager'),
+    senior_carer: mayNot('A manager sets and closes goals.', 'manager'),
+    confirmation: 'none',
+    completion: done,
   },
   record_attendance: {
     name: 'Record activity attendance',
-    care_worker: holds,
-    senior_carer: holds,
-    confirmedWithMedicationPin: false,
+    source: row('Activities — record attendance'),
+    care_worker: may('not_stated'),
+    senior_carer: may('your_list'),
+    confirmation: 'none',
+    completion: done,
   },
   create_activity_session: {
     name: 'Create an activity session',
-    care_worker: refused('Creating a session is for a senior carer.'),
-    senior_carer: holds,
-    confirmedWithMedicationPin: false,
+    source: row('Activities — create session'),
+    care_worker: mayNot('Creating a session is for a senior carer.', 'senior_carer'),
+    senior_carer: may('no_resident'),
+    confirmation: 'none',
+    completion: done,
   },
   record_consent: {
     name: 'Record a consent decision',
-    care_worker: refused('Recording consent is for a senior carer.'),
-    senior_carer: holds,
-    confirmedWithMedicationPin: false,
+    source: row('Consent — record'),
+    care_worker: mayNot('Recording consent is for a senior carer.', 'senior_carer'),
+    senior_carer: may('your_list'),
+    confirmation: 'none',
+    completion: done,
   },
   upload_document: {
     name: 'Upload a document',
-    care_worker: refused('Uploading a document is for a senior carer.'),
-    senior_carer: holds,
-    confirmedWithMedicationPin: false,
+    source: row('Documents — upload'),
+    care_worker: mayNot('Uploading a document is for a senior carer.', 'senior_carer'),
+    senior_carer: may('your_list'),
+    confirmation: 'none',
+    completion: done,
   },
   open_compliance_and_reports: {
     name: 'Open compliance and reports',
-    care_worker: refused('Compliance and reports are for managers.'),
-    senior_carer: refused('Compliance and reports are for managers.'),
-    confirmedWithMedicationPin: false,
+    source: row('Compliance and Reports'),
+    care_worker: mayNot('Compliance and reports are for managers.', 'manager'),
+    senior_carer: mayNot('Compliance and reports are for managers.', 'manager'),
+    confirmation: 'none',
+    completion: done,
   },
   open_settings_and_team: {
     name: 'Open settings and team management',
-    care_worker: refused('Settings and team management are for an admin.'),
-    senior_carer: refused('Settings and team management are for an admin.'),
-    confirmedWithMedicationPin: false,
+    source: row('Settings / Team Management'),
+    care_worker: mayNot('Settings and team management are for an admin.', 'admin'),
+    senior_carer: mayNot('Settings and team management are for an admin.', 'admin'),
+    confirmation: 'none',
+    completion: done,
   },
 } as const satisfies Record<string, CareAct>
 
 export type CareActId = keyof typeof CARE_ACTS
 
-export const holdingFor = (role: SignInRole, act: CareActId): Holding =>
-  CARE_ACTS[act][role]
+/**
+ * What a screen is told when it asks whether the viewer may act.
+ *
+ * **In terms a screen can draw, never a role.** A screen that received the role
+ * would have to decide what the role means, and that decision would then live
+ * in the screen.
+ */
+export type Answer =
+  | { kind: 'yes'; confirmation: CareAct['confirmation']; completion: Completion }
+  /** The role cannot. `reason` is the one line drawn at the act. */
+  | { kind: 'not_your_role'; reason: string }
+  /** The role can, and this resident is not on the viewer's list. Scope, never blame. */
+  | { kind: 'not_on_your_list' }
+  /** The role can over a list, and nobody has given this viewer one. */
+  | { kind: 'no_list_yet' }
+  /**
+   * The role can, and the PRD does not say over which residents. `question` is
+   * written for review, and a screen draws it rather than choosing an answer.
+   */
+  | { kind: 'not_stated'; question: string }
+
+/** What an act is asked about: one resident, or the role alone. */
+export type Subject = { kind: 'resident'; id: ResidentId } | { kind: 'role_only' }
+
+/**
+ * Whether a viewer with this role and this scope may perform an act.
+ *
+ * Asked about `role_only`, it answers for the role: a button on a list that
+ * opens nothing yet. Asked about a resident, it answers for that resident, and
+ * that is the answer to draw at the act.
+ */
+export function answerFor(
+  role: SignInRole,
+  scope: ResidentScope,
+  act: CareActId,
+  subject: Subject,
+): Answer {
+  const declared: CareAct = CARE_ACTS[act]
+  const grant = declared[role]
+  if (grant.kind === 'may_not') return { kind: 'not_your_role', reason: grant.reason }
+
+  const yes: Answer = {
+    kind: 'yes',
+    confirmation: declared.confirmation,
+    completion: declared.completion,
+  }
+  if (subject.kind === 'role_only') return yes
+
+  switch (grant.over) {
+    case 'every_resident':
+      return yes
+    case 'no_resident':
+      throw new Error(
+        `${declared.name} is not an act on a resident, and was asked about ${subject.id}.`,
+      )
+    case 'not_stated':
+      return {
+        kind: 'not_stated',
+        question: `The PRD lets a ${ROLE_WORDS[role]} “${declared.name}” and does not say for which residents.`,
+      }
+    case 'your_list':
+      if (scope.kind === 'not_decided') return { kind: 'no_list_yet' }
+      return scopeReaches(scope, subject.id) ? yes : { kind: 'not_on_your_list' }
+    default:
+      return assertNever(grant.over)
+  }
+}
+
+/** How a role is said inside a sentence. Only this file's questions use it. */
+const ROLE_WORDS: Record<SignInRole, string> = {
+  care_worker: 'care worker',
+  senior_carer: 'senior carer',
+}

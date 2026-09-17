@@ -34,6 +34,38 @@ export const ROUTES: RouteDeclaration[] = [
   { path: '/invitation/[staffId]/verify', screen: 'invitationVerify', inShell: false },
   { path: '/sign-out', screen: 'signOut', inShell: true },
   { path: '/', screen: 'home', inShell: true },
+  { path: '/residents', screen: 'residents', module: 'residents', inShell: true },
+  { path: '/residents/[residentId]', screen: 'residentGeneral', inShell: true },
+  { path: '/residents/[residentId]/needs', screen: 'residentNeeds', inShell: true },
+  { path: '/residents/[residentId]/people', screen: 'residentPeople', inShell: true },
+  {
+    path: '/residents/[residentId]/future-plans',
+    screen: 'residentFuturePlans',
+    inShell: true,
+  },
+  { path: '/residents/[residentId]/notes', screen: 'residentNotes', inShell: true },
+  {
+    path: '/residents/[residentId]/medications',
+    screen: 'residentMedications',
+    inShell: true,
+  },
+  {
+    path: '/residents/[residentId]/risk-assessments',
+    screen: 'residentRisk',
+    inShell: true,
+  },
+  {
+    path: '/residents/[residentId]/care-plan',
+    screen: 'residentCarePlan',
+    inShell: true,
+  },
+  { path: '/residents/[residentId]/goals', screen: 'residentGoals', inShell: true },
+  { path: '/residents/[residentId]/consent', screen: 'residentConsent', inShell: true },
+  {
+    path: '/residents/[residentId]/documents',
+    screen: 'residentDocuments',
+    inShell: true,
+  },
   { path: '/specimens', screen: 'specimens', module: 'specimens', inShell: true },
 ]
 

@@ -19,6 +19,7 @@ import {
   primaryAddress,
   signInPeople,
 } from './sign-in-people'
+import { destinationFrom } from './destination'
 import styles from './auth.module.css'
 
 const hhmm = (at: number) => {
@@ -51,11 +52,13 @@ export function SignInRoute() {
   const [address, setAddress] = useState('')
   const [password, setPassword] = useState('')
   const [refusal, setRefusal] = useState<Refusal>({ kind: 'none' })
+  /* Read as the screen mounts, while the address still carries it. */
+  const [destination] = useState(() => destinationFrom(window.location.search))
   const [, setTick] = useState(0)
 
   useEffect(() => {
-    if (signIn.kind === 'signed_in') router.replace('/')
-  }, [signIn.kind, router])
+    if (signIn.kind === 'signed_in') router.replace(destination)
+  }, [signIn.kind, router, destination])
 
   // A lock counts down, so the screen redraws while one is showing.
   useEffect(() => {
@@ -88,7 +91,7 @@ export function SignInRoute() {
       return
     }
     clearFailures(address)
-    awaitCode(person, address.trim().toLowerCase(), 'sign_in')
+    awaitCode(person, address.trim().toLowerCase(), 'sign_in', destination)
     router.push('/sign-in/code')
   }
 

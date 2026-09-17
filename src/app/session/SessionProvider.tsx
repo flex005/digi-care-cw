@@ -85,8 +85,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const awaitCode = useCallback(
-    (member: StaffMember, address: string, purpose: 'sign_in' | 'set_up_account') =>
-      setPending({ kind: 'awaiting_code', member, address, purpose }),
+    (
+      member: StaffMember,
+      address: string,
+      purpose: 'sign_in' | 'set_up_account',
+      destination: string,
+    ) => setPending({ kind: 'awaiting_code', member, address, purpose, destination }),
     [],
   )
 
@@ -95,14 +99,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const acceptCode = useCallback((): 'signed_in' | 'choosing_home' => {
     if (pending.kind !== 'awaiting_code')
       throw new Error('A code was accepted with no sign-in waiting for one.')
-    const { member } = pending
+    const { member, destination } = pending
     const theirs = configuredAll.filter((site) => member.siteIds.includes(site.id))
     const only = theirs[0]
     if (theirs.length === 1 && only !== undefined) {
       signInAs(member, only)
       return 'signed_in'
     }
-    setPending({ kind: 'choosing_home', member })
+    setPending({ kind: 'choosing_home', member, destination })
     return 'choosing_home'
   }, [pending, configuredAll, signInAs])
 

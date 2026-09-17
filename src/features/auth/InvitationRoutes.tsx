@@ -314,7 +314,7 @@ export function InvitationSetupRoute() {
                 grantedBy: invitation.invitedBy,
               })
               setMedicationPin(member.id, pin)
-              awaitCode(member, address, 'set_up_account')
+              awaitCode(member, address, 'set_up_account', '/')
               router.push(`/invitation/${member.id}/verify`)
             }}
             data-set-up-account

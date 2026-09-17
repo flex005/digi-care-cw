@@ -1,0 +1,64 @@
+/* The tab body beneath the profile head: cards on the grey page. */
+.tabPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+/* A section's banner, when it has one, above its fields. */
+.sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+.inlineList {
+  margin: 0;
+  padding-left: var(--space-20);
+}
+
+/* A person or a practice: the name, where they are, and the number to ring,
+   each on its own line so a number never wraps into the name beside it. */
+.contact {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.contactList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contactMeta {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.contactLink {
+  color: var(--purple-600);
+  font-weight: var(--weight-semibold);
+}
+
+.contactLink:hover {
+  text-decoration: underline;
+}
+
+.photoField {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  align-items: center;
+}
+
+.photoNote {
+  max-width: 44ch;
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}

@@ -10,13 +10,16 @@ import styles from './ActLine.module.css'
  * - `not_built`: the control is drawn and the act is not implemented.
  * - `not_performed`: the act is recorded and its consequence in the world does
  *   not happen, because this build has no server, no email and no pushes.
+ * - `not_stated`: the PRD lets this role act and does not say for whom. The
+ *   words are the question for review, from the role table, and the control
+ *   stays unavailable rather than guessing either way.
  *
  * **One line, never a paragraph**, and never behind a click: a statement
  * somebody has to open is a statement somebody does not read, and the
  * `not_performed` kind is the one that matters most. A reader who believes a
  * manager was told may not telephone the manager.
  */
-export type ActLineKind = 'refused' | 'not_built' | 'not_performed'
+export type ActLineKind = 'refused' | 'not_built' | 'not_performed' | 'not_stated'
 
 export function ActLine({ kind, children }: { kind: ActLineKind; children: string }) {
   return (

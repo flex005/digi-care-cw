@@ -1,7 +1,7 @@
 import type { IsoDate, ResidentId, StaffMember, StaffRef } from '@/data/types'
 import { pluralise } from '@/lib/format'
 import { assertNever } from '@/lib/assert-never'
-import { signInRoleOf } from './capabilities'
+import { signInRoleOf } from './roles'
 
 /**
  * Which residents somebody signed in can see. The only reader of a care
@@ -126,6 +126,43 @@ export function scopeNote(scope: ResidentScope, homeName: string): string {
       return "Counted over your list, not the home's."
     case 'not_decided':
       return 'Nothing is counted: nobody has given you a list.'
+    default:
+      return assertNever(scope)
+  }
+}
+
+/**
+ * A resident the viewer's list does not reach, said at the point it matters.
+ *
+ * **Scope, never blame, and never a claim that the record does not exist.** The
+ * resident is real and has a record; it is not on this person's list.
+ */
+export const notOnYourListLine = (name: string): string =>
+  `${name} is not on your list.`
+
+/** A viewer nobody has given a list, at the point an act needed one. */
+export const noListYetLine = 'Nobody has given you a list of residents yet.'
+
+/**
+ * What a figure counted over the viewer's residents is out of: "of your 4
+ * residents", or "of 28 residents at Rosewood Court".
+ *
+ * **Throws for a viewer with no list**, because nothing is counted for them:
+ * a denominator of nobody would put "0 of 0" on a screen, which reads as a
+ * settled home rather than a list nobody has given.
+ */
+export function scopeDenominator(
+  scope: ResidentScope,
+  inScope: number,
+  homeName: string,
+): string {
+  switch (scope.kind) {
+    case 'every_resident':
+      return `of ${pluralise(inScope, 'resident')} at ${homeName}`
+    case 'named_residents':
+      return `of your ${pluralise(inScope, 'resident')}`
+    case 'not_decided':
+      throw new Error('Nothing is counted for a viewer nobody has given a list.')
     default:
       return assertNever(scope)
   }

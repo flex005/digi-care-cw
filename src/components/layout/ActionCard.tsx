@@ -18,6 +18,7 @@ export function ActionCard({
   of,
   footLabel,
   footValue,
+  detail,
   action,
 }: {
   kicker: string
@@ -25,6 +26,8 @@ export function ActionCard({
   of: string
   footLabel: string
   footValue: string
+  /** What the figure consists of, where the reader needs it before acting. */
+  detail?: ReactNode
   action: ReactNode
 }) {
   return (
@@ -34,6 +37,7 @@ export function ActionCard({
         {figure}
       </p>
       <p className={styles.of}>{of}</p>
+      {detail === undefined ? null : <div className={styles.detail}>{detail}</div>}
       <div className={styles.foot}>
         <span>{footLabel}</span>
         <b className={styles.footValue}>{footValue}</b>

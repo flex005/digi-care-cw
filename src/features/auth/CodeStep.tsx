@@ -53,8 +53,9 @@ export function CodeStep({ purpose }: { purpose: 'sign_in' | 'set_up_account' })
   const settingUp = purpose === 'set_up_account'
 
   const verify = () => {
+    const { destination } = pending
     const outcome = acceptCode()
-    router.replace(outcome === 'signed_in' ? '/' : '/sign-in/home')
+    router.replace(outcome === 'signed_in' ? destination : '/sign-in/home')
   }
 
   return (

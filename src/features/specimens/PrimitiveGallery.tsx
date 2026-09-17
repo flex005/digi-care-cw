@@ -29,7 +29,8 @@ import {
   Tooltip,
 } from '@/components/primitives'
 import { Icon } from '@/components/icon/Icon'
-import { CARE_ACTS } from '@/app/session/capabilities'
+import { useViewer } from '@/app/session/use-viewer'
+import { ActPoint } from '@/components/layout/ActPoint'
 import styles from './specimens.module.css'
 
 /**
@@ -52,7 +53,7 @@ export function PrimitiveGallery() {
   const [code, setCode] = useState('')
   const [password, setPassword] = useState('')
 
-  const interimRefusal = CARE_ACTS.add_interim_medication.care_worker
+  const viewer = useViewer()
 
   return (
     <div className={styles.sheet}>
@@ -82,14 +83,11 @@ export function PrimitiveGallery() {
           One line, never behind a click. Refusals take their words from the role table.
         </p>
         <div className={styles.stack}>
-          <div className={styles.actSpecimen}>
-            <Button variant="secondary" disabled>
-              Add interim medication
-            </Button>
-            <ActLine kind="refused">
-              {interimRefusal.kind === 'refused' ? interimRefusal.reason : ''}
-            </ActLine>
-          </div>
+          <ActPoint
+            answer={viewer.ask('add_interim_medication')}
+            label="Add interim medication"
+            notBuilt="Adding an interim medication is not built."
+          />
           <div className={styles.actSpecimen}>
             <Button variant="secondary">Export as PDF</Button>
             <ActLine kind="not_built">

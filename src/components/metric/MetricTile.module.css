@@ -37,7 +37,7 @@
    * from the same tokens the padding and border use, so it cannot drift from
    * them.
    */
-  --tile-chrome: calc(var(--space-16) * 2 + 2px);
+  --tile-chrome: calc(var(--card-padding) * 2);
 
   display: flex;
 
@@ -84,10 +84,13 @@
    */
   flex: 1 1 0;
   min-width: var(--tile-min, 170px);
-  padding: var(--space-16);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+
+  /* A card on the grey page, in the visual direction's shape: no border, the
+     card radius and shadow, the card's padding. */
+  padding: var(--card-padding);
+  border-radius: var(--radius-xl);
   background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
   text-align: left;
 }
 
@@ -132,7 +135,7 @@
   justify-content: center;
   width: var(--space-32);
   height: var(--space-32);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   background-color: var(--bg-page);
   color: var(--ink-500);
 }

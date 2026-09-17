@@ -32,6 +32,16 @@
   font-weight: var(--weight-semibold);
 }
 
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin-top: var(--space-12);
+  color: var(--bg-surface);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
 .foot {
   display: flex;
   gap: var(--space-12);

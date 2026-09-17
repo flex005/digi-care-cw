@@ -92,7 +92,7 @@ export function HomeChoiceRoute() {
             onClick={() => {
               if (home === undefined) return
               signInAs(member, home)
-              router.replace('/')
+              router.replace(pending.destination)
             }}
             data-home-continue
           >

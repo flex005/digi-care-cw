@@ -1,0 +1,104 @@
+/**
+ * A read-only field list. One field per row, label left and value right on the
+ * wide screen, hairline between, so the eye runs down a single column of labels
+ * and every answer starts at the same left edge.
+ *
+ * Not a two-up arrangement of stacked cards: with two independent columns
+ * there is no single place to look for "the answers", and a hatched gap in the
+ * right-hand column sits level with a recorded value in the left, so scanning
+ * for holes means reading both columns in parallel. On a screen whose job is
+ * making gaps conspicuous, that is the wrong trade.
+ */
+.fieldList {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+/* 240px is a track width, not spacing: the label column sized to hold the
+   longest label ("Communication needs and preferences" wraps to two lines and
+   is meant to). Nothing here truncates. */
+.field {
+  display: flex;
+  gap: var(--space-4) var(--space-24);
+  align-items: baseline;
+  padding: var(--space-12) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.field:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+/**
+ * A field whose answer is paragraphs rather than a phrase: medical history,
+ * communication preferences. Label above, value across the full width, capped
+ * at a readable measure. A wrap point, never a truncation.
+ */
+.fieldFull {
+  composes: field;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.fieldLabel {
+  flex: 0 0 240px;
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+}
+
+.fieldValue {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  min-width: 0;
+  margin: 0;
+}
+
+.fieldFull .fieldLabel,
+.fieldFull .fieldValue {
+  flex: none;
+}
+
+.value {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  overflow-wrap: anywhere;
+}
+
+.fieldFull .value {
+  max-width: 78ch;
+  color: var(--ink-700);
+}
+
+/* The author and date of a clinical record. Always visible, never hover-only. */
+.attribution {
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+}
+
+.attributionOnTint {
+  composes: attribution;
+  color: inherit;
+}
+
+/* The compact layout: the label above its value, because a 240px label column
+   beside a value does not fit a 390px screen. */
+@media (width < 1024px) {
+  .field {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fieldLabel,
+  .fieldValue {
+    flex: none;
+  }
+}

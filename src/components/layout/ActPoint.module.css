@@ -1,0 +1,6 @@
+.point {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-12);
+  align-items: center;
+}

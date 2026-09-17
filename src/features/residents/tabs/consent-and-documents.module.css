@@ -1,0 +1,348 @@
+/**
+ * The Consent and Documents tabs of a resident's record.
+ *
+ * White cards on the grey page, flex throughout, one column below the
+ * breakpoint. A row's columns are flex items with a basis rather than grid
+ * tracks, so they wrap onto their own lines when the card is narrow.
+ */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.status {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* The lead and the act, side by side where there is room. */
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16) var(--space-24);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.about {
+  display: flex;
+  flex: 1 1 280px;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.rowTitle {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-semibold);
+}
+
+.rowMeta {
+  max-width: 64ch;
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.note {
+  max-width: 64ch;
+  color: var(--ink-700);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+/* ------------------------------------------------------------------ consent */
+
+.lead {
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.plainFigure {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: baseline;
+  color: var(--ink-900);
+}
+
+.figure {
+  font-size: var(--text-figure-size);
+  line-height: var(--text-figure-line);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.03em;
+}
+
+.figureOf {
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.consentRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-24);
+  align-items: flex-start;
+  padding: var(--space-16) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.consentRow:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.outcome {
+  display: flex;
+  flex: 0 1 220px;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.notAsked {
+  flex: 0 1 460px;
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.authority {
+  display: flex;
+  flex: 0 1 240px;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.key {
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.authorityWho {
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.authorityDetail {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+/* What a withdrawal did not undo: counted facts, on the sunken surface. */
+.remains {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin-top: var(--space-8);
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-surface-sunken);
+}
+
+.remainsTitle {
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-bold);
+}
+
+.effect {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+  align-items: center;
+  padding: var(--space-8) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.effectName {
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.effectCount {
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-bold);
+}
+
+/* ---------------------------------------------------------------- documents */
+
+.findings {
+  display: flex;
+  flex: 1 1 520px;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.finding {
+  display: flex;
+  flex: 1 1 160px;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-surface-sunken);
+  color: var(--ink-900);
+}
+
+.findingCritical {
+  composes: finding;
+  background-color: var(--status-critical-tint);
+  color: var(--status-critical-ink);
+}
+
+/* Ink and tint only: the caution fill is never drawn here. */
+.findingCaution {
+  composes: finding;
+  background-color: var(--status-caution-tint);
+  color: var(--status-caution-ink);
+}
+
+.findingHatched {
+  composes: unrecorded from '../../../styles/unrecorded.module.css';
+  display: flex;
+  flex: 1 1 160px;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-lg);
+}
+
+.findingFigure {
+  font-size: var(--text-figure-size);
+  line-height: var(--text-figure-line);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.03em;
+}
+
+.findingTitle {
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-bold);
+}
+
+.findingOf {
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.categories {
+  display: flex;
+  flex-direction: column;
+}
+
+.category {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-16) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.category:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.categoryHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-12);
+  align-items: baseline;
+}
+
+.categoryTitle {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-bold);
+}
+
+.categoryEmpty {
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface-sunken);
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.documentRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-24);
+  align-items: center;
+  padding: var(--space-12) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.list > li:first-child .documentRow {
+  border-top: none;
+}
+
+.expiryCell {
+  display: flex;
+  flex: 0 1 260px;
+  min-width: 0;
+}
+
+.filedCell {
+  flex: 0 1 220px;
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+@media (width < 1024px) {
+  .consentRow,
+  .documentRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .about,
+  .outcome,
+  .notAsked,
+  .authority,
+  .expiryCell,
+  .filedCell {
+    flex: 0 0 auto;
+  }
+
+  .findings {
+    flex-basis: 100%;
+  }
+}

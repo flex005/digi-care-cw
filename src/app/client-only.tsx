@@ -142,6 +142,121 @@ const SCREENS = {
     () => import('@/features/home/HomeRoute').then((module) => module.HomeRoute),
     { ssr: false },
   ),
+  residents: dynamic(
+    () =>
+      import('@/features/residents/ResidentsRoute').then(
+        (module) => module.ResidentsRoute,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  residentProfile: dynamic(
+    () =>
+      import('@/features/residents/profile/ResidentProfileLayout').then(
+        (module) => module.ResidentProfileLayout,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  residentGeneral: dynamic(
+    () =>
+      import('@/features/residents/tabs/GeneralInformationTab').then(
+        (module) => module.GeneralInformationTab,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  residentNeeds: dynamic(
+    () =>
+      import('@/features/residents/tabs/NeedsTab').then((module) => module.NeedsTab),
+    {
+      ssr: false,
+    },
+  ),
+  residentPeople: dynamic(
+    () =>
+      import('@/features/residents/tabs/ImportantPeopleTab').then(
+        (module) => module.ImportantPeopleTab,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  residentFuturePlans: dynamic(
+    () =>
+      import('@/features/residents/tabs/FuturePlansTab').then(
+        (module) => module.FuturePlansTab,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  residentNotes: dynamic(
+    () =>
+      import('@/features/residents/profile/LaterPhaseTab').then(
+        (module) => module.CareNotesTab,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  residentMedications: dynamic(
+    () =>
+      import('@/features/residents/profile/LaterPhaseTab').then(
+        (module) => module.MedicationsTab,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  residentRisk: dynamic(
+    () =>
+      import('@/features/residents/tabs/RiskAssessmentsTab').then(
+        (module) => module.RiskAssessmentsTab,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  residentCarePlan: dynamic(
+    () =>
+      import('@/features/residents/tabs/CarePlanTab').then(
+        (module) => module.CarePlanTab,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  residentGoals: dynamic(
+    () =>
+      import('@/features/residents/profile/LaterPhaseTab').then(
+        (module) => module.GoalsTab,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  residentConsent: dynamic(
+    () =>
+      import('@/features/residents/tabs/ConsentTab').then(
+        (module) => module.ConsentTab,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  residentDocuments: dynamic(
+    () =>
+      import('@/features/residents/tabs/DocumentsTab').then(
+        (module) => module.DocumentsTab,
+      ),
+    {
+      ssr: false,
+    },
+  ),
   specimens: dynamic(
     () =>
       import('@/features/specimens/SpecimensRoute').then(

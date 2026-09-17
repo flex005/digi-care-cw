@@ -1,0 +1,133 @@
+/* The tab body beneath the profile head: cards on the grey page. */
+.tabPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.tabIntro {
+  max-width: 80ch;
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.domainList {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/**
+ * A domain: the term on the left, its facts on the right. The same
+ * label-left value-right rhythm General Information uses, one level down, with
+ * the same 240px label track so the two tabs line up when a reader switches
+ * between them.
+ */
+.domainRow {
+  display: flex;
+  gap: var(--space-8) var(--space-24);
+  align-items: flex-start;
+  padding: var(--space-16) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.domainRow:first-child {
+  padding-top: 0;
+}
+
+.domainRow:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.domainName {
+  flex: 0 0 240px;
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-semibold);
+}
+
+/* Three facts, never merged into one. A domain nobody has written, for
+   somebody nobody has assessed, is two gaps and shows two. */
+.domainFacts {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  margin: 0;
+}
+
+.domainFact {
+  display: flex;
+  gap: var(--space-4) var(--space-16);
+  align-items: baseline;
+}
+
+.domainFactLabel {
+  flex: 0 0 152px;
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+}
+
+.domainFactValue {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  min-width: 0;
+  margin: 0;
+}
+
+/* The care plan is written in the resident's own voice, "I like to…" rather
+   than clinical language. Set in italic so it reads as theirs. */
+.domainQuote {
+  max-width: 78ch;
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-style: italic;
+}
+
+/*
+ * Somebody is rewriting this domain. Context, not a call to action.
+ *
+ * No chip, no tint and no hatch: a treatment here would put a revision above
+ * the three facts about the plan it sits beside.
+ */
+.domainRevision {
+  max-width: 78ch;
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* The compact layout: the domain's name above its facts, and each fact's label
+   above its answer, because two label tracks side by side do not fit 390px. */
+@media (width < 1024px) {
+  .domainRow,
+  .domainFact {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .domainName,
+  .domainFacts,
+  .domainFactLabel,
+  .domainFactValue {
+    flex: none;
+  }
+}

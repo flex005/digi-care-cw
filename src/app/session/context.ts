@@ -38,8 +38,10 @@ export type PendingSignIn =
       address: string
       /** Signing in, or verifying the address while setting up an account. */
       purpose: 'sign_in' | 'set_up_account'
+      /** The page signing in lands on. See features/auth/destination.ts. */
+      destination: string
     }
-  | { kind: 'choosing_home'; member: StaffMember }
+  | { kind: 'choosing_home'; member: StaffMember; destination: string }
 
 /**
  * Who is looking, at which home, and in whose timezone.
@@ -78,6 +80,7 @@ export interface Session {
     member: StaffMember,
     address: string,
     purpose: 'sign_in' | 'set_up_account',
+    destination: string,
   ) => void
   /**
    * The code step passed. Somebody at one home is signed in there; somebody at
