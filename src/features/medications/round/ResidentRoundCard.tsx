@@ -28,8 +28,10 @@ import {
   signsLine,
   stateFor,
   UNANSWERED,
+  windowFor,
   type DoseAccess,
   type DoseAnswer,
+  type DoseRecordAccess,
   type PrnAnswer,
   type RoundDose,
   type RoundResident,
@@ -83,7 +85,9 @@ export function ResidentRoundCard({
   )
 
   const controlledDrugAnswer = viewer.ask('record_controlled_drug_dose', resident.id)
-  const access = (dose: RoundDose): DoseAccess => {
+  /** The instant this card is drawn against, which decides every window on it. */
+  const asOf = now().toISOString() as IsoDateTime
+  const recordAccess = (dose: RoundDose): DoseRecordAccess => {
     if (!dose.medication.isControlledDrug) return { kind: 'open' }
     if (controlledDrugAnswer.kind !== 'yes') return { kind: 'cannot_record' }
     const counted = counts.filter((count) => count.medicationId === dose.medication.id)
@@ -91,13 +95,17 @@ export function ResidentRoundCard({
       ? { kind: 'discrepancy' }
       : { kind: 'open' }
   }
+  const access = (dose: RoundDose): DoseAccess => ({
+    window: windowFor(dose, asOf),
+    record: recordAccess(dose),
+  })
 
   const answerOf = (dose: RoundDose) => answers[dose.medication.id] ?? UNANSWERED
   const prnEntries = asRequired.map((medication) => ({
     medication,
     answer: prn[medication.id] ?? PRN_NOT_CHOSEN,
   }))
-  const { waiting, blocked, ready } = outstanding({
+  const { waiting, blocked, notOpenYet, ready } = outstanding({
     doses,
     answers,
     access,
@@ -116,6 +124,13 @@ export function ResidentRoundCard({
     witnessName,
   )
   const actLabel = `Record ${resident.fullLegalName}’s ${roundTime} doses`
+  const firstNotOpen = notOpenYet[0]
+  const opensAt = (dose: RoundDose): IsoDateTime => {
+    const window = windowFor(dose, asOf)
+    if (window.kind !== 'not_open_yet')
+      throw new Error(`${dose.medication.name}'s window is open; it has no opening.`)
+    return window.opensAt
+  }
 
   const submit = async () => {
     const at = now().toISOString() as IsoDateTime
@@ -210,7 +225,6 @@ export function ResidentRoundCard({
               balance={balance(dose.medication)}
               witnesses={witnesses}
               residentName={resident.fullLegalName}
-              now={now().toISOString() as IsoDateTime}
             />
           ))}
         </ul>
@@ -242,6 +256,15 @@ export function ResidentRoundCard({
         )}
 
         <div className={styles.cardFoot}>
+          {/* Every dose at one round shares one window, so the card says it
+              once. Where that is ever not true, each dose carries its own line
+              and this one is not drawn. */}
+          {firstNotOpen === undefined || notOpenYet.length !== open.length ? null : (
+            <p className={styles.notOpenYetAct} data-card-not-open-yet>
+              The {roundTime} window has not opened. Nothing can be recorded for{' '}
+              {resident.fullLegalName} until {format.time(opensAt(firstNotOpen))}.
+            </p>
+          )}
           {blocked.length === 0 ? null : (
             <p className={styles.blocked} data-round-blocked>
               This round cannot be recorded for {resident.fullLegalName} while the

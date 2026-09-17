@@ -1,13 +1,19 @@
 import { vi } from 'vitest'
 
 /*
- * **The fixture clock, set before any fixture loads.** At 19:30 the 20:00 round
- * is on the chart for every resident and nobody has signed for any of it, so
- * each state below is reachable on a fresh load rather than on whichever half
+ * **The fixture clock, set before any fixture loads.** Twenty minutes into the
+ * 20:00 round, so its window is open and a dose can be answered at all. Every
+ * state below is then reachable on a fresh load rather than on whichever half
  * of a round the hour the suite runs happens to leave open.
+ *
+ * **It was 19:30 until the window rule landed**, which put every assertion here
+ * half an hour before the round it was recording: a dose cannot be recorded
+ * before its window opens, and `round-window.test.tsx` is where that is
+ * asserted. At 20:20 the fixtures have signed for half the round already, so
+ * the doses these tests answer are read from `openDosesAt` rather than named.
  */
 vi.hoisted(() => {
-  window.history.replaceState(null, '', '/medications/round?at=19:30')
+  window.history.replaceState(null, '', '/medications/round?at=20:20')
 })
 
 import { screen, waitFor, within } from '@testing-library/react'
@@ -120,15 +126,18 @@ const shownCards = () =>
     .map((card) => card.dataset.roundCard ?? '')
     .sort()
 
+/** A dose of theirs at this round that is still open to answer, from the chart. */
 function doseOn(residentId: string, predicate: (id: MedicationId) => boolean) {
+  const open = openDosesAt(residentId as ResidentId, TODAY, ROUND)
   const found = medications.find(
     (medication) =>
       medication.residentId === residentId &&
       !medication.isPrn &&
       medication.roundTimes.includes(ROUND) &&
+      open.includes(medication.id) &&
       predicate(medication.id),
   )
-  if (!found) throw new Error(`No 20:00 dose for ${residentId}`)
+  if (!found) throw new Error(`No open 20:00 dose for ${residentId}`)
   return found
 }
 
@@ -140,12 +149,26 @@ describe('the fixtures reach the states this screen draws', () => {
     expect(openDosesAt('res-pemberton' as ResidentId, TODAY, ROUND)).toContain(
       PEMBERTON_OXYCODONE,
     )
-    expect(openDosesAt('res-adeyemi' as ResidentId, TODAY, ROUND)).toContain(
-      NEWLY_PRESCRIBED_CD,
-    )
+  })
+
+  it('has the never-counted controlled drug open, so the opening count is reachable', () => {
     expect(stockBalanceFor(NEWLY_PRESCRIBED_CD)).toEqual({
       kind: 'no_balance_recorded',
     })
+    /*
+     * **By identity, not by parity.** The fixtures sign for half a round in
+     * progress, alternating on the drug's index, and this drug's index is even;
+     * a dose can only be answered inside its window, so the alternation put the
+     * opening count out of reach on every day at every hour. It is now always
+     * still to give. See docs/DEPARTURES.md, Fixture changes shared with the
+     * Admin build.
+     */
+    expect(medications.findIndex((entry) => entry.id === NEWLY_PRESCRIBED_CD) % 2).toBe(
+      0,
+    )
+    expect(openDosesAt('res-adeyemi' as ResidentId, TODAY, ROUND)).toContain(
+      NEWLY_PRESCRIBED_CD,
+    )
   })
 })
 
@@ -296,6 +319,24 @@ describe('a controlled drug', () => {
         value: 40,
       }),
     )
+  })
+})
+
+/*
+ * The other half of the window rule. `round-window.test.tsx` holds the shut
+ * state; this is what the same dose draws once the window is open and nobody
+ * has answered it.
+ */
+describe('a dose inside an open window', () => {
+  it('is hatched as not recorded, and says nothing about being due', async () => {
+    const { user } = await openRound()
+    await atRound(user)
+    const morphine = doseOn('res-okafor', () => true)
+    const dose = doseIn(cardFor('res-okafor'), morphine.id)
+    const gap = within(dose).getByText('Not recorded yet')
+    expect(gap.closest('[data-state="unrecorded"]')).not.toBeNull()
+    expect(dose.querySelector('[data-not-open-yet]')).toBeNull()
+    expect(dose.textContent).not.toMatch(/Not due yet/)
   })
 })
 

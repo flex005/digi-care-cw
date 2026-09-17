@@ -282,6 +282,37 @@
 }
 
 .closure,
+/*
+ * A silence in the PRD, quoted at the act. Not a finding, not a gap and not a
+ * refusal: the act stays available. Drawn like `ActLine`'s statements of fact —
+ * quiet, caption-sized, in the neutral ink — because it is a question for the
+ * document's author rather than anything about this dose.
+ */
+.silence {
+  display: flex;
+  gap: var(--space-8);
+  align-items: flex-start;
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.silence > svg {
+  flex-shrink: 0;
+}
+
+/*
+ * The same words at the head of the list they apply to. A solid hairline, never
+ * dashed: the dashed edge belongs to the unrecorded treatment and nothing here
+ * is a gap in the record.
+ */
+.silenceCard {
+  composes: silence;
+  padding: var(--space-12);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
 .line,
 .ownDose {
   color: var(--ink-700);

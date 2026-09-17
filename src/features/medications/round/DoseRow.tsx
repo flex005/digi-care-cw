@@ -15,7 +15,6 @@ import { assertNever } from '@/lib/assert-never'
 import { NOT_GIVEN_REASON_LABEL, NOT_GIVEN_REASONS } from '../medication-words'
 import {
   needsOpeningCount,
-  windowOf,
   type DoseAccess,
   type DoseAnswer,
   type RoundDose,
@@ -25,6 +24,24 @@ import styles from './round.module.css'
 /** The one sentence a count that does not reconcile carries, in the PRD's words (MED-03). */
 export const DISCREPANCY_LINE =
   'Stock count does not match the running balance. This must be resolved before any further administration.'
+
+/**
+ * The one line a dose whose window has not opened carries.
+ *
+ * **It names the state first.** "Not due yet" is what is true of the dose;
+ * the hour and the reason follow. A line that only explained why a button was
+ * unavailable would leave the reader to infer the state from a disabled
+ * control.
+ *
+ * **Not a gap and not a refusal of this reader.** Nobody may record it yet,
+ * whatever their role: the dose is not due. So it is drawn in the neutral
+ * information tint rather than hatched or in a status colour, and it names the
+ * hour rather than asking somebody to work it out. The hatch begins where this
+ * ends: once the window is open and nothing is on the record, nobody has
+ * recorded a dose that was due, and that is the unrecorded treatment.
+ */
+export const notOpenYetLine = (opensAt: string): string =>
+  `Not due yet — the window opens at ${opensAt}. Giving a drug early is a clinical decision, and nothing in this product can make one.`
 
 /**
  * One scheduled dose at this round, and the answer chosen for it.
@@ -49,7 +66,6 @@ export function DoseRow({
   balance,
   witnesses,
   residentName,
-  now,
 }: {
   dose: RoundDose
   answer: DoseAnswer
@@ -60,7 +76,6 @@ export function DoseRow({
   balance: StockBalance
   witnesses: StaffMember[]
   residentName: string
-  now: IsoDateTime
 }) {
   const format = useSiteFormat()
   const { medication, record } = dose
@@ -82,7 +97,6 @@ export function DoseRow({
             <span data-numeric>
               Window {format.time(state.windowOpensAt)} to{' '}
               {format.time(state.windowClosesAt)}
-              {windowOf(state, now) === 'not_open_yet' ? ', not open yet' : ''}
             </span>
           ) : null}
         </p>
@@ -137,18 +151,27 @@ function OpenDose({
   witnesses: StaffMember[]
   residentName: string
 }) {
+  const format = useSiteFormat()
   const { medication } = dose
   const name = `${medication.name} ${medication.dose}`
+  const { window, record } = access
+  const notOpenYet = window.kind === 'not_open_yet'
 
   return (
     <>
-      {access.kind === 'discrepancy' ? (
+      {window.kind === 'not_open_yet' ? (
+        <p className={styles.notOpenYet} data-not-open-yet>
+          {notOpenYetLine(format.time(window.opensAt))}
+        </p>
+      ) : null}
+
+      {record.kind === 'discrepancy' ? (
         <p className={styles.discrepancy} data-discrepancy>
           {DISCREPANCY_LINE}
         </p>
       ) : null}
 
-      {access.kind === 'cannot_record' && controlledDrugAnswer !== 'not_controlled' ? (
+      {record.kind === 'cannot_record' && controlledDrugAnswer !== 'not_controlled' ? (
         <div className={styles.answerRefused}>
           <ActPoint
             answer={controlledDrugAnswer}
@@ -162,7 +185,7 @@ function OpenDose({
           <AnswerButton
             label="Given"
             chosen={answer.kind === 'given'}
-            disabled={access.kind === 'discrepancy'}
+            disabled={notOpenYet || record.kind === 'discrepancy'}
             onClick={() =>
               onAnswer({ kind: 'given', openingCount: '', witness: 'not_chosen' })
             }
@@ -170,7 +193,7 @@ function OpenDose({
           <AnswerButton
             label="Not given"
             chosen={answer.kind === 'not_given'}
-            disabled={false}
+            disabled={notOpenYet}
             onClick={() =>
               onAnswer({ kind: 'not_given', reason: 'not_chosen', note: '' })
             }
@@ -178,7 +201,12 @@ function OpenDose({
         </div>
       )}
 
-      {answer.kind === 'unanswered' ? <Unrecorded label="Not recorded yet" /> : null}
+      {/* A dose that is not due yet is not a dose nobody has recorded: there is
+          nothing to record. The hatch would claim a gap the chart does not
+          hold, and the line above says what is true instead. */}
+      {answer.kind === 'unanswered' && !notOpenYet ? (
+        <Unrecorded label="Not recorded yet" />
+      ) : null}
 
       {answer.kind === 'not_given' ? (
         <div className={styles.answerDetail}>

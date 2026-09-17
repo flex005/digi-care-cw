@@ -10,7 +10,7 @@ import type { MarRecord } from '@/data/fixtures/medications'
 import { getRegister, getRound, stockBalanceFor } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import { now } from '@/data/fixtures/clock'
-import { useSession, useSignedIn } from '@/app/session/use-session'
+import { useSession, useSignedIn, useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { noListYetLine, scopeNote } from '@/app/session/resident-scope'
 import { ActionCard } from '@/components/layout/ActionCard'
@@ -37,6 +37,7 @@ import {
   residentsAt,
   roundCount,
   roundTimesOf,
+  windowFor,
   type RoundResident,
 } from './round'
 import { witnessesFor } from './witnesses'
@@ -81,6 +82,7 @@ export function RoundRoute() {
   const { activeSite } = useSession()
   const { member } = useSignedIn()
   const viewer = useViewer()
+  const format = useSiteFormat()
   const [written, setWritten] = useState(0)
   const [picked, setPicked] = useState<string | 'on_arrival'>('on_arrival')
   const [at] = useState(() => now().toISOString() as IsoDateTime)
@@ -183,6 +185,24 @@ export function RoundRoute() {
   const firstOpen = entries.find((entry) =>
     entry.doses.some((dose) => dose.record.state.kind === 'due'),
   )
+  /*
+   * A round picked before it opens. Every dose at one round shares one window,
+   * so this is the whole round or none of it, and the banner says so rather
+   * than sending somebody to a card where every answer refuses.
+   */
+  const dueDoses = entries
+    .flatMap((entry) => entry.doses)
+    .filter((dose) => dose.record.state.kind === 'due')
+  const stillShut = dueDoses.filter(
+    (dose) => windowFor(dose, at).kind === 'not_open_yet',
+  )
+  const firstShut = stillShut[0]
+  const shutWindow = firstShut === undefined ? undefined : windowFor(firstShut, at)
+  /** When this round opens, or `open` because it already has. */
+  const roundOpensAt: IsoDateTime | 'open' =
+    shutWindow?.kind === 'not_open_yet' && stillShut.length === dueDoses.length
+      ? shutWindow.opensAt
+      : 'open'
   const balance = (medication: Medication): StockBalance =>
     stockBalanceFor(medication.id)
 
@@ -223,6 +243,12 @@ export function RoundRoute() {
         of={`of ${pluralise(due, 'medication')} recorded for ${roundTime} round.`}
         detail={
           <div className={styles.bannerDetail} data-round-banner>
+            {roundOpensAt === 'open' ? null : (
+              <p data-round-not-open>
+                The {roundTime} window opens at {format.time(roundOpensAt)}. Nothing on
+                this round can be recorded before then.
+              </p>
+            )}
             {notYet === 0 ? null : <p data-not-yet>{notYet} not yet recorded.</p>}
             <p>{scopeNote(viewer.scope, activeSite.name)}</p>
             <p>
@@ -233,12 +259,18 @@ export function RoundRoute() {
         }
         footLabel="Next to record"
         footValue={
-          firstOpen === undefined
-            ? 'Nothing left to record at this round'
-            : firstOpen.resident.fullLegalName
+          roundOpensAt !== 'open'
+            ? `Nothing until ${format.time(roundOpensAt)}`
+            : firstOpen === undefined
+              ? 'Nothing left to record at this round'
+              : firstOpen.resident.fullLegalName
         }
         action={
-          firstOpen === undefined ? (
+          roundOpensAt !== 'open' ? (
+            <span className={styles.bannerQuiet}>
+              The {roundTime} round has not opened
+            </span>
+          ) : firstOpen === undefined ? (
             <span className={styles.bannerQuiet}>
               {due === 0
                 ? 'No doses on the chart'

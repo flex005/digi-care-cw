@@ -5,7 +5,7 @@ import { staffAkinyemi, staffEze } from '@/data/fixtures/organisation'
 import { GAP_MEDICATION_IDS } from '@/data/fixtures/medications'
 import { patchedRecords, resetSessionAdministrations } from '@/data/access/mar-store'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { RegisterRoute } from './RegisterRoute'
+import { COUNTERSIGN_QUOTED, RegisterRoute } from './RegisterRoute'
 
 const navigation = vi.hoisted(() => ({ pathname: '/medications/register', params: {} }))
 vi.mock('next/navigation', () => ({
@@ -129,6 +129,29 @@ describe('Controlled drug register: a senior carer', () => {
       expect(tr.querySelectorAll('td')[2]?.textContent).toBe('Given')
       expect(tr.querySelectorAll('td')[6]?.contains(cell)).toBe(true)
     }
+  })
+
+  it('quotes MED-03’s silence about how old a dose may be, and refuses nothing', async () => {
+    renderSignedIn(staffAkinyemi.id, <RegisterRoute />)
+    await loaded()
+
+    const quoted = document.querySelector('[data-countersign-silence]')
+    expect(quoted?.textContent).toContain(COUNTERSIGN_QUOTED)
+    expect(quoted?.textContent).toContain(
+      'It does not say how long after a dose a second signature may still be added',
+    )
+    // A silence, not a refusal: nothing here is drawn as decided.
+    expect(quoted?.closest('[data-state="unrecorded"]')).toBeNull()
+    expect(quoted?.querySelector('[data-act-line]')).toBeNull()
+
+    const row = await findAwaiting((candidate) =>
+      Boolean(candidate.querySelector('[data-countersign]')),
+    )
+    expect(row.querySelector('[data-dose-silence]')?.textContent).toMatch(
+      /^Waiting .+\. How long after a dose a second signature may still be added is not stated in MED-03\.$/,
+    )
+    // The act itself is untouched by the silence.
+    expect(row.querySelector('[data-countersign]')).toBeEnabled()
   })
 
   it('countersigns another person’s dose with the medication PIN', async () => {

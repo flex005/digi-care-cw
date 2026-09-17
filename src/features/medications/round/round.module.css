@@ -235,6 +235,30 @@
   outline-offset: var(--focus-ring-offset);
 }
 
+/*
+ * The window has not opened. Neutral information, never a status colour: it is
+ * not a finding, not a gap and not a refusal of this reader.
+ *
+ * **Quieter at the dose than at the act.** It is drawn once beside every dose
+ * of the round and once at the foot of the card, and a tinted panel repeated
+ * four times reads louder than the critical line beside it on the one card
+ * that has both. So the dose carries the words alone and the card's foot, where
+ * the dead act button is, carries the panel.
+ */
+.notOpenYet {
+  color: var(--status-info-ink);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.notOpenYetAct {
+  composes: notOpenYet;
+  padding: var(--space-8) var(--space-12);
+  border-left: 3px solid var(--status-info);
+  border-radius: var(--radius-sm);
+  background-color: var(--status-info-tint);
+}
+
 /* A count that does not reconcile is a finding: critical, in words, with its edge. */
 .discrepancy {
   padding: var(--space-8) var(--space-12);

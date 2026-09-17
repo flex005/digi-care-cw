@@ -143,8 +143,13 @@ export function arrivalRound(
 }
 
 /**
- * Whether a due dose's window has opened. A dose recorded before it opens is
- * given early, and the dose says so rather than hiding the time.
+ * Whether a due dose's window has opened.
+ *
+ * **Before it opens, nothing about the dose can be recorded.** Giving a drug
+ * early is a clinical decision, and nothing in this product can make one, so
+ * the answer is not offered and the time it opens is said instead. Recording it
+ * *late* stays open: a dose given at 20:40 is recorded at 20:40, and a window
+ * that closes with nothing in it is an omission, which is a different screen.
  */
 export function windowOf(
   state: Extract<MarCellState, { kind: 'due' }>,
@@ -154,6 +159,19 @@ export function windowOf(
   if (at < new Date(state.windowOpensAt).getTime()) return 'not_open_yet'
   if (at >= new Date(state.windowClosesAt).getTime()) return 'closed'
   return 'open'
+}
+
+/**
+ * The window a dose is in, in the shape the card and the row both answer with.
+ *
+ * A dose already on the record has no window left to open: it was answered.
+ */
+export function windowFor(dose: RoundDose, now: IsoDateTime): DoseWindow {
+  const state = dose.record.state
+  if (state.kind !== 'due') return { kind: 'open' }
+  return windowOf(state, now) === 'not_open_yet'
+    ? { kind: 'not_open_yet', opensAt: state.windowOpensAt }
+    : { kind: 'open' }
 }
 
 // ---------------------------------------------------------------------------
@@ -185,8 +203,20 @@ export type PrnAnswer =
 export const UNANSWERED: DoseAnswer = { kind: 'unanswered' }
 export const PRN_NOT_CHOSEN: PrnAnswer = { kind: 'not_chosen' }
 
-/** Whether the viewer can record this dose at all, and whether it can be given. */
-export type DoseAccess =
+/**
+ * The dose's own window. Nothing about a dose is recordable before it opens.
+ *
+ * **Its own field, beside what the role table and the register say**, because
+ * they are different facts about one dose and can be true at once: a care
+ * worker at a controlled drug half an hour before the round is stopped by the
+ * clock *and* by the contradiction in the role table, and a compound state
+ * renders as separate facts (CLAUDE.md §1).
+ */
+export type DoseWindow =
+  { kind: 'open' } | { kind: 'not_open_yet'; opensAt: IsoDateTime }
+
+/** What the register and the role table say about recording this dose. */
+export type DoseRecordAccess =
   /** Given and Not given are both open. */
   | { kind: 'open' }
   /**
@@ -196,6 +226,12 @@ export type DoseAccess =
   | { kind: 'discrepancy' }
   /** The role table does not let this viewer record it. The dose stays open. */
   | { kind: 'cannot_record' }
+
+/** Whether the viewer can record this dose at all, and whether it can be given. */
+export interface DoseAccess {
+  window: DoseWindow
+  record: DoseRecordAccess
+}
 
 /** An opening count is asked for where a controlled drug is given against no balance. */
 export function needsOpeningCount(
@@ -217,6 +253,11 @@ const WHOLE_NUMBER = /^\d+$/
  *
  * **Named, not counted.** "Morphine sulfate oral solution: no reason" tells
  * somebody standing at a trolley where to look.
+ *
+ * **A dose whose window has not opened is not waiting on anybody.** It is not
+ * outstanding, it does not block the round, and it is never named here: the
+ * only thing standing between it and a record is the hour, which the dose says
+ * for itself.
  */
 export function outstanding(input: {
   doses: RoundDose[]
@@ -228,11 +269,19 @@ export function outstanding(input: {
   waiting: string[]
   /** A dose this viewer cannot record, so the round itself cannot be recorded. */
   blocked: RoundDose[]
+  /** Doses nobody can record yet, because the round has not opened. */
+  notOpenYet: RoundDose[]
   ready: boolean
 } {
-  const open = input.doses.filter((dose) => dose.record.state.kind === 'due')
+  const due = input.doses.filter((dose) => dose.record.state.kind === 'due')
+  const notOpenYet = due.filter(
+    (dose) => input.access(dose).window.kind === 'not_open_yet',
+  )
+  const open = due.filter((dose) => input.access(dose).window.kind === 'open')
   const answerOf = (dose: RoundDose) => input.answers[dose.medication.id] ?? UNANSWERED
-  const blocked = open.filter((dose) => input.access(dose).kind === 'cannot_record')
+  const blocked = open.filter(
+    (dose) => input.access(dose).record.kind === 'cannot_record',
+  )
   const chosen = open.filter((dose) => answerOf(dose).kind !== 'unanswered')
   const prnChosen = input.prn.filter((entry) => entry.answer.kind === 'prn')
 
@@ -244,7 +293,7 @@ export function outstanding(input: {
       case 'unanswered':
         // Only a shortfall once somebody has started the round: a PRN on its
         // own does not need the round answered.
-        if (chosen.length > 0 && input.access(dose).kind !== 'cannot_record')
+        if (chosen.length > 0 && input.access(dose).record.kind !== 'cannot_record')
           waiting.push(`${name}: nothing chosen`)
         break
       case 'not_given':
@@ -275,7 +324,7 @@ export function outstanding(input: {
   const roundReady = chosen.length > 0 && blocked.length === 0
   const ready =
     waiting.length === 0 && (chosen.length > 0 ? roundReady : prnChosen.length > 0)
-  return { waiting, blocked, ready }
+  return { waiting, blocked, notOpenYet, ready }
 }
 
 /** The state a chosen answer becomes, signed by the viewer at the moment of the act. */

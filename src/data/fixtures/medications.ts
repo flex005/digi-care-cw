@@ -807,8 +807,18 @@ for (const [index, medication] of medications.entries()) {
          * because the window is what decides that and it has not closed.
          *
          * Derived, never drawn, so this adds no call into the RNG.
+         *
+         * **The one drug the register has never counted is always still to
+         * give** (17/09/2026). Its index is even, so the alternation signed it
+         * at every open window, on every day; and since a dose can only be
+         * answered inside its window, the opening balance the round asks for
+         * where a controlled drug is given against no balance could not be
+         * reached at all. The exception is by identity rather than by index,
+         * so it survives anything that moves the list, and it is still derived:
+         * no call into the RNG, no other fixture moved. One cell changes, on
+         * the round in progress, for this drug.
          */
-        const stillToGive = index % 2 === 1
+        const stillToGive = index % 2 === 1 || medication.id === NEWLY_PRESCRIBED_CD
         marRecords.push({
           medicationId: medication.id,
           residentId: medication.residentId,

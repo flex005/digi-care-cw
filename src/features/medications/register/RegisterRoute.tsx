@@ -103,6 +103,27 @@ function RegisterRefused({ answer }: { answer: Answer }) {
   )
 }
 
+/**
+ * What MED-03 says about the second signature, and what it does not say.
+ *
+ * **A quoted silence, not a refusal.** The act stays available at every age:
+ * nothing here decides how long after a dose a second signature can still be a
+ * witness statement, because the PRD does not, and a control that refused would
+ * read as a rule somebody set. The quotation is MED-03's own words so that the
+ * reader can see the silence rather than take it on trust.
+ *
+ * The register's own logic and what the fixtures hold are in PROGRESS.md; the
+ * question is in docs/DEPARTURES.md, for whoever wrote MED-03 to settle.
+ */
+export const COUNTERSIGN_QUOTED =
+  'MED-03 says: “Senior 1 records administration + stock count. System prompts Witness 2. Senior 2 taps Countersign + enters own PIN.”'
+
+export const COUNTERSIGN_SILENCE = `${COUNTERSIGN_QUOTED} It does not say how long after a dose a second signature may still be added, and it does not say what makes a dose recent. Nothing here decides it: every dose below can be countersigned, whatever its age, and each says how long it has waited.`
+
+/** The same silence at one dose, with that dose's age. */
+export const countersignSilenceAt = (waited: string): string =>
+  `Waiting ${waited}. How long after a dose a second signature may still be added is not stated in MED-03.`
+
 interface RegisterData {
   medications: Medication[]
   residents: Resident[]
@@ -362,6 +383,11 @@ function AwaitingCard({
           expand={{ kind: 'whole' }}
         />
       </div>
+      <p className={styles.silenceCard} data-countersign-silence>
+        <Icon name={medicationsIcons.silence} size={16} />
+        <span>{COUNTERSIGN_SILENCE}</span>
+      </p>
+
       <div className={styles.viewHead}>
         <p className={styles.claim} data-awaiting-claim>
           <span data-numeric>{formatCount(waiting.length)}</span> of{' '}
@@ -519,6 +545,12 @@ function CountersignControl({
 
   return (
     <>
+      {/* The silence at the act, with this dose's age. The act is not refused:
+          what the PRD leaves open, the screen leaves open. */}
+      <p className={styles.silence} data-dose-silence>
+        <Icon name={medicationsIcons.silence} size={16} />
+        <span>{countersignSilenceAt(waitingSince(entry.at))}</span>
+      </p>
       <Button
         variant="primary"
         size="large"
