@@ -167,3 +167,25 @@ export function scopeDenominator(
       return assertNever(scope)
   }
 }
+
+/**
+ * The same population, for a count of one thing over residents: "7 flagged
+ * notes, across your 4 residents", where "of" would state a ratio that does not
+ * exist.
+ */
+export function scopeAcross(
+  scope: ResidentScope,
+  inScope: number,
+  homeName: string,
+): string {
+  switch (scope.kind) {
+    case 'every_resident':
+      return `across ${pluralise(inScope, 'resident')} at ${homeName}`
+    case 'named_residents':
+      return `across your ${pluralise(inScope, 'resident')}`
+    case 'not_decided':
+      throw new Error('Nothing is counted for a viewer nobody has given a list.')
+    default:
+      return assertNever(scope)
+  }
+}

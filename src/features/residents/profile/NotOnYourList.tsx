@@ -42,6 +42,7 @@ function headline(answer: Exclude<Answer, { kind: 'yes' }>, name: string): strin
     case 'no_list_yet':
       return noListYetLine
     case 'not_your_role':
+    case 'not_the_author':
       return answer.reason
     case 'not_stated':
       return answer.question
@@ -57,6 +58,7 @@ function body(answer: Exclude<Answer, { kind: 'yes' }>): string {
     case 'no_list_yet':
       return 'Until somebody gives you a list of residents, no resident’s record opens here.'
     case 'not_your_role':
+    case 'not_the_author':
     case 'not_stated':
       return 'Their record is not shown here.'
     default:

@@ -36,6 +36,7 @@ import IconGeometricSharps_Circle from '@/assets/icons-generated/geometric-sharp
 import IconLegal_Agreement02 from '@/assets/icons-generated/legal/agreement-02.svg?react'
 import IconLegal_LegalDocument01 from '@/assets/icons-generated/legal/legal-document-01.svg?react'
 import IconLoginLogout_Logout01 from '@/assets/icons-generated/login-logout/logout-01.svg?react'
+import IconMedia_Mic01 from '@/assets/icons-generated/media/mic-01.svg?react'
 import IconMedical_Medicine01 from '@/assets/icons-generated/medical/medicine-01.svg?react'
 import IconMedical_Stethoscope from '@/assets/icons-generated/medical/stethoscope.svg?react'
 import IconMoreMenu_MoreHorizontal from '@/assets/icons-generated/more-menu/more-horizontal.svg?react'
@@ -48,7 +49,7 @@ import IconUsers_UserMultiple from '@/assets/icons-generated/users/user-multiple
 import IconUsers_UserSwitch from '@/assets/icons-generated/users/user-switch.svg?react'
 
 /**
- * Only the 36 icons actually used in source. Importing all of them
+ * Only the 37 icons actually used in source. Importing all of them
  * would compile every icon in the set into the bundle.
  *
  * Partial because it is keyed by the full IconName union. A missing entry
@@ -84,6 +85,7 @@ export const iconRegistry: Partial<
   'legal/agreement-02': IconLegal_Agreement02,
   'legal/legal-document-01': IconLegal_LegalDocument01,
   'login-logout/logout-01': IconLoginLogout_Logout01,
+  'media/mic-01': IconMedia_Mic01,
   'medical/medicine-01': IconMedical_Medicine01,
   'medical/stethoscope': IconMedical_Stethoscope,
   'more-menu/more-horizontal': IconMoreMenu_MoreHorizontal,

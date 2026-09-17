@@ -108,7 +108,11 @@ export function TabStrip({ resident }: { resident: Resident }) {
         <ul className={styles.tabs}>
           {PROFILE_TABS.map((tab) => {
             const href = tabHref(resident.id, tab)
-            const current = pathname === href
+            // A tab stays current on the pages beneath it: a note opened from the
+            // Care Notes tab, or the composer, is still the Care Notes tab.
+            const current =
+              pathname === href ||
+              (tab.segment !== '' && pathname.startsWith(`${href}/`))
             const notes = tab.notes(resident)
             return (
               <li key={tab.label}>

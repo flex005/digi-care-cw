@@ -60,6 +60,8 @@ function AnswerLine({
       return <ActLine kind="refused">{notOnYourListLine(residentName)}</ActLine>
     case 'no_list_yet':
       return <ActLine kind="refused">{noListYetLine}</ActLine>
+    case 'not_the_author':
+      return <ActLine kind="refused">{answer.reason}</ActLine>
     case 'not_stated':
       return <ActLine kind="not_stated">{answer.question}</ActLine>
     default:

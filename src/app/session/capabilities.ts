@@ -1,4 +1,4 @@
-import type { ResidentId } from '@/data/types'
+import type { ResidentId, StaffId, StaffRef } from '@/data/types'
 import { assertNever } from '@/lib/assert-never'
 import { scopeReaches, type ResidentScope } from './resident-scope'
 import type { SignInRole } from './roles'
@@ -17,6 +17,10 @@ export { SIGN_IN_ROLES, isSignInRole, signInRoleOf, type SignInRole } from './ro
  * - `every_resident`: every resident at the home, whatever the viewer's list.
  * - `no_resident`: the act is about the home, not a person (the controlled drug
  *   register, signing a handover).
+ * - `records_you_wrote`: a record the viewer wrote, about a resident on their
+ *   list. Correcting a care note is this: only its author may, because a
+ *   senior carer rewriting a colleague's record is a different act from
+ *   correcting your own.
  * - `not_stated`: **the PRD says the role may, and does not say over whom.** A
  *   screen reaching this has found a question for review, not a default. Where
  *   Table 3 says only "Can" for a senior carer, the answer is `your_list`
@@ -30,7 +34,15 @@ export { SIGN_IN_ROLES, isSignInRole, signInRoleOf, type SignInRole } from './ro
  * belongs to the role table.
  */
 export type Grant =
-  | { kind: 'may'; over: 'your_list' | 'every_resident' | 'no_resident' | 'not_stated' }
+  | {
+      kind: 'may'
+      over:
+        | 'your_list'
+        | 'every_resident'
+        | 'no_resident'
+        | 'records_you_wrote'
+        | 'not_stated'
+    }
   | { kind: 'may_not'; reason: string; whoDoes: WhoDoes }
 
 export type WhoDoes =
@@ -55,7 +67,14 @@ export type Completion =
 
 /** Where a rule came from, so a row that moves on review is found by name. */
 export type Source =
-  { kind: 'role_table'; row: string } | { kind: 'screen'; screen: string; says: string }
+  | { kind: 'role_table'; row: string }
+  | { kind: 'screen'; screen: string; says: string }
+  /**
+   * An act the PRD does not name, decided here and recorded as a departure.
+   * The first is correcting a care note: the CW PRD says only that a note
+   * "cannot be edited after submission".
+   */
+  | { kind: 'departure'; see: string }
 
 export interface CareAct {
   /** What the act is, as a person would say it. */
@@ -124,6 +143,17 @@ export const CARE_ACTS = {
     source: row('Care Notes — write'),
     care_worker: may('your_list'),
     senior_carer: may('every_resident'),
+    confirmation: 'none',
+    completion: done,
+  },
+  correct_care_note: {
+    name: 'Correct a care note',
+    source: {
+      kind: 'departure',
+      see: 'docs/DEPARTURES.md, Care notes: only the author corrects a note',
+    },
+    care_worker: may('records_you_wrote'),
+    senior_carer: may('records_you_wrote'),
     confirmation: 'none',
     completion: done,
   },
@@ -349,6 +379,11 @@ export type Answer =
   | { kind: 'not_your_role'; reason: string }
   /** The role can, and this resident is not on the viewer's list. Scope, never blame. */
   | { kind: 'not_on_your_list' }
+  /**
+   * The act is on a record only its author may act on, and somebody else wrote
+   * this one. Carries who did, so the screen can say who to speak to.
+   */
+  | { kind: 'not_the_author'; author: StaffRef; reason: string }
   /** The role can over a list, and nobody has given this viewer one. */
   | { kind: 'no_list_yet' }
   /**
@@ -357,21 +392,26 @@ export type Answer =
    */
   | { kind: 'not_stated'; question: string }
 
-/** What an act is asked about: one resident, or the role alone. */
-export type Subject = { kind: 'resident'; id: ResidentId } | { kind: 'role_only' }
+/** What an act is asked about: one resident, a record about one, or the role alone. */
+export type Subject =
+  | { kind: 'resident'; id: ResidentId }
+  | { kind: 'record'; resident: ResidentId; writtenBy: StaffRef }
+  | { kind: 'role_only' }
 
 /**
  * Whether a viewer with this role and this scope may perform an act.
  *
  * Asked about `role_only`, it answers for the role: a button on a list that
  * opens nothing yet. Asked about a resident, it answers for that resident, and
- * that is the answer to draw at the act.
+ * asked about a record, for that record and the resident it is about. That is
+ * the answer to draw at the act.
  */
 export function answerFor(
   role: SignInRole,
   scope: ResidentScope,
   act: CareActId,
   subject: Subject,
+  viewer: StaffId,
 ): Answer {
   const declared: CareAct = CARE_ACTS[act]
   const grant = declared[role]
@@ -383,13 +423,18 @@ export function answerFor(
     completion: declared.completion,
   }
   if (subject.kind === 'role_only') return yes
+  const resident = subject.kind === 'resident' ? subject.id : subject.resident
+  const onList = (): Answer => {
+    if (scope.kind === 'not_decided') return { kind: 'no_list_yet' }
+    return scopeReaches(scope, resident) ? yes : { kind: 'not_on_your_list' }
+  }
 
   switch (grant.over) {
     case 'every_resident':
       return yes
     case 'no_resident':
       throw new Error(
-        `${declared.name} is not an act on a resident, and was asked about ${subject.id}.`,
+        `${declared.name} is not an act on a resident, and was asked about ${resident}.`,
       )
     case 'not_stated':
       return {
@@ -397,8 +442,19 @@ export function answerFor(
         question: `The PRD lets a ${ROLE_WORDS[role]} “${declared.name}” and does not say for which residents.`,
       }
     case 'your_list':
-      if (scope.kind === 'not_decided') return { kind: 'no_list_yet' }
-      return scopeReaches(scope, subject.id) ? yes : { kind: 'not_on_your_list' }
+      return onList()
+    case 'records_you_wrote':
+      if (subject.kind !== 'record')
+        throw new Error(
+          `${declared.name} is asked of a record, and was asked of a resident.`,
+        )
+      return subject.writtenBy.id === viewer
+        ? onList()
+        : {
+            kind: 'not_the_author',
+            author: subject.writtenBy,
+            reason: `Only ${subject.writtenBy.displayName}, who wrote it, can ${declared.name.split(' ')[0]?.toLowerCase() ?? 'change'} it.`,
+          }
     default:
       return assertNever(grant.over)
   }

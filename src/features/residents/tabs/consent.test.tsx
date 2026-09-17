@@ -221,10 +221,13 @@ describe('the withdrawal that did not undo what it could not', () => {
 describe('recording a decision is the senior carer’s act', () => {
   const answerOf = (staff: StaffRef, resident: Resident) => {
     const member = memberById(staff.id)!
-    return answerFor(signInRoleOf(member), residentScopeFor(member), 'record_consent', {
-      kind: 'resident',
-      id: resident.id,
-    })
+    return answerFor(
+      signInRoleOf(member),
+      residentScopeFor(member),
+      'record_consent',
+      { kind: 'resident', id: resident.id },
+      member.id,
+    )
   }
 
   it('is live for Akinyemi, and says it is not built', async () => {

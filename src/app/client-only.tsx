@@ -195,13 +195,34 @@ const SCREENS = {
     },
   ),
   residentNotes: dynamic(
+    () => import('@/features/notes/NotesTab').then((module) => module.NotesTab),
+    { ssr: false },
+  ),
+  residentNoteNew: dynamic(
     () =>
-      import('@/features/residents/profile/LaterPhaseTab').then(
-        (module) => module.CareNotesTab,
+      import('@/features/notes/composer/NoteComposerRoute').then(
+        (module) => module.NoteComposerRoute,
       ),
-    {
-      ssr: false,
-    },
+    { ssr: false },
+  ),
+  residentNoteDetail: dynamic(
+    () =>
+      import('@/features/notes/NoteDetailRoute').then(
+        (module) => module.NoteDetailRoute,
+      ),
+    { ssr: false },
+  ),
+  careNotes: dynamic(
+    () =>
+      import('@/features/notes/CareNotesRoute').then((module) => module.CareNotesRoute),
+    { ssr: false },
+  ),
+  careNotePicker: dynamic(
+    () =>
+      import('@/features/notes/composer/ResidentPickerRoute').then(
+        (module) => module.ResidentPickerRoute,
+      ),
+    { ssr: false },
   ),
   residentMedications: dynamic(
     () =>

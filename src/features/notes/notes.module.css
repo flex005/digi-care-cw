@@ -1,0 +1,589 @@
+/* Care notes: the list across residents, a resident's tab, and one note.
+   Flex throughout, never grid: the Figma importer builds auto-layout from flex. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+.tabPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.status {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* ------------------------------------------------------------------ figures */
+
+.figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  align-items: stretch;
+}
+
+.lead {
+  display: flex;
+  flex: 1 1 280px;
+  flex-direction: column;
+}
+
+.lead > section {
+  flex: 1;
+}
+
+.tileColumn {
+  display: flex;
+  flex: 3 1 560px;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.scopeNote {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+/* -------------------------------------------------------------------- pills */
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.pill {
+  display: inline-flex;
+  gap: var(--space-4);
+  align-items: center;
+  min-height: var(--space-40);
+  padding: var(--space-8) var(--space-16);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pill:hover {
+  background-color: var(--purple-50);
+}
+
+/* Chosen: the mark says so, and the fill and weight reinforce it. */
+.pillChosen {
+  composes: pill;
+  border-color: var(--purple-900);
+  background-color: var(--purple-900);
+  color: var(--bg-surface);
+  font-weight: var(--weight-semibold);
+}
+
+.pillChosen:hover {
+  background-color: var(--purple-900);
+}
+
+/* --------------------------------------------------------------- view head */
+
+.viewHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin-top: var(--space-12);
+  padding-bottom: var(--space-16);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.claim {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.claim > [data-numeric] {
+  color: var(--ink-900);
+  font-weight: var(--weight-bold);
+}
+
+.plain {
+  padding-block: var(--space-16);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.justReviewed {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-top: var(--space-16);
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface-sunken);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.justReviewed > p {
+  flex: 1 1 280px;
+}
+
+/* --------------------------------------------------------------------- rows */
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  gap: var(--space-16) var(--space-24);
+  align-items: flex-start;
+  padding-block: var(--space-16);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+/* Superseded stays on the list, set back a step. The pill on the row says it
+   in words; the ground is reinforcement only. */
+.rowSuperseded {
+  composes: row;
+  padding-inline: var(--space-12);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface-sunken);
+}
+
+.rowSubject {
+  display: flex;
+  flex: 0 0 200px;
+  gap: var(--space-12);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.rowWho {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rowName {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.rowName:hover {
+  color: var(--purple-600);
+  text-decoration: underline;
+}
+
+.rowFacts {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.rowFlag {
+  display: flex;
+  flex: 0 0 200px;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.rowMain {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.rowActs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+  align-items: center;
+  margin-top: var(--space-4);
+}
+
+.body {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  overflow-wrap: anywhere;
+}
+
+.bodyLarge {
+  margin-block: var(--space-12);
+  color: var(--ink-900);
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
+  font-weight: var(--weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.openLink,
+.inlineLink {
+  display: inline-flex;
+  gap: var(--space-4);
+  align-items: center;
+  min-height: var(--space-32);
+  color: var(--purple-600);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.openLink:hover,
+.inlineLink:hover {
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------------------- note parts */
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-12);
+  align-items: center;
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.category {
+  color: var(--ink-700);
+  font-weight: var(--weight-semibold);
+}
+
+.author {
+  color: var(--ink-700);
+  font-weight: var(--weight-medium);
+}
+
+.shiftOverride,
+.reason,
+.outcome,
+.flagLine {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.overrideLabel,
+.reasonLabel {
+  margin-right: var(--space-4);
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.flagRecord {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+  align-items: center;
+}
+
+.chainItem {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+/* ------------------------------------------------------------------ the tab */
+
+.tabAct {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  align-items: flex-start;
+  margin-top: var(--space-12);
+}
+
+.tabNote {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: flex-start;
+  padding-block: var(--space-16);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.tabNote:last-child {
+  border-bottom: none;
+}
+
+.tabNoteSuperseded {
+  composes: tabNote;
+  padding-inline: var(--space-12);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface-sunken);
+}
+
+/* --------------------------------------------------------------- one note */
+
+.back {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--space-40);
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.back:hover {
+  background-color: var(--purple-50);
+}
+
+.chainNotice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-12);
+  align-items: center;
+  margin-top: var(--space-12);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-32);
+  margin: var(--space-12) 0 0;
+}
+
+.fact {
+  display: flex;
+  flex: 1 1 180px;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.term {
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.value {
+  margin: 0;
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.immutability {
+  margin-top: var(--space-16);
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.detailAct {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  align-items: flex-start;
+  margin-top: var(--space-16);
+}
+
+.chainList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin: var(--space-12) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chainRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.chainRelation {
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.chainWho {
+  color: var(--ink-700);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.refusal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.refusalTitle {
+  color: var(--ink-900);
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
+  font-weight: var(--weight-semibold);
+}
+
+.refusalBody {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* ------------------------------------------------------------ review act */
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.controlLine {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.formError {
+  color: var(--status-critical-ink);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.dialogSubject {
+  display: flex;
+  gap: var(--space-12);
+  align-items: center;
+  padding: var(--space-12);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface-sunken);
+}
+
+.dialogWho {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dialogName {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-semibold);
+}
+
+.dialogPreferred {
+  color: var(--ink-500);
+  font-weight: var(--weight-regular);
+}
+
+.dialogFacts,
+.dialogNote {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.outcomes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.legend {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-semibold);
+}
+
+.dialogLines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ---------------------------------------------------------------- compact */
+
+/* A compact screen: each row stacks, subject over flag over note. */
+@media (width < 1024px) {
+  .row {
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .rowSubject,
+  .rowFlag {
+    flex: 0 0 auto;
+  }
+
+  .rowMain {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .openLink,
+  .inlineLink {
+    min-height: var(--space-48);
+  }
+}

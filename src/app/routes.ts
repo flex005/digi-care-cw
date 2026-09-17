@@ -35,6 +35,8 @@ export const ROUTES: RouteDeclaration[] = [
   { path: '/sign-out', screen: 'signOut', inShell: true },
   { path: '/', screen: 'home', inShell: true },
   { path: '/residents', screen: 'residents', module: 'residents', inShell: true },
+  { path: '/care-notes', screen: 'careNotes', module: 'care-notes', inShell: true },
+  { path: '/care-notes/new', screen: 'careNotePicker', inShell: true },
   { path: '/residents/[residentId]', screen: 'residentGeneral', inShell: true },
   { path: '/residents/[residentId]/needs', screen: 'residentNeeds', inShell: true },
   { path: '/residents/[residentId]/people', screen: 'residentPeople', inShell: true },
@@ -44,6 +46,16 @@ export const ROUTES: RouteDeclaration[] = [
     inShell: true,
   },
   { path: '/residents/[residentId]/notes', screen: 'residentNotes', inShell: true },
+  {
+    path: '/residents/[residentId]/notes/new',
+    screen: 'residentNoteNew',
+    inShell: true,
+  },
+  {
+    path: '/residents/[residentId]/notes/[noteId]',
+    screen: 'residentNoteDetail',
+    inShell: true,
+  },
   {
     path: '/residents/[residentId]/medications',
     screen: 'residentMedications',

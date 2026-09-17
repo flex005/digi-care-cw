@@ -6,6 +6,7 @@ import { configuredSites, organisationAsConfigured } from '@/data/access/setting
 import { endSession } from '@/data/access/session-losses'
 import { resetViewerScope, setViewer } from '@/data/access/viewer-scope'
 import { resetMedicationPins } from './medication-pins'
+import { resetNoteDrafts } from '@/features/notes/composer/draft-store'
 import { SESSION_TIMEOUT_MINUTES, requestedMinutes } from './session-timeout'
 import {
   SessionContext,
@@ -80,6 +81,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(() => {
     endSession()
     resetMedicationPins()
+    resetNoteDrafts()
     setPending({ kind: 'none' })
     setSignIn({ kind: 'signed_out' })
   }, [])

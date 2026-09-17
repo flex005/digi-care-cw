@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { IsoDate, ResidentId } from '@/data/types'
-import { staffOkonkwo } from '@/data/fixtures/organisation'
+import { staffEze, staffNwosu, staffOkonkwo } from '@/data/fixtures/organisation'
 import { CARE_ACTS, answerFor, type CareActId, type Grant } from './capabilities'
 import type { ResidentScope } from './resident-scope'
 
@@ -35,6 +35,11 @@ const PRD_TABLE_3: Record<
     row: 'Care Notes — write',
     care_worker: 'your_list',
     senior_carer: 'every_resident',
+  },
+  correct_care_note: {
+    row: 'docs/DEPARTURES.md, Care notes: only the author corrects a note',
+    care_worker: 'records_you_wrote',
+    senior_carer: 'records_you_wrote',
   },
   mark_flagged_note_reviewed: {
     row: 'Care Notes — mark flagged reviewed',
@@ -154,9 +159,13 @@ describe('the role table', () => {
 
     it(`${act} names the row or screen it came from`, () => {
       const source = CARE_ACTS[act].source
-      expect(source.kind === 'role_table' ? source.row : source.screen).toBe(
-        expected.row,
-      )
+      expect(
+        source.kind === 'role_table'
+          ? source.row
+          : source.kind === 'screen'
+            ? source.screen
+            : source.see,
+      ).toBe(expected.row)
     })
   }
 
@@ -207,6 +216,8 @@ describe('the role table', () => {
 })
 
 describe('asking', () => {
+  const viewer = staffEze.id
+
   const listed = 'res-okafor' as ResidentId
   const notListed = 'res-whitcombe' as ResidentId
   const named: ResidentScope = {
@@ -219,10 +230,16 @@ describe('asking', () => {
 
   it('opens a resident on the list', () => {
     expect(
-      answerFor('care_worker', named, 'open_resident_record', {
-        kind: 'resident',
-        id: listed,
-      }),
+      answerFor(
+        'care_worker',
+        named,
+        'open_resident_record',
+        {
+          kind: 'resident',
+          id: listed,
+        },
+        viewer,
+      ),
     ).toEqual({
       kind: 'yes',
       confirmation: 'none',
@@ -232,37 +249,61 @@ describe('asking', () => {
 
   it('says a resident is not on the list, rather than refusing the role', () => {
     expect(
-      answerFor('care_worker', named, 'open_resident_record', {
-        kind: 'resident',
-        id: notListed,
-      }),
+      answerFor(
+        'care_worker',
+        named,
+        'open_resident_record',
+        {
+          kind: 'resident',
+          id: notListed,
+        },
+        viewer,
+      ),
     ).toEqual({ kind: 'not_on_your_list' })
   })
 
   it('says nobody has given a list, rather than that the resident is not on it', () => {
     expect(
-      answerFor('care_worker', { kind: 'not_decided' }, 'write_care_note', {
-        kind: 'resident',
-        id: listed,
-      }),
+      answerFor(
+        'care_worker',
+        { kind: 'not_decided' },
+        'write_care_note',
+        {
+          kind: 'resident',
+          id: listed,
+        },
+        viewer,
+      ),
     ).toEqual({ kind: 'no_list_yet' })
   })
 
   it('surfaces a silence as a question, never as yes or no', () => {
-    const answer = answerFor('care_worker', named, 'record_medication', {
-      kind: 'resident',
-      id: notListed,
-    })
+    const answer = answerFor(
+      'care_worker',
+      named,
+      'record_medication',
+      {
+        kind: 'resident',
+        id: notListed,
+      },
+      viewer,
+    )
     expect(answer.kind).toBe('not_stated')
     expect(answer).toMatchObject({ question: expect.stringContaining('care worker') })
   })
 
   it('refuses the role with the table’s own words', () => {
     expect(
-      answerFor('care_worker', named, 'record_consent', {
-        kind: 'resident',
-        id: listed,
-      }),
+      answerFor(
+        'care_worker',
+        named,
+        'record_consent',
+        {
+          kind: 'resident',
+          id: listed,
+        },
+        viewer,
+      ),
     ).toEqual({
       kind: 'not_your_role',
       reason: 'Recording consent is for a senior carer.',
@@ -271,19 +312,70 @@ describe('asking', () => {
 
   it('reaches every resident for a senior carer', () => {
     expect(
-      answerFor('senior_carer', senior, 'score_risk_assessment', {
-        kind: 'resident',
-        id: notListed,
-      }),
+      answerFor(
+        'senior_carer',
+        senior,
+        'score_risk_assessment',
+        {
+          kind: 'resident',
+          id: notListed,
+        },
+        viewer,
+      ),
     ).toMatchObject({ kind: 'yes', confirmation: 'medication_pin' })
   })
 
   it('refuses to answer an act about the home as though it were about a resident', () => {
     expect(() =>
-      answerFor('senior_carer', senior, 'sign_handover', {
-        kind: 'resident',
-        id: listed,
-      }),
+      answerFor(
+        'senior_carer',
+        senior,
+        'sign_handover',
+        {
+          kind: 'resident',
+          id: listed,
+        },
+        viewer,
+      ),
     ).toThrow(/not an act on a resident/)
+  })
+
+  it('lets the author correct their own note, about a resident on their list', () => {
+    expect(
+      answerFor(
+        'care_worker',
+        named,
+        'correct_care_note',
+        { kind: 'record', resident: listed, writtenBy: staffEze },
+        viewer,
+      ).kind,
+    ).toBe('yes')
+  })
+
+  it('tells anybody else, a senior carer included, who wrote it', () => {
+    const answer = answerFor(
+      'senior_carer',
+      senior,
+      'correct_care_note',
+      { kind: 'record', resident: listed, writtenBy: staffNwosu },
+      viewer,
+    )
+    expect(answer).toEqual({
+      kind: 'not_the_author',
+      author: staffNwosu,
+      reason: 'Only C. Nwosu, who wrote it, can correct it.',
+    })
+  })
+
+  it('refuses the author a correction about a resident no longer on their list', () => {
+    expect(
+      answerFor(
+        'care_worker',
+        named,
+        'correct_care_note',
+        { kind: 'record', resident: notListed, writtenBy: staffEze },
+        viewer,
+      ),
+    ).toEqual({ kind: 'not_on_your_list' })
   })
 })

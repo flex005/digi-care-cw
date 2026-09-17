@@ -9,8 +9,7 @@ import { PROFILE_TABS, type ProfileTab } from './profile-tabs'
  * tab lands, and a reader who opens it is told in one line which phase builds
  * it, rather than finding a tab that will not respond.
  */
-const PHASE_WORDS: Record<Exclude<ProfileTab['builtIn'], 'phase_2'>, string> = {
-  phase_3: 'Phase 3, care notes',
+const PHASE_WORDS: Record<Exclude<ProfileTab['builtIn'], 'built'>, string> = {
   phase_4: 'Phase 4, medications',
   phase_7: 'Phase 7, goals and activities',
 }
@@ -18,7 +17,7 @@ const PHASE_WORDS: Record<Exclude<ProfileTab['builtIn'], 'phase_2'>, string> = {
 function LaterPhaseTab({ segment }: { segment: string }) {
   const { resident } = useOpenRecord()
   const tab = PROFILE_TABS.find((entry) => entry.segment === segment)
-  if (tab === undefined || tab.builtIn === 'phase_2')
+  if (tab === undefined || tab.builtIn === 'built')
     throw new Error(`${segment} is not a tab built in a later phase.`)
   return (
     <Card>
@@ -31,6 +30,5 @@ function LaterPhaseTab({ segment }: { segment: string }) {
   )
 }
 
-export const CareNotesTab = () => <LaterPhaseTab segment="notes" />
 export const MedicationsTab = () => <LaterPhaseTab segment="medications" />
 export const GoalsTab = () => <LaterPhaseTab segment="goals" />

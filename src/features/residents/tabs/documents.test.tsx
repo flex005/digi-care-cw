@@ -290,6 +290,7 @@ describe('uploading is the senior carer’s act', () => {
         kind: 'resident',
         id: resident.id,
       },
+      member.id,
     )
   }
 

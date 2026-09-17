@@ -284,3 +284,32 @@ It replaces today's `CARE_ACTS`, which says only holds or refused, and folds `re
 - **The tab strip says when it scrolls.** An edge with tabs past it carries "2 more" and a chevron, drawn only while tabs are hidden on that side, and pressing it moves the row. **It sits beside the row, not over it**: the first version laid it over a fade, which read at 1440 and at 390 covered most of the tab the reader was on. The row's own scrollbar is hidden, since the edges now say it scrolls in words. Which tabs are hidden is one function, tested on its own, and the edge is tested against measured positions.
 - **The five acts a care worker's "Can" leaves without a reach** are recorded in `docs/DEPARTURES.md` as questions for the PRD's author, with the controlled drug contradiction, which stays as written until Phase 4.
 - **The search defect is recorded in the Admin build's `PROGRESS.md`** as a known defect there, not fixed.
+
+---
+
+## Phase 3: care notes (17/09/2026)
+
+**What was built.** The care notes list (CN-01) at `/care-notes`, counted over the viewer's list, with the flagged queue, No note today, Your notes, By shift and All notes; the composer (CN-02) at `/residents/[id]/notes/new` with a sticky subject strip, reached from the record or from a picker at `/care-notes/new` that offers only residents the viewer may write about; the Care Notes tab; note detail with its supervision record and correction chain; Mark reviewed with "Action taken?"; corrections by the author only. Departures are in `docs/DEPARTURES.md`, under Care notes.
+
+**Settled before building**: the flag is the author's; the review outcome and flag reason are in the shared type, in both builds; only the author corrects, the first role-table act sourced from a departure; drafts kept for the session with no dialog; no By author view; voice-to-text refused on the ground that the browser's speech service sends audio to a third party; `--max-warnings 0` on ESLint.
+
+**How.** The shared type, fixtures and loaders were changed here and copied to the Admin build, whose screens were then given the same choice by one agent. Two agents built this build's reading and writing sides in parallel against an agreed interface (`CorrectNoteAct`), and a fourth examined the Admin build's dependency warnings. Screenshots: both roles and a care worker with no list, 1440 and 390, colour and greyscale, 96 captures.
+
+### The shared data layer
+
+- **`FlagReason` and `ReviewOutcome`** on `CareNoteReview`. The fixtures give generated flags a reason or none and generated reviews each of the four outcomes, **derived from the category and day already drawn rather than from a new draw**: another call to the generator would lengthen its stream and move every fixture after it, in both builds. A fixture test holds that every state is reachable.
+- **`REVIEW_OUTCOMES` is built from a record keyed by outcome**, so an outcome with no label is a compile error. The first version was a list checked with `satisfies`, which confirms each entry is an outcome and says nothing about an outcome with no entry. Found by the Admin build's agent.
+- **`submitCorrectionNote` now makes the checks `submitCareNote` makes**: an empty body and an unexplained shift change are refused, and the body is trimmed. A correction is a care note and had skipped them. Found by the same agent.
+
+### Found and decided on the way
+
+- **The screens' own decisions, reported by the agents and kept**: the "write your own note" link sits on its own line under the refusal, because `ActLine` takes text; the flag is a checkbox, because the switch primitive is not for clinical values; a correction offers no phrase chips and keeps no draft, as in the Admin build; the review is a `Dialog`, not an `AlertDialog`, because it holds a choice and a field; Your notes shows the viewer's notes about residents on their list; By shift says a shift has not started rather than hatching everyone for it.
+- **The composer's form surface has no card head**, and so no expand button: a form has nowhere to expand to. The same reasoning as the sign-out screen. It is a question for review whether a form counts as a card under CLAUDE.md §6.
+- **"across your 4 residents" has one owner**, `scopeAcross`, beside `scopeDenominator`. The first version rewrote `scopeDenominator`'s "of" into "across" with a regular expression in the screen.
+- **List bullets in the resident picker**, caught by the screenshot script's marker check.
+
+### The Admin build's four other dependency warnings
+
+- **Two are one defect** (`SessionProvider.tsx`, lines 33 and 78). Signing out resets the settings store, which reverts a home's name and timezone changed that session, but the provider stays mounted and its memo is not told, so after signing back in the header still shows the changed name and every clinical timestamp renders in the changed zone, while screens that read the store directly show the originals. Confirmed with a probe test through the real sign-in, settings and sign-out screens. The fix is one line in `signOut` (bump the counter after `endSession()`), confirmed against a patched copy; not applied. Recorded in the Admin build's `PROGRESS.md` as a known defect.
+- **`NotesTab.tsx` line 68 and `StaffDetailRoute.tsx` line 73 are harmless**: a memo recomputed over an empty list the screen does not use, and a counter whose re-render is what refreshes the screen while the memo reads nothing that could change.
+- This build has no settings writes, so its provider is not exposed.

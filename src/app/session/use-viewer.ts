@@ -3,7 +3,7 @@ import { STAFF_ROLE_NAMES } from '@/data/types'
 import { answerFor, signInRoleOf, type Answer, type CareActId } from './capabilities'
 import { residentScopeFor, type ResidentScope } from './resident-scope'
 import { useSignedIn } from './use-session'
-import type { ResidentId } from '@/data/types'
+import type { ResidentId, StaffRef } from '@/data/types'
 
 /**
  * What the person signed in can do, and which residents they can see.
@@ -20,6 +20,11 @@ export interface Viewer {
   roleName: string
   /** Whether the viewer may perform an act, for one resident or for the role alone. */
   ask: (act: CareActId, resident?: ResidentId) => Answer
+  /** Whether the viewer may perform an act on one record, which somebody wrote. */
+  askOfRecord: (
+    act: CareActId,
+    record: { resident: ResidentId; writtenBy: StaffRef },
+  ) => Answer
   scope: ResidentScope
 }
 
@@ -39,7 +44,12 @@ export function useViewer(): Viewer {
           resident === undefined
             ? { kind: 'role_only' }
             : { kind: 'resident', id: resident },
+          member.id,
         ),
+      askOfRecord: (
+        act: CareActId,
+        record: { resident: ResidentId; writtenBy: StaffRef },
+      ) => answerFor(role, scope, act, { kind: 'record', ...record }, member.id),
       scope,
     }
   }, [member])
