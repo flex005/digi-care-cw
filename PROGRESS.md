@@ -373,3 +373,103 @@ The medications layout and its four tabs (Omissions, Round, Controlled drug regi
 **Two destructive mistakes of my own**, both while tidying agents' work, both recorded in §8: a mutation reverted with `git checkout` took an uncommitted change with it, and a regular expression written to delete a four-line helper deleted most of `omission-views.ts`. The second was recovered from the agent's own record of writing the file, and the typecheck named every missing export.
 
 **One agent stopped on a rate limit** after writing the MAR chart and the resident's Medications tab; its files were complete, and its 46 tests pass.
+
+---
+
+## The dose window, and what refusing an early dose costs (17/09/2026)
+
+### Recording a dose before its window opens is refused
+
+**Decided on review: giving a drug early is a clinical decision and nothing in this product can make one.** A due dose whose window has not opened now offers neither answer, and says why with the hour it opens; the window was already drawn beside the dose and is now stated at the act as well. `docs/DEPARTURES.md`, Medications.
+
+- **Both answers, not only Given.** The instruction was about giving a dose early; the same reasoning refuses Not given. Recording at 19:30 that the 20:00 dose was refused is a record of something that has not happened, and the resident has not been offered it yet. Flagged here rather than assumed: it is the one part of this that goes past the words.
+- **Late stays open.** A dose given at 20:40 is recorded at 20:40. `windowOf` already told the three states apart and only `not_open_yet` refuses.
+- **The window is its own field on `DoseAccess`**, beside what the register and the role table say, because they are different facts about one dose and both can be true: a care worker at a controlled drug before the round is stopped by the clock *and* by the contradiction in the role table, and a compound state renders as separate facts. The screenshots show both, one above the other, neither hiding the other.
+- **Not hatched.** A dose that is not due yet is not a dose nobody has recorded; there is nothing to record. The hatch would claim a gap the chart does not hold, so the "Not recorded yet" mark is not drawn while the window is shut and the line stands in its place. The line is the neutral information tint: not a finding, not a gap, not a refusal of this reader.
+- **Quieter at the dose than at the act.** The first version drew the tinted panel at every dose, so a two-dose card carried it three times and it read louder than the critical discrepancy line beside it on the one card that has both. The dose now carries the words alone; the panel is drawn once, at the foot of the card where the dead act button is.
+
+`round-window.test.tsx` holds it at 19:30: neither answer offered, the hour named, no hatch, the card and banner lines, the contradiction drawn beside the window, and a PRN still recordable — as-required is not due at a round, so no window governs it. Broken on purpose twice, each confirmed landed in the code the test reads and then reversed by hand: the buttons' `disabled` without the window (the answers test fails), and `outstanding` returning no `notOpenYet` (the card line and the pure rule fail).
+
+**`round.test.tsx` moved from 19:30 to 20:20.** Every assertion in it was recording a 20:00 dose half an hour before the round, which is now refused. At 20:20 the fixtures have signed for half the round already — the part-recorded state, alternating on the drug's index — so the doses those tests answer are read from `openDosesAt` rather than named.
+
+### The opening count is now unreachable from the round, and this is the ask
+
+**The one controlled drug the register has never counted is Adeyemi's oxycodone**, and the opening balance is asked for where a controlled drug is given against no balance. A dose can be answered only inside its window; inside a window the fixtures sign for half the round, alternating on the drug's index in `medications`; that drug's index is 106, which is even, so at every open window, on every day, it is already on the record. The screen cannot reach the opening count at all.
+
+It is not chance and no clock reaches it: the parity is a property of the drug, not of the hour. Recording it before the window was the only door, and the refusal above closes it.
+
+- **The rule is tested where it lives.** `round-rules.test.ts` is new and pure: the window's three states, a shut round waiting on nobody, the count and the witness each named while missing, what the PIN signs, and a counted balance asking for neither.
+- **The screen test is replaced by one that pins the reason**, naming the parity and asserting the dose is not open. The day somebody moves the fixture it fails and the screen test comes back.
+- **What would reach it is a fixture change, shared with the Admin build**, so it is an ask rather than a decision: exclude the never-counted drug from the half the fixtures pre-sign, so its dose is always still to give in an open window. Derived, no new draw, no other fixture moves. The alternative is to reach the opening count from the register instead, which is where MED-03 puts the count ("Senior 1 records administration + stock count").
+
+### A rule held by habit rather than by a type
+
+**The PRN outcome with a time and no author was the only clinical record in either build without one**, found in the newest module after eleven phases in which every other record carried an author because somebody remembered. `recordPrnOutcomeFor` now takes who recorded it and both builds show them, but nothing in the types would have stopped it, and nothing stops the next one: `CareNoteReview`, an omission's closure and a stock count each carry their author by construction of the function that writes them, not by a shape the compiler checks. The evidence invariant has a guard for the unrecorded case and none for the unattributed one. **A rule held everywhere by habit is a rule waiting to be missed in the next module**, and this is the record of where it was missed.
+
+### Countersigning an old dose: the register's own logic, and what the fixtures hold
+
+Proposed, not picked. MED-03 says "System prompts Witness 2. Senior 2 taps Countersign + enters own PIN" and says nothing about when. The measurements are at the default clock, Rosewood Court, **89 doses on the register with one signature**:
+
+| Window | Doses still countersignable |
+| --- | --- |
+| The round's own hour | 0 of 89 |
+| The shift the dose was given in (`shiftAt`: early 07–14, late 14–21, night 21–07) | 0 of 89 |
+| Until the next stock count on that drug | 0 of 89 |
+| 24 hours | 2 of 89 |
+| 72 hours | 4 of 89 |
+
+The oldest is 30 days. The youngest is 11.95 hours, given at 07:25 on the early shift while the record stands in the late one.
+
+**The first measurement counted the wrong set, and the screen said so.** It ran over the MAR records — 282 doses, oldest 89 days — which is every controlled drug dose given at the home with no second signature. The register is narrower by construction: `buildRegister` starts at the opening count and nothing before it is on the register at all, because the balance did not exist yet. The screen's own figure, 89 of 1,018, is what showed the difference. The shape of the answer is unchanged, and the table above is the register's.
+
+**Two of those windows come out of the register rather than out of a round number.** A witness statement is an assertion that somebody saw the dose given, and the only notion this build has of who was present is the shift, which it already owns. A stock count sets the balance and audits every line before it, so a signature added afterwards is added to a line that has already been checked — and every one of the 282 has a later count, so the register's own arithmetic has closed on all of them.
+
+**Under any of them, countersigning becomes unreachable in the running build.** A dose recorded this session cannot be countersigned by the person who recorded it, and signing out destroys the session's records, so the only countersignable doses are the fixtures' — and they are all outside. Reaching it again means pinning a fresh awaiting dose in the fixtures, given by somebody else inside the window, which is a shared change and an ask. It is the same shape as the opening count above: a refusal is right and the fixture was built for a screen that never refused.
+
+**What the screen would then have to say** is that 282 doses can never have a second signature: a permanent gap, hatched, with the giver and the hour, and the card's figure carrying it — not a queue of work that looks actionable. That is a finding, and arguably the point.
+
+---
+
+## After review: the window states named, the silence quoted, the fixture moved (17/09/2026)
+
+### Three states at one dose, drawn as three different things
+
+The window rule now says what is true rather than only why a button is dead, and the three states are kept apart:
+
+| When | What the dose draws |
+| --- | --- |
+| Before the window opens | "Not due yet — the window opens at 20:00 BST. Giving a drug early is a clinical decision, and nothing in this product can make one." Neutral information tint, no hatch, both answers unavailable. |
+| Inside the window, nothing recorded | The hatch: "Not recorded yet", and both answers live. Nobody has recorded a dose that is due, which is a gap. |
+| The window closed with nothing recorded | The chart's `omitted`: "Nothing recorded", hatched, with the hour the window closed. The Omissions tab counts it. |
+
+**The hatch begins where the window opens.** A dose that is not due yet is not a dose nobody has recorded, and hatching it would claim a gap the chart does not hold. `round-window.test.tsx` asserts the absence of the hatch before the window; `round.test.tsx` asserts its presence after, on the same dose.
+
+### The countersign silence, quoted at the act
+
+MED-03 is quoted in full on the Awaiting Witness 2 card, with what it leaves open, and **every dose stays countersignable at any age**: nothing here is drawn as decided, because nothing has been decided. Each row carries the same silence with that dose's age beside it ("Waiting 30 days. How long after a dose a second signature may still be added is not stated in MED-03."). The quotation is one owner, `COUNTERSIGN_QUOTED`, so the card and the question in `docs/DEPARTURES.md` cannot drift.
+
+**It is not an `ActLine`.** The four kinds are refusals, an unbuilt control, a consequence that does not happen, and a silence about *which residents* where the control stays unavailable. This silence is about time and the control stays available, so reusing `not_stated` would have made that kind mean two opposite things about availability. It is drawn in the same quiet caption as `ActLine`, with a solid hairline and never a dashed one: the dashed edge belongs to the unrecorded treatment and nothing here is a gap in the record.
+
+### The fixture that made the opening count unreachable
+
+The never-counted drug is now always still to give in a round in progress, by identity rather than by index. The screen test that was replaced by a test pinning the reason is back, and the pinning test now asserts the opposite — that the dose is open — so the two swapped places rather than one being deleted. `docs/DEPARTURES.md`, Fixture changes shared with the Admin build. Not synced to the Admin build in this pass, and nothing there depends on it: its round does not ask for an opening count.
+
+---
+
+## Phase 5: handover (17/09/2026)
+
+**What was built.** The shift handover (HO-01) at `/handover`: the board for the open shift, the four resident groups, recording a status, the dual signature, and earlier handovers still missing one. The data layer was already here — `handover-store.ts`, `getHandoverBoard`, `recordHandoverStatus`, `signHandover` — so this phase is screens and the role table's answers.
+
+- **The board is the home's, not the viewer's list.** HO-01 says every resident at the site, whether or not anybody has got to them, and the incoming shift is taking the whole building. So nothing is counted over the viewer's residents and the head says what it *is* counted over. `scopeNote` is deliberately not used here: it would say "Counted over your list, not the home's" to a care worker, which would be false of this board.
+- **What is asked per resident is the act.** `update_handover_status` is `not_stated_beyond_your_list`, like the other four "Can" rows, so a care worker's own residents answer yes and a resident off their list draws the PRD's question at the control. Both are on one screen, row by row, which is the first place in the build where the yes and the question sit side by side in one list.
+- **A care worker nobody has given a list is told once**, under the pills, not once per row: six identical refusals down a list is the shape the omissions screen already rejected. The board stays readable, because it is the shift's.
+- **The dark card is the not-reviewed count**, the only figure still changeable before the signature. The other three are counted over the residents somebody looked at, never over the home: counting the unreviewed in that denominator would claim a coverage nobody has.
+- **Signing is the medication PIN**, per the role table's `confirmation`, and what it signs is said in words before the digits: "…covering 22 of 28 residents. 6 of them have not been looked at at all: this records that, and does not say they are well." The signature stores the counts at the moment it was given, so it can never be read as more than it was.
+- **One signature is half a handover**, from the role table's `completion` rather than written on the screen, and the other half stays hatched until the incoming shift signs. A care worker gets the table's refusal on both halves.
+- **Nothing is sent.** HO-01's push to the senior on duty when somebody is marked urgent does not happen, and both the head of the screen and the dialog at the act say so.
+
+**Found on the way.** The act column had no width, so where the role table answered with a question the sentence spanned the row and read as a footnote under the record rather than as the answer at the act; it is capped now. The Review control is `size="large"`, which is the 48px touch target the compact layout asks for on a clinical act.
+
+**Mutations run**, each confirmed landed and then reversed: the role-table question skipped in `StatusControl` (the off-list test and the no-list test fail), and the not-reviewed sentence dropped from what the PIN signs (the signature test fails).
+
+Screenshots: both roles and a care worker with no list, 1440 and 390, colour and greyscale.

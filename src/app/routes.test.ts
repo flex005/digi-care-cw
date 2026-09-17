@@ -72,12 +72,12 @@ describe('routes', () => {
 
   /*
    * Named, so a nav item cannot go live by accident in the phase that did not
-   * build it. Phase 4 builds Medications, Phase 3 Care notes, Phase 2 Residents,
-   * Phase 0 Specimens.
+   * build it. Phase 5 builds Handover, Phase 4 Medications, Phase 3 Care notes,
+   * Phase 2 Residents, Phase 0 Specimens.
    */
-  it('has exactly Residents, Care notes, Medications and Specimens live after Phase 4', () => {
+  it('has exactly Residents, Care notes, Handover, Medications and Specimens live after Phase 5', () => {
     expect(
       NAV_ITEMS.filter((item) => isBuilt(item.module)).map((item) => item.label),
-    ).toEqual(['Residents', 'Care notes', 'Medications', 'Specimens'])
+    ).toEqual(['Residents', 'Care notes', 'Handover', 'Medications', 'Specimens'])
   })
 })

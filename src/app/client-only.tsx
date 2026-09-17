@@ -212,6 +212,13 @@ const SCREENS = {
       ),
     { ssr: false },
   ),
+  handover: dynamic(
+    () =>
+      import('@/features/handover/HandoverRoute').then(
+        (module) => module.HandoverRoute,
+      ),
+    { ssr: false },
+  ),
   careNotes: dynamic(
     () =>
       import('@/features/notes/CareNotesRoute').then((module) => module.CareNotesRoute),

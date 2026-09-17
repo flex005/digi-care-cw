@@ -37,6 +37,7 @@ export const ROUTES: RouteDeclaration[] = [
   { path: '/residents', screen: 'residents', module: 'residents', inShell: true },
   { path: '/care-notes', screen: 'careNotes', module: 'care-notes', inShell: true },
   { path: '/care-notes/new', screen: 'careNotePicker', inShell: true },
+  { path: '/handover', screen: 'handover', module: 'handover', inShell: true },
   {
     path: '/medications',
     screen: 'medicationsOmissions',
