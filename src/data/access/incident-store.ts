@@ -34,6 +34,18 @@ interface Edit {
 }
 
 const edits = new Map<IncidentId, Edit>()
+/**
+ * Incidents reported in this session, newest first.
+ *
+ * **Held whole, not as a patch.** An edit is a change to a record the fixtures
+ * hold; a report is a record that did not exist a minute ago, and there is
+ * nothing underneath it to merge with. They are read together by
+ * `patchedIncidents`, so a screen cannot see one and not the other.
+ *
+ * They go on the same overlay as everything else, which means **a reported
+ * incident does not survive a sign-out**, and the sign-out list says so.
+ */
+const reported: Incident[] = []
 let acknowledged = 0
 let reviewed = 0
 let closed = 0
@@ -55,6 +67,27 @@ export function withIncidentEdits(incident: Incident): Incident {
 }
 
 export const editedThisSession = (id: IncidentId): boolean => edits.has(id)
+
+/** What this session reported, newest first. Never merged into the fixtures. */
+export function reportedThisSession(): Incident[] {
+  return [...reported]
+}
+
+export const reportedIn = (id: IncidentId): boolean =>
+  reported.some((incident) => incident.id === id)
+
+/**
+ * Keeps a newly reported incident for the session.
+ *
+ * The id is drawn from a counter that starts above anything in the fixtures, so
+ * a session's report can never collide with a record somebody else wrote.
+ */
+export function keepReportedIncident(incident: Omit<Incident, 'id'>): Incident {
+  const id = `inc-session-${String(reported.length + 1).padStart(3, '0')}` as IncidentId
+  const kept: Incident = { ...incident, id }
+  reported.unshift(kept)
+  return kept
+}
 
 function patch(id: IncidentId, next: Edit): void {
   edits.set(id, { ...edits.get(id), ...next })
@@ -145,12 +178,14 @@ export function incidentHoldings(): SessionHolding[] {
     ...held('incidents you acknowledged', acknowledged),
     ...held('review findings you recorded', reviewed),
     ...held('incidents you closed', closed),
+    ...held('incidents you reported', reported.length),
   ]
 }
 
 /** Emptied on sign out, and by tests. */
 export function resetSessionIncidents(): void {
   edits.clear()
+  reported.length = 0
   acknowledged = 0
   reviewed = 0
   closed = 0

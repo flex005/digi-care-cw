@@ -136,6 +136,47 @@ export function zonedWallClock(value: IsoDateTime, timeZone: TimeZone): number {
 }
 
 /**
+ * The instant a wall clock in the site's zone was showing a given time.
+ *
+ * The inverse of `zonedWallClock`, and it exists for one field: "when it
+ * happened" on an incident report. A `datetime-local` input collects what a
+ * clock on the wall says, and the browser reads that in the *viewer's* zone —
+ * so storing it directly would record a London incident against a reader's
+ * clock in Lagos. Clinical timestamps are the home's (CLAUDE.md §6), and that
+ * has to hold at the moment one is written as well as when it is drawn.
+ *
+ * **Two passes, because the offset depends on the answer.** The wall clock is
+ * `t + offset(t)`, so `t` is found by guessing the offset at the wall value,
+ * then taking the offset that actually applies at the guess. One refinement is
+ * enough for every real zone: a second pass only ever moves the answer within
+ * the hour around a clock change, where the wall time itself is ambiguous.
+ */
+export function instantFromZonedWallClock(
+  wall: string,
+  timeZone: TimeZone,
+): IsoDateTime {
+  const iso = (ms: number) => new Date(ms).toISOString() as IsoDateTime
+  // "YYYY-MM-DDTHH:mm" from a datetime-local input, read as if it were UTC.
+  const asIfUtc = Date.parse(`${wall.slice(0, 16)}:00.000Z`)
+  if (Number.isNaN(asIfUtc))
+    throw new Error(`${wall} is not a wall clock this can read.`)
+
+  const guess = asIfUtc - (zonedWallClock(iso(asIfUtc), timeZone) - asIfUtc)
+  const answer = asIfUtc - (zonedWallClock(iso(guess), timeZone) - guess)
+  return iso(answer)
+}
+
+/**
+ * A wall clock in the site's zone, as a `datetime-local` input wants it.
+ *
+ * "2026-09-18T20:20". The pair to `instantFromZonedWallClock`, so the value a
+ * form starts with and the value it produces are read in the same zone.
+ */
+export function zonedWallClockInput(value: IsoDateTime, timeZone: TimeZone): string {
+  return new Date(zonedWallClock(value, timeZone)).toISOString().slice(0, 16)
+}
+
+/**
  * The calendar day an instant falls on, **in the site's zone**, as an IsoDate.
  *
  * The only correct way to ask "was this today?" about a clinical record. The

@@ -1,6 +1,6 @@
 import { held, type SessionHolding } from './session-holding'
 import { decisionFor } from './notification-store'
-import { withIncidentEdits } from './incident-store'
+import { reportedThisSession, withIncidentEdits } from './incident-store'
 import type {
   CarePlanDomainId,
   Incident,
@@ -135,17 +135,25 @@ export function patchedIncidents(): Incident[] {
    * not see would leave the screen saying nobody had decided, immediately
    * after somebody did.
    */
-  const withDecisions = fixtureIncidents.map((incident) => {
-    /*
-     * This session's acknowledgement, review findings and closure first, then
-     * its notification decisions. Both are overlays on the same record and a
-     * read that saw one and not the other would show a screen half its own
-     * session: acknowledged, and still saying nobody had picked it up.
-     */
-    const written = withIncidentEdits(incident)
-    const decision = decisionFor(incident.id)
-    return decision === undefined ? written : { ...written, notification: decision }
-  })
+  /*
+   * This session's own reports first, then the fixtures. A report made on one
+   * screen and absent from the next is the defect the overlay exists to
+   * prevent, and it is the same read either way: newest first is the order the
+   * log is in.
+   */
+  const withDecisions = [...reportedThisSession(), ...fixtureIncidents].map(
+    (incident) => {
+      /*
+       * This session's acknowledgement, review findings and closure first, then
+       * its notification decisions. Both are overlays on the same record and a
+       * read that saw one and not the other would show a screen half its own
+       * session: acknowledged, and still saying nobody had picked it up.
+       */
+      const written = withIncidentEdits(incident)
+      const decision = decisionFor(incident.id)
+      return decision === undefined ? written : { ...written, notification: decision }
+    },
+  )
 
   if (cleared.size === 0) return withDecisions
 

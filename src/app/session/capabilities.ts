@@ -319,6 +319,33 @@ export const CARE_ACTS = {
     confirmation: 'none',
     completion: done,
   },
+  decide_cqc_notification: {
+    /**
+     * Whether an incident has to be notified to the CQC.
+     *
+     * **Neither role, and from two places.** INC-01 says care workers cannot
+     * action CQC notifications and says nothing about a senior carer; Table 3's
+     * "Compliance and Reports" row gives both roles no access, and a statutory
+     * notification is compliance. So a senior carer is refused on the table's
+     * own row rather than on a silence, and the decision stays with a manager.
+     */
+    name: 'Record a CQC notification decision',
+    source: {
+      kind: 'screen',
+      screen: 'INC-01',
+      says: 'care workers cannot action CQC notifications, and Table 3 gives neither role access to Compliance and Reports',
+    },
+    care_worker: mayNot(
+      'A manager records whether the CQC must be notified.',
+      'manager',
+    ),
+    senior_carer: mayNot(
+      'A manager records whether the CQC must be notified.',
+      'manager',
+    ),
+    confirmation: 'none',
+    completion: done,
+  },
   score_risk_assessment: {
     name: 'Score or re-score a risk assessment',
     source: row('Risk Assessments — score/re-score'),

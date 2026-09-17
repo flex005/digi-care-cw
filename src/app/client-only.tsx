@@ -212,6 +212,20 @@ const SCREENS = {
       ),
     { ssr: false },
   ),
+  incidents: dynamic(
+    () =>
+      import('@/features/incidents/IncidentsRoute').then(
+        (module) => module.IncidentsRoute,
+      ),
+    { ssr: false },
+  ),
+  reportIncident: dynamic(
+    () =>
+      import('@/features/incidents/ReportIncidentRoute').then(
+        (module) => module.ReportIncidentRoute,
+      ),
+    { ssr: false },
+  ),
   handover: dynamic(
     () =>
       import('@/features/handover/HandoverRoute').then(

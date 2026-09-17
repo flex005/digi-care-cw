@@ -98,6 +98,11 @@ const PRD_TABLE_3: Record<
     care_worker: 'no',
     senior_carer: 'no',
   },
+  decide_cqc_notification: {
+    row: 'INC-01',
+    care_worker: 'no',
+    senior_carer: 'no',
+  },
   score_risk_assessment: {
     row: 'Risk Assessments — score/re-score',
     care_worker: 'no',

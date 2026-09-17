@@ -52,11 +52,20 @@ import type {
   SiteId,
   StaffRef,
   Incident,
+  IncidentId,
+  IncidentLocation,
+  IncidentSeverityId,
+  IncidentStatus,
+  IncidentSubject,
+  IncidentTypeId,
+  ImmediateResponse,
+  InjuryMap,
   RegisterMovement,
   StockBalance,
   StockCount,
 } from '../types'
-import { subjectResidentId } from '../types'
+import { INCIDENT_TYPES, subjectResidentId } from '../types'
+import { acknowledge, keepReportedIncident } from './incident-store'
 import { organisation, sites, staff } from '../fixtures/organisation'
 import { configuredSites } from './settings-store'
 import { viewerHolds, viewerHomes } from './viewer-scope'
@@ -847,6 +856,129 @@ export function getIncidents(siteId: SiteId): Promise<{
     residents: atSite,
   })
 }
+
+/**
+ * Reports an incident. CW PRD INC-02, INC-03.
+ *
+ * **The reporter's account, and nothing else.** It is written as
+ * `reported_not_acknowledged` with no manager review and no notification
+ * decision, because those are other people's records: an incident that arrived
+ * with a root cause already in it would attribute somebody's conclusion to the
+ * person who was there.
+ *
+ * Refused rather than silently corrected:
+ *
+ * - **an incident in the future.** "Not when you are writing this up" is the
+ *   form's prompt, and a time after now is not a mistake the record should
+ *   keep.
+ * - **an empty description or immediate action.** Both are required and
+ *   non-empty by the type's own account, so there is no blank to interpret.
+ * - **a resident at another home.** The subject comes from a choice rather
+ *   than a route parameter here, which is the one place §2's protection does
+ *   not apply, so the loader checks what the screen cannot.
+ *
+ * Nothing is sent. INC-01's push to every senior and manager does not happen,
+ * and the screen says so at the act.
+ */
+export function reportIncident(input: {
+  siteId: SiteId
+  subject: IncidentSubject
+  type: IncidentTypeId
+  severity: IncidentSeverityId
+  occurredAt: IsoDateTime
+  location: IncidentLocation
+  description: string
+  injuries: InjuryMap
+  response: ImmediateResponse
+  by: StaffRef
+  at: IsoDateTime
+}): Promise<Incident> {
+  const refused = notYours(input.siteId, 'Incidents at that home')
+  if (refused) return refused
+  if (input.description.trim() === '')
+    return reject('Say what happened, in your own words.')
+  if (input.response.immediateAction.trim() === '')
+    return reject('Say what you did about it.')
+  if (new Date(input.occurredAt).getTime() > new Date(input.at).getTime())
+    return reject('An incident cannot have happened in the future.')
+  if (input.subject.kind === 'resident') {
+    const resident = residentById(input.subject.residentId)
+    if (!resident) return reject(`No resident with id ${input.subject.residentId}`)
+    if (resident.siteId !== input.siteId)
+      return reject(`${resident.fullLegalName} does not live at that home.`)
+  }
+
+  const incident = keepReportedIncident({
+    siteId: input.siteId,
+    subject: input.subject,
+    type: input.type,
+    severity: input.severity,
+    occurredAt: input.occurredAt,
+    location: input.location,
+    description: input.description.trim(),
+    reported: { by: input.by, at: input.at },
+    response: {
+      ...input.response,
+      immediateAction: input.response.immediateAction.trim(),
+    },
+    status: { kind: 'reported_not_acknowledged' },
+    injuries: input.injuries,
+    review: {
+      rootCause: { kind: 'unrecorded' },
+      actionsTaken: { kind: 'unrecorded' },
+      preventiveMeasures: { kind: 'unrecorded' },
+    },
+    notification: { kind: 'not_yet_decided' },
+    reviewFlags: [],
+    origin: { kind: 'reported' },
+  })
+
+  return logged(incident, {
+    module: 'Incidents',
+    what: `Reported ${typePhrase(input.type)}${
+      input.subject.kind === 'resident'
+        ? ` involving ${nameOf(input.subject.residentId)}`
+        : ', with no resident involved'
+    }`,
+    to: '/incidents',
+    by: input.by,
+  })
+}
+
+/**
+ * Somebody has picked an incident up. CW PRD INC-01, Table 3 ("Can
+ * acknowledge"), and the completion says a manager closes it.
+ *
+ * **It cannot be undone**, which is why it is its own act rather than a field:
+ * a name against an incident is a person saying they have it, and taking that
+ * back is a second fact this build has no shape for.
+ */
+export function acknowledgeIncident(input: {
+  incidentId: IncidentId
+  by: StaffRef
+}): Promise<IncidentStatus> {
+  const incident = patchedIncidents().find((entry) => entry.id === input.incidentId)
+  if (!incident) return reject(`No incident with id ${input.incidentId}`)
+  const refused = notYours(incident.siteId, 'Incidents at that home')
+  if (refused) return refused
+  if (incident.status.kind !== 'reported_not_acknowledged')
+    return reject('That incident has already been acknowledged.')
+
+  const status = acknowledge(incident, input.by)
+  return logged(status, {
+    module: 'Incidents',
+    what: `Acknowledged ${typePhrase(incident.type)}${
+      incident.subject.kind === 'resident'
+        ? ` involving ${nameOf(incident.subject.residentId)}`
+        : ', with no resident involved'
+    }`,
+    to: '/incidents',
+    by: input.by,
+  })
+}
+
+const typePhrase = (id: IncidentTypeId): string =>
+  INCIDENT_TYPES.find((entry) => entry.id === id)?.phrase ?? 'incident'
 
 /** One resident's incidents, for the profile's post-incident review block. */
 export function getResidentIncidents(residentId: ResidentId): Promise<Incident[]> {

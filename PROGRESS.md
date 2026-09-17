@@ -473,3 +473,32 @@ The never-counted drug is now always still to give in a round in progress, by id
 **Mutations run**, each confirmed landed and then reversed: the role-table question skipped in `StatusControl` (the off-list test and the no-list test fail), and the not-reviewed sentence dropped from what the PIN signs (the signature test fails).
 
 Screenshots: both roles and a care worker with no list, 1440 and 390, colour and greyscale.
+
+---
+
+## Phase 6: incidents (18/09/2026)
+
+**What was built.** The incidents list (INC-01) at `/incidents`, and the report form (INC-02 and INC-03 on one screen, as INC-02 asks) at `/incidents/new`. Departures are in `docs/DEPARTURES.md` under Incidents.
+
+**The data layer had a read and no write.** `getIncidents`, `patchedIncidents` and the acknowledge/review/close store were already here from the ported `src/data`; nothing could report one. So `reportIncident` is new in `client.ts`, `keepReportedIncident` in `incident-store.ts`, and `patchedIncidents` now reads this session's reports before the fixtures — a report made on the form and absent from the list is the defect the overlay exists to prevent. `acknowledgeIncident` wraps the store's existing act so it logs and refuses like every other write. A reported incident is listed among what signing out would lose.
+
+- **The reporter's account, and nothing else.** A report is written `reported_not_acknowledged`, with no manager review and no notification decision: those are other people's records, and an incident that arrived with a root cause in it would attribute somebody's conclusion to the person who was there.
+- **Refused rather than corrected**: an incident in the future, an empty description or immediate action, and a resident at another home. The subject is chosen rather than given here — the one write surface where §2's route-parameter protection does not apply — so the loader checks what the screen cannot.
+
+**The question at the act, twice on one screen.** Table 3 gives a care worker "Can (any time)" for reporting and does not say whose residents, so the form asks the role table about the resident chosen: one on their list enables the submit, one off it leaves it unavailable with the PRD's question beside it, and "no resident was involved" asks about the role alone because there is no list for it to be about. It is the first screen where the yes and the question are reachable by changing one field.
+
+**Found while building.**
+
+- **A false comment over a false record.** The submit set `emergencyServices: { kind: 'not_called' }` with a comment claiming the form asked. It did not. `EmergencyServicesRecord` has two members and neither is an absence — calling is instantaneous, so there is deliberately no "not yet" — which means a form that does not ask writes "nobody called an ambulance" in the reporter's name. The form now asks, and an answer of called names what they said. **The tell was the comment**: it described a control that was never built, and it was written in the same minute as the line it was wrong about.
+- **A const that reached forward at module load.** `HARM_SCALE` was declared above the `HARM_GLOSS` it maps over, which typechecks and throws at import: a blank screen and a reference error. Caught by loading the module in a test before anything used it.
+- **The body map fills whatever it is given**, and in a 1,280px card it filled all of it, putting the question's answer two screens below the question. Capped at 320px — on the figure alone, because capping the column wrapped "No injury site marked yet" into its own detail.
+- **A third figure said what the dark card already said.** "Waiting longest" repeated the oldest wait from the dark card's foot. INC-01 asks for two figures; it now has two.
+
+**Mutations run**, each confirmed landed and reversed: the role-table question asked for the role instead of the resident (the off-list test fails), and "Not checked yet" drawn as settled rather than hatched (the two-states test fails).
+
+Screenshots: both roles, 1440 and 390, colour and greyscale, list and form, with the form filled far enough to draw the subject card and the body map.
+
+### Housekeeping in the same pass
+
+- **`agentRules: false` in `next.config.ts`.** `next dev` appended a Next.js block to `CLAUDE.md` on every start, which put an uncommitted change into a file whose wording is a stop-and-ask and which nobody here wrote. Confirmed by restarting the dev server and watching the file stay clean.
+- **`docs/HANDOVER.md` brought up to date** through Phases 4, 5 and 6, and committed rather than left untracked.
