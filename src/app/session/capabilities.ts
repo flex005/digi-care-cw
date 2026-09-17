@@ -53,6 +53,11 @@ export interface CareAct {
 }
 
 /**
+ * **The authority is the Care Worker PRD's role table**, over the Admin build's
+ * permission table, decided 17/09/2026 (CLAUDE.md, Scope). **And it is a draft**:
+ * "For Design and Engineering Review", with no approvers named. Every role rule
+ * lives here so a row that moves on review moves in one place.
+ *
  * The Care Worker PRD's role table, Table 3, row by row, plus the two rows its
  * screen specifications add: viewing the controlled drug register (MED-03) and
  * updating a resident's handover status (HO-01).
