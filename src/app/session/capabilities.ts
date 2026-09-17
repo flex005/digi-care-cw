@@ -21,12 +21,25 @@ export { SIGN_IN_ROLES, isSignInRole, signInRoleOf, type SignInRole } from './ro
  *   list. Correcting a care note is this: only its author may, because a
  *   senior carer rewriting a colleague's record is a different act from
  *   correcting your own.
- * - `not_stated`: **the PRD says the role may, and does not say over whom.** A
- *   screen reaching this has found a question for review, not a default. Where
- *   Table 3 says only "Can" for a senior carer, the answer is `your_list`
- *   without a question, because Table 3's first row gives a senior carer the
- *   whole home and there is no narrower list to be silent about. For a care
- *   worker there is.
+ * - `not_stated_beyond_your_list`: **the PRD says the role may, and does not
+ *   say whether for residents off the viewer's list.** Residents on the list
+ *   answer yes; a resident off it answers with the question, which a screen
+ *   draws rather than a default. Where Table 3 says only "Can" for a senior
+ *   carer, the answer is `your_list` without a question, because Table 3's
+ *   first row gives a senior carer the whole home and there is no narrower list
+ *   to be silent about. For a care worker there is.
+ *
+ *   **Narrowed in Phase 4, deliberately, and not weakened.** It was `not_stated`
+ *   and answered the question for every resident, so a care worker could record
+ *   no dose at all, on their own list included. The PRD's silence was only ever
+ *   about residents off the list: Table 3's first row gives a care worker their
+ *   assigned residents, and "Care Notes — write" says "Assigned residents".
+ *   Extending the silence to every resident turned a gap in the document into a
+ *   care worker who cannot do their job.
+ * - `contradicted`: two rows of the table answer the act differently. The
+ *   screen draws both rows, quoted, and the act stays unavailable, so a reader
+ *   sees a contradiction for the PRD's author rather than a refusal that looks
+ *   decided.
  *
  * **The refusal is part of the answer, not decoration added by a screen.** Where
  * a refused act is drawn at all, it is drawn with this line at the point of the
@@ -41,9 +54,10 @@ export type Grant =
         | 'every_resident'
         | 'no_resident'
         | 'records_you_wrote'
-        | 'not_stated'
+        | 'not_stated_beyond_your_list'
     }
   | { kind: 'may_not'; reason: string; whoDoes: WhoDoes }
+  | { kind: 'contradicted'; rows: [string, string] }
 
 export type WhoDoes =
   'senior_carer' | 'manager' | 'clinician_or_manager' | 'manager_or_admin' | 'admin'
@@ -183,7 +197,7 @@ export const CARE_ACTS = {
       screen: 'HO-01',
       says: 'both roles update a resident’s status on the board',
     },
-    care_worker: may('not_stated'),
+    care_worker: may('not_stated_beyond_your_list'),
     senior_carer: may('your_list'),
     confirmation: 'none',
     completion: done,
@@ -203,14 +217,40 @@ export const CARE_ACTS = {
   record_medication: {
     name: 'Record a dose given, not given or PRN',
     source: row('Medications — record Given/Not Given/PRN'),
-    care_worker: may('not_stated'),
+    care_worker: may('not_stated_beyond_your_list'),
+    senior_carer: may('your_list'),
+    confirmation: 'medication_pin',
+    completion: done,
+  },
+  record_controlled_drug_dose: {
+    name: 'Record a controlled drug dose',
+    source: row('Medications — countersign controlled drugs'),
+    care_worker: {
+      kind: 'contradicted',
+      rows: [
+        'Medications — record Given/Not Given/PRN: Care Worker “Can (PIN required)”',
+        'Medications — countersign controlled drugs: “Both must be Senior+”',
+      ],
+    },
     senior_carer: may('your_list'),
     confirmation: 'medication_pin',
     completion: {
       kind: 'needs_a_second_signature',
       by: 'a_second_senior_witness',
-      when: 'controlled_drug',
+      when: 'always',
     },
+  },
+  close_omission: {
+    name: 'Close an omission',
+    source: {
+      kind: 'screen',
+      screen: 'MED-01',
+      says: 'care workers can view omissions and cannot close or dismiss one',
+    },
+    care_worker: mayNot('Closing an omission is for a senior carer.', 'senior_carer'),
+    senior_carer: may('your_list'),
+    confirmation: 'none',
+    completion: done,
   },
   view_controlled_drug_register: {
     name: 'View the controlled drug register',
@@ -255,7 +295,7 @@ export const CARE_ACTS = {
   report_incident: {
     name: 'Report an incident',
     source: row('Incidents — report'),
-    care_worker: may('not_stated'),
+    care_worker: may('not_stated_beyond_your_list'),
     senior_carer: may('your_list'),
     confirmation: 'none',
     completion: done,
@@ -301,7 +341,7 @@ export const CARE_ACTS = {
   add_goal_progress_note: {
     name: 'Add a goal progress note',
     source: row('Goals — add progress note'),
-    care_worker: may('not_stated'),
+    care_worker: may('not_stated_beyond_your_list'),
     senior_carer: may('your_list'),
     confirmation: 'none',
     completion: done,
@@ -317,7 +357,7 @@ export const CARE_ACTS = {
   record_attendance: {
     name: 'Record activity attendance',
     source: row('Activities — record attendance'),
-    care_worker: may('not_stated'),
+    care_worker: may('not_stated_beyond_your_list'),
     senior_carer: may('your_list'),
     confirmation: 'none',
     completion: done,
@@ -391,6 +431,11 @@ export type Answer =
    * written for review, and a screen draws it rather than choosing an answer.
    */
   | { kind: 'not_stated'; question: string }
+  /**
+   * Two rows of the role table answer this act differently. `question` quotes
+   * both, and a screen draws it; the act stays unavailable.
+   */
+  | { kind: 'contradicted'; question: string }
 
 /** What an act is asked about: one resident, a record about one, or the role alone. */
 export type Subject =
@@ -416,6 +461,11 @@ export function answerFor(
   const declared: CareAct = CARE_ACTS[act]
   const grant = declared[role]
   if (grant.kind === 'may_not') return { kind: 'not_your_role', reason: grant.reason }
+  if (grant.kind === 'contradicted')
+    return {
+      kind: 'contradicted',
+      question: `The PRD’s role table says both ${grant.rows[0]} and ${grant.rows[1]}. Which applies is for the PRD’s author.`,
+    }
 
   const yes: Answer = {
     kind: 'yes',
@@ -436,11 +486,14 @@ export function answerFor(
       throw new Error(
         `${declared.name} is not an act on a resident, and was asked about ${resident}.`,
       )
-    case 'not_stated':
-      return {
-        kind: 'not_stated',
-        question: `The PRD lets a ${ROLE_WORDS[role]} “${declared.name}” and does not say for which residents.`,
-      }
+    case 'not_stated_beyond_your_list':
+      if (scope.kind === 'not_decided') return { kind: 'no_list_yet' }
+      return scopeReaches(scope, resident)
+        ? yes
+        : {
+            kind: 'not_stated',
+            question: `The PRD lets a ${ROLE_WORDS[role]} “${declared.name}” and does not say whether for residents not on their list.`,
+          }
     case 'your_list':
       return onList()
     case 'records_you_wrote':

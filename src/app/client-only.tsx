@@ -226,12 +226,52 @@ const SCREENS = {
   ),
   residentMedications: dynamic(
     () =>
-      import('@/features/residents/profile/LaterPhaseTab').then(
+      import('@/features/medications/resident/MedicationsTab').then(
         (module) => module.MedicationsTab,
       ),
-    {
-      ssr: false,
-    },
+    { ssr: false },
+  ),
+  residentMar: dynamic(
+    () =>
+      import('@/features/medications/mar/MarChartRoute').then(
+        (module) => module.MarChartRoute,
+      ),
+    { ssr: false },
+  ),
+  medicationsLayout: dynamic(
+    () =>
+      import('@/features/medications/MedicationsLayout').then(
+        (module) => module.MedicationsLayout,
+      ),
+    { ssr: false },
+  ),
+  medicationsOmissions: dynamic(
+    () =>
+      import('@/features/medications/omissions/OmissionsRoute').then(
+        (module) => module.OmissionsRoute,
+      ),
+    { ssr: false },
+  ),
+  medicationsRound: dynamic(
+    () =>
+      import('@/features/medications/round/RoundRoute').then(
+        (module) => module.RoundRoute,
+      ),
+    { ssr: false },
+  ),
+  medicationsRegister: dynamic(
+    () =>
+      import('@/features/medications/register/RegisterRoute').then(
+        (module) => module.RegisterRoute,
+      ),
+    { ssr: false },
+  ),
+  medicationsInterim: dynamic(
+    () =>
+      import('@/features/medications/interim/InterimRoute').then(
+        (module) => module.InterimRoute,
+      ),
+    { ssr: false },
   ),
   residentRisk: dynamic(
     () =>

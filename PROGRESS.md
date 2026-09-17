@@ -326,3 +326,50 @@ CLAUDE.md §6 now says a card showing a subset of something larger carries an ex
 Two tab tests had encoded the old rule, asserting a "not built" button on every section card, and now assert the act alone.
 
 **While checking that `whole` draws no button, the mutation was reverted with `git checkout`**, which put `Card.tsx` back to the last commit and removed the uncommitted change under test. Re-applied and confirmed; §8 has the entry.
+
+---
+
+## Phase 4: medications — the role table changes first (17/09/2026)
+
+### "Not stated" now asks its question only beyond the list
+
+**A change to the shape approved before Phase 2, and a narrowing of where it applies, not a weakening of it.** The reach a care worker's "Can" rows carried was `not_stated`, and it answered with the question for every resident. For "Record a dose given, not given or PRN" that meant a care worker could record no dose at all, including for the residents on their own list.
+
+The PRD was never silent about those. Table 3's first row gives a care worker "Assigned only" residents, and "Care Notes — write" says "Assigned residents". What the rows below leave unsaid is whether a care worker's "Can" reaches residents **off** their list, and that is what the question was written to ask. Answering it for every resident turned a gap in the document into a care worker who cannot do their job: the shape applied where it does not belong.
+
+So the reach is now `not_stated_beyond_your_list`: a resident on the list answers yes, a resident off it answers with the question, and a care worker with no list gets "nobody has given you a list". The five acts it covers are unchanged, and are still recorded as questions for the PRD's author. A test holds both halves.
+
+### A contradiction is its own answer
+
+"Medications — record Given/Not Given/PRN" gives a care worker "Can (PIN required)"; "Medications — countersign controlled drugs" says "Both must be Senior+". For a controlled drug they cannot both hold, and the build does not choose. A care worker's controlled drug dose is its own act, `record_controlled_drug_dose`, whose grant is `contradicted` and carries both rows; the answer quotes them, and `ActPoint` draws the quotation at the act with Given unavailable. A reader sees a contradiction for the PRD's author, not a refusal that looks decided. For a senior carer the same act is Witness 1, and its completion needs a second signature: the rule used for a handover, earning its place a second time.
+
+`close_omission` is added from MED-01's screen ("care workers can view omissions and cannot close or dismiss one").
+
+### The shared data layer, in both builds
+
+- **`resident_vomiting`** joins the Not given reasons (MED-02 lists six). The fixture draw keeps its five choices so its stream is unchanged; some "other" answers become vomiting, derived from the day.
+- **An omission carries its closure**: open, or closed with who, when and why (MED-01). A closure records a decision about the gap and leaves the gap: the cell stays an omission. Older omissions on every third day are closed in the fixtures by a manager with a reason; the three pinned ones stay open. `closeOmission` refuses a blank reason, a cell that is not an omission and one already closed. `getOmissions` now reads this session's records, so a closure shows.
+- **A controlled drug dose can be recorded with its second signature still to come**, and `countersignControlledDrug` adds it, refusing the person who gave the dose. The loader had refused a dose without a witness, because the Admin build's round takes both signatures in one act; MED-03 has Witness 2 countersign afterwards with their own PIN. The Admin build's round still never sends one.
+
+### The medication PIN
+
+A PIN chosen this session is checked, and five wrong lock it for fifteen minutes on the real clock, counted per person. Anybody who chose none is told first that nothing is held to check against, and any four digits confirm. `MedicationPinStep` is the one place it is asked, and says what it signs.
+
+### Phase 4, built (17/09/2026)
+
+The medications layout and its four tabs (Omissions, Round, Controlled drug register, Add interim), the MAR chart and the resident's Medications tab. Built by three agents in parallel here and one in the Admin build, against the role table and the shared data changed first. `npm run verify` passes in both builds; 728 tests here, 1,404 there. Looked at in 52 screenshots: both roles and a care worker with no list, 1440 and 390, colour and greyscale.
+
+**What the screens show that the earlier phases did not.** The round asks the medication PIN once per resident, listing every dose and answer it signs. A care worker's controlled drug dose quotes both rows of the role table and stays unavailable — at Rosewood that blocks every resident on Eze's list at the 20:00 round, which is the contradiction's cost made visible rather than hidden. A senior carer's controlled drug dose records as Given plus a hatched "Second signature not recorded", and the register's Awaiting Witness 2 list countersigns it with the PIN, refusing the person who gave it. The omissions screen counts doses with no record over doses due this week, keeps a closed omission hatched with its closure beside it, and gives a care worker one refusal line rather than a disabled button per row.
+
+**Four gaps in the shared data layer, found by the agents and fixed in both builds.**
+
+- **`getMarRecords` read the fixtures unpatched**, so a dose recorded, an omission closed or a countersignature added this session did not show on that resident's chart, while the omissions screen showed it: two screens disagreeing about one cell.
+- **The sign-out list called every overlay entry "doses you signed for"**, so closing an omission or countersigning somebody else's dose was described as signing for a dose. The store now counts the three apart.
+- **A PRN outcome had a time and no author**, the one clinical record in either build without one. `recordPrnOutcomeFor` now takes who recorded it, and both builds show them.
+- **A fixture closure reason had a `?? 'Reviewed.'` fallback**: unreachable, and the fallback pattern the rules forbid. The reasons are a fixed tuple now.
+
+**Left as it is, reported by the round agent**: `recordRound` writes no entry to the session activity log, unlike the other writes; PRN doses before this session are not loaded anywhere; the round's tests pin `?at=` and read the clock in the machine's zone, which is London-equivalent here and would drift elsewhere.
+
+**Two destructive mistakes of my own**, both while tidying agents' work, both recorded in §8: a mutation reverted with `git checkout` took an uncommitted change with it, and a regular expression written to delete a four-line helper deleted most of `omission-views.ts`. The second was recovered from the agent's own record of writing the file, and the typecheck named every missing export.
+
+**One agent stopped on a rate limit** after writing the MAR chart and the resident's Medications tab; its files were complete, and its 46 tests pass.

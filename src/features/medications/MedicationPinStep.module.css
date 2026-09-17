@@ -1,0 +1,19 @@
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.signs {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-semibold);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  justify-content: flex-end;
+}

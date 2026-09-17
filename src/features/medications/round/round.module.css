@@ -1,0 +1,340 @@
+/* ---- The medication round. CW PRD MED-02. Flex throughout, never grid. ---- */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.quiet {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* ---- Round pills: filters, so a mark as well as a fill on the chosen one. ---- */
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.pill {
+  display: inline-flex;
+  gap: var(--space-4);
+  align-items: center;
+  min-height: var(--space-40);
+  padding: var(--space-8) var(--space-16);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  color: var(--ink-700);
+  font-family: var(--font-family);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pill:hover {
+  background-color: var(--purple-50);
+}
+
+.pillChosen {
+  composes: pill;
+  border-color: var(--purple-900);
+  background-color: var(--purple-900);
+  color: var(--bg-surface);
+  font-weight: var(--weight-semibold);
+}
+
+.pillChosen:hover {
+  background-color: var(--purple-900);
+}
+
+/* ---- The dark card's detail. ---- */
+
+.bannerDetail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.bannerQuiet {
+  color: var(--purple-200);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* ---- Resident cards. ---- */
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.doses {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.dose {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-24);
+  padding-block: var(--space-16);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.doseAbout {
+  display: flex;
+  flex: 1 1 280px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.doseAnswer {
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.doseName {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-bold);
+}
+
+.doseFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-12);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.doseTag {
+  display: flex;
+}
+
+.instructions {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.answers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.answer {
+  display: inline-flex;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: center;
+  min-width: 112px;
+  min-height: var(--space-40);
+  padding: var(--space-8) var(--space-20);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  color: var(--ink-900);
+  font-family: var(--font-family);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+.answer:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.answer:disabled {
+  border-color: var(--border-subtle);
+  background-color: var(--bg-surface-sunken);
+  color: var(--ink-400);
+  cursor: not-allowed;
+}
+
+.answer:hover:not(:disabled) {
+  background-color: var(--purple-50);
+}
+
+.answerChosen {
+  composes: answer;
+  border-color: var(--purple-900);
+  background-color: var(--purple-900);
+  color: var(--bg-surface);
+}
+
+.answerChosen:hover:not(:disabled) {
+  background-color: var(--purple-900);
+}
+
+.answerRefused {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.answerDetail {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-12);
+  width: 100%;
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-8);
+}
+
+.link {
+  color: var(--purple-600);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+  text-decoration: underline;
+}
+
+/* Focus is never removed. */
+.pill:focus-visible,
+.link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* A count that does not reconcile is a finding: critical, in words, with its edge. */
+.discrepancy {
+  padding: var(--space-8) var(--space-12);
+  border-left: 3px solid var(--status-critical);
+  border-radius: var(--radius-sm);
+  background-color: var(--status-critical-tint);
+  color: var(--status-critical-ink);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.asRequired {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.sectionTitle {
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-bold);
+}
+
+.prnGiven {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-8);
+  width: 100%;
+  padding-top: var(--space-8);
+}
+
+.cardFoot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding-top: var(--space-16);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.blocked,
+.waiting {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.actRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  justify-content: flex-end;
+}
+
+.error {
+  color: var(--status-critical-ink);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+/* ---- The signing dialog: the subject again, above what the PIN signs. ---- */
+
+.signing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.signingSubject {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-12);
+  align-items: center;
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+/* Compact: every clinical answer and act clears 48px for a thumb at a trolley. */
+@media (width < 1024px) {
+  .answer {
+    flex: 1 1 0;
+    min-height: var(--space-48);
+  }
+
+  .answers {
+    width: 100%;
+  }
+
+  .actRow {
+    justify-content: stretch;
+  }
+
+  .actRow > button {
+    flex: 1 1 auto;
+    min-height: var(--space-48);
+  }
+}

@@ -45,6 +45,7 @@ function headline(answer: Exclude<Answer, { kind: 'yes' }>, name: string): strin
     case 'not_the_author':
       return answer.reason
     case 'not_stated':
+    case 'contradicted':
       return answer.question
     default:
       return assertNever(answer)
@@ -60,6 +61,7 @@ function body(answer: Exclude<Answer, { kind: 'yes' }>): string {
     case 'not_your_role':
     case 'not_the_author':
     case 'not_stated':
+    case 'contradicted':
       return 'Their record is not shown here.'
     default:
       return assertNever(answer)

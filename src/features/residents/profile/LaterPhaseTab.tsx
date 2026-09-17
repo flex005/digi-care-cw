@@ -10,7 +10,6 @@ import { PROFILE_TABS, type ProfileTab } from './profile-tabs'
  * it, rather than finding a tab that will not respond.
  */
 const PHASE_WORDS: Record<Exclude<ProfileTab['builtIn'], 'built'>, string> = {
-  phase_4: 'Phase 4, medications',
   phase_7: 'Phase 7, goals and activities',
 }
 
@@ -30,5 +29,4 @@ function LaterPhaseTab({ segment }: { segment: string }) {
   )
 }
 
-export const MedicationsTab = () => <LaterPhaseTab segment="medications" />
 export const GoalsTab = () => <LaterPhaseTab segment="goals" />

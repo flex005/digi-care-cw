@@ -4,13 +4,13 @@ import type { ResidentId } from '@/data/types'
 import { residentById } from '@/data/fixtures/residents'
 import { staffAkinyemi, staffEze, staffOsei } from '@/data/fixtures/organisation'
 import { renderProfileTab } from '@/test/render-signed-in'
-import { MedicationsTab } from './LaterPhaseTab'
+import { GoalsTab } from './LaterPhaseTab'
 import { PROFILE_TABS } from './profile-tabs'
 import { consentGaps, riskAssessmentGaps } from './record-gaps'
 import { hiddenTabs } from './hidden-tabs'
 
 const navigation = vi.hoisted(() => ({
-  pathname: '/residents/res-okafor/medications',
+  pathname: '/residents/res-okafor/goals',
   params: { residentId: 'res-okafor' },
 }))
 vi.mock('next/navigation', () => ({
@@ -19,7 +19,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
 }))
 
-const open = (id: string, segment = 'medications') => {
+const open = (id: string, segment = 'goals') => {
   navigation.params = { residentId: id }
   navigation.pathname = `/residents/${id}/${segment}`
 }
@@ -37,7 +37,7 @@ beforeEach(() => {
 describe('a resident’s record', () => {
   it('opens for a care worker whose list names the resident', async () => {
     open('res-okafor')
-    renderProfileTab(staffEze.id, <MedicationsTab />)
+    renderProfileTab(staffEze.id, <GoalsTab />)
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Emmanuel' }),
     ).toBeTruthy()
@@ -46,7 +46,7 @@ describe('a resident’s record', () => {
 
   it('names a resident who is not on the list, and shows nothing of their record', async () => {
     open('res-kavanagh')
-    renderProfileTab(staffEze.id, <MedicationsTab />)
+    renderProfileTab(staffEze.id, <GoalsTab />)
     expect(await screen.findByText('Doris Kavanagh is not on your list.')).toBeTruthy()
     expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
     expect(screen.queryByLabelText('Risk flags')).toBeNull()
@@ -58,7 +58,7 @@ describe('a resident’s record', () => {
 
   it('tells a care worker with no list that nobody has given one', async () => {
     open('res-okafor')
-    renderProfileTab(staffOsei.id, <MedicationsTab />)
+    renderProfileTab(staffOsei.id, <GoalsTab />)
     expect(
       await screen.findByText('Nobody has given you a list of residents yet.'),
     ).toBeTruthy()
@@ -67,7 +67,7 @@ describe('a resident’s record', () => {
 
   it('opens any resident at the home for a senior carer', async () => {
     open('res-kavanagh')
-    renderProfileTab(staffAkinyemi.id, <MedicationsTab />, 'site-rosewood-court')
+    renderProfileTab(staffAkinyemi.id, <GoalsTab />, 'site-rosewood-court')
     expect(await screen.findByRole('heading', { level: 1, name: 'Doris' })).toBeTruthy()
   })
 })
@@ -75,7 +75,7 @@ describe('a resident’s record', () => {
 describe('the head of the record', () => {
   it('draws all five risk flags, whatever they say', async () => {
     open('res-okafor')
-    renderProfileTab(staffEze.id, <MedicationsTab />)
+    renderProfileTab(staffEze.id, <GoalsTab />)
     const flags = await screen.findByRole('list', { name: 'Risk flags' })
     expect(
       within(flags)
@@ -86,7 +86,7 @@ describe('the head of the record', () => {
 
   it('draws the call button with the line that says it does nothing', async () => {
     open('res-okafor')
-    renderProfileTab(staffEze.id, <MedicationsTab />)
+    renderProfileTab(staffEze.id, <GoalsTab />)
     const kin = await screen.findByText(/^Next of kin/)
     const block = kin.closest('[data-next-of-kin]') as HTMLElement
     expect(within(block).getByRole('button', { name: /^Call / })).toBeTruthy()
@@ -97,7 +97,7 @@ describe('the head of the record', () => {
 
   it('puts the medication due on the one dark card, with what it is out of', async () => {
     open('res-okafor')
-    renderProfileTab(staffEze.id, <MedicationsTab />)
+    renderProfileTab(staffEze.id, <GoalsTab />)
     await screen.findByRole('heading', { level: 1 })
     const cards = document.querySelectorAll('[data-action-card]')
     expect(cards).toHaveLength(1)
@@ -110,7 +110,7 @@ describe('the head of the record', () => {
 describe('the tab strip', () => {
   it('draws all eleven tabs for a care worker, the PRD’s order, none hidden', async () => {
     open('res-okafor')
-    renderProfileTab(staffEze.id, <MedicationsTab />)
+    renderProfileTab(staffEze.id, <GoalsTab />)
     const strip = await screen.findByRole('navigation', { name: 'Emmanuel’s record' })
     const links = within(strip).getAllByRole('link')
     expect(links.map((link) => link.getAttribute('data-tab'))).toEqual(
@@ -119,14 +119,14 @@ describe('the tab strip', () => {
     expect(links).toHaveLength(11)
     expect(
       within(strip).getByRole('link', { current: 'page' }).getAttribute('data-tab'),
-    ).toBe('medications')
+    ).toBe('goals')
   })
 
   it('names a tab’s gaps in words, from the same counts the tab states', async () => {
     // Ismail Sowande was admitted yesterday: consents unsought, risks unassessed.
     const id = 'res-sowande'
     open(id)
-    renderProfileTab(staffAkinyemi.id, <MedicationsTab />, 'site-ashgrove-lodge')
+    renderProfileTab(staffAkinyemi.id, <GoalsTab />, 'site-ashgrove-lodge')
     const strip = await screen.findByRole('navigation', { name: /’s record$/ })
     const consent = consentGaps(resident(id))
     const risk = riskAssessmentGaps(resident(id))
@@ -149,7 +149,7 @@ describe('the tab strip', () => {
 
   it('carries no colour-alone mark: every tab note is words', async () => {
     open('res-sowande')
-    renderProfileTab(staffAkinyemi.id, <MedicationsTab />, 'site-ashgrove-lodge')
+    renderProfileTab(staffAkinyemi.id, <GoalsTab />, 'site-ashgrove-lodge')
     const strip = await screen.findByRole('navigation', { name: /’s record$/ })
     const marks = strip.querySelectorAll('[data-state]')
     expect(marks.length).toBeGreaterThan(0)
@@ -158,9 +158,9 @@ describe('the tab strip', () => {
 
   it('opens a later tab to say which phase builds it', async () => {
     open('res-okafor')
-    renderProfileTab(staffEze.id, <MedicationsTab />)
+    renderProfileTab(staffEze.id, <GoalsTab />)
     expect(
-      await screen.findByText('This tab is built in Phase 4, medications.'),
+      await screen.findByText('This tab is built in Phase 7, goals and activities.'),
     ).toBeTruthy()
   })
 })
@@ -209,7 +209,7 @@ describe('whether the tab strip says it scrolls', () => {
     }
     try {
       open('res-okafor')
-      renderProfileTab(staffEze.id, <MedicationsTab />)
+      renderProfileTab(staffEze.id, <GoalsTab />)
       const more = await screen.findByRole('button', { name: 'Show 2 more tabs' })
       expect(more.textContent).toBe('2 more')
       expect(document.querySelector('[data-hidden-tabs="before"]')).toBeNull()

@@ -10,8 +10,8 @@ import {
  * The eleven tabs of a resident's record, in the PRD's order. RES-03.
  *
  * **All eleven are drawn for both roles, and none is hidden.** What a role can
- * do differs inside a tab, not in whether the tab exists. Two are built in
- * later phases and say so when opened, rather than being disabled: the tab
+ * do differs inside a tab, not in whether the tab exists. One is built in a
+ * later phase and says so when opened, rather than being disabled: the tab
  * strip is the same shape it will have when they land.
  */
 export interface ProfileTab {
@@ -19,7 +19,7 @@ export interface ProfileTab {
   /** The segment after /residents/[residentId]. Empty for the first tab. */
   segment: string
   /** Built, or the phase that builds it. */
-  builtIn: 'built' | 'phase_4' | 'phase_7'
+  builtIn: 'built' | 'phase_7'
   notes: (resident: Resident) => TabNote[]
 }
 
@@ -36,7 +36,7 @@ export const PROFILE_TABS: ProfileTab[] = [
   { label: 'Important People', segment: 'people', builtIn: 'built', notes: none },
   { label: 'Future Plans', segment: 'future-plans', builtIn: 'built', notes: none },
   { label: 'Care Notes', segment: 'notes', builtIn: 'built', notes: none },
-  { label: 'Medications', segment: 'medications', builtIn: 'phase_4', notes: none },
+  { label: 'Medications', segment: 'medications', builtIn: 'built', notes: none },
   {
     label: 'Risk Assessments',
     segment: 'risk-assessments',

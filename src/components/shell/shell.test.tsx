@@ -53,7 +53,11 @@ describe('the icon rail', () => {
       within(nav).getByRole('link', { name: 'Care notes' }).getAttribute('href'),
     ).toBe('/care-notes')
 
-    for (const label of ['Today', 'Medications', 'Documents']) {
+    expect(
+      within(nav).getByRole('link', { name: 'Medications' }).getAttribute('href'),
+    ).toBe('/medications')
+
+    for (const label of ['Today', 'Documents']) {
       const entry = within(nav).getByRole('button', { name: `${label}, not built` })
       expect(entry.getAttribute('data-built')).toBe('false')
     }

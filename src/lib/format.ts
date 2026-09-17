@@ -211,7 +211,8 @@ export function pluralise(
   singular: string,
   plural = `${singular}s`,
 ): string {
-  return `${count} ${count === 1 ? singular : plural}`
+  // Grouped, like every other count: "1,186 doses", never "1186 doses".
+  return `${formatCount(count)} ${count === 1 ? singular : plural}`
 }
 
 /**

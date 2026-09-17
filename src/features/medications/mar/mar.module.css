@@ -1,0 +1,420 @@
+/* The MAR chart. Flex throughout for layout; the grid itself is a <table>. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+.status,
+.noRows {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.noRows {
+  padding: var(--card-padding);
+}
+
+/* ---------------------------------------------------------------- the head */
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-24);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.monthNav {
+  display: flex;
+  gap: var(--space-12);
+  align-items: center;
+}
+
+.monthLabel {
+  min-width: 9rem;
+  color: var(--ink-900);
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
+  font-weight: var(--weight-bold);
+  text-align: center;
+}
+
+.export {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-12);
+  align-items: center;
+}
+
+.held {
+  margin-top: var(--space-12);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.back {
+  display: inline-flex;
+  gap: var(--space-4);
+  align-items: center;
+  margin-top: var(--space-8);
+  color: var(--purple-600);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+/* -------------------------------------------------------------- the legend */
+
+.legend {
+  display: flex;
+  padding-left: 0;
+  list-style: none;
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-20);
+  margin-top: var(--space-16);
+  padding-top: var(--space-16);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.legendItem {
+  display: flex;
+  flex: 0 1 15rem;
+  gap: var(--space-8);
+  align-items: flex-start;
+}
+
+.legendItem > span:first-child {
+  flex: 0 0 auto;
+  width: 4.5rem;
+  height: auto;
+  min-height: 3rem;
+  cursor: default;
+}
+
+.legendText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.legendTitle {
+  color: var(--ink-900);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-bold);
+}
+
+.legendNote {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+/* ---------------------------------------------------------------- the grid */
+
+/**
+ * The grid scrolls inside its own box, so the page never scrolls sideways and
+ * the medication column has something to stick to.
+ */
+.scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-xl);
+}
+
+.grid {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.caption {
+  padding: var(--space-16) var(--card-padding) var(--space-8);
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  text-align: left;
+}
+
+.medicationColumn {
+  width: 15rem;
+}
+
+.dayHead {
+  padding: var(--space-8) var(--space-4) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  border-left: 2px solid var(--border-strong);
+  color: var(--ink-700);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
+}
+
+.dayDate {
+  display: block;
+  color: var(--ink-500);
+  font-weight: var(--weight-medium);
+}
+
+.roundHead {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border-strong);
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-semibold);
+  text-align: center;
+}
+
+.roundHeadFirst {
+  composes: roundHead;
+  border-left: 2px solid var(--border-strong);
+}
+
+/* The medication column stays put: past the first few days it is the only
+   thing saying what a row is about. */
+.medicationHead,
+.medicationCell {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  width: 15rem;
+  min-width: 15rem;
+  padding: var(--space-12) var(--space-16) var(--space-12) var(--card-padding);
+  border-right: 2px solid var(--border-strong);
+  background-color: var(--bg-surface);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.medicationHead {
+  border-bottom: 1px solid var(--border-strong);
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-bold);
+}
+
+.medicationCell {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.medicationName {
+  display: block;
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-bold);
+}
+
+.medicationDose {
+  display: block;
+  color: var(--ink-700);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-regular);
+}
+
+.medicationTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.tag {
+  padding: 0 var(--space-8);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  color: var(--ink-700);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-semibold);
+}
+
+/* `height: 1px` lets the button inside fill the row at the row's height, so a
+   cell with a second mark does not leave its neighbours short. */
+.slot {
+  height: 1px;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: top;
+}
+
+.slotFirst {
+  composes: slot;
+  border-left: 2px solid var(--border-strong);
+}
+
+/* ---------------------------------------------------------------- the cells */
+
+/**
+ * Every cell's shape. No background or border here: each state declares its
+ * own, so the hatch composed into an omission is never overridden by a base.
+ */
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 4.5rem;
+  height: 100%;
+  min-height: 3rem;
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-semibold);
+  text-align: center;
+}
+
+.cellWord {
+  display: inline-flex;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.cellGiven {
+  composes: cell;
+  background-color: var(--status-positive-tint);
+  color: var(--status-positive-ink);
+}
+
+/* A recorded dose, given as required. Plain: never amber. */
+.cellPrn {
+  composes: cell;
+  border: 1px solid var(--border-strong);
+  background-color: var(--bg-surface);
+  color: var(--ink-900);
+}
+
+.cellNotGiven {
+  composes: cell;
+  background-color: var(--status-critical-tint);
+  color: var(--status-critical-ink);
+}
+
+/* The window closed and nothing was recorded: the hatch, from its one owner. */
+.cellOmitted {
+  composes: cell;
+  composes: unrecorded from '../../../styles/unrecorded.module.css';
+}
+
+/* The window is still open: an info outline, not a fill. */
+.cellDue {
+  composes: cell;
+  border: 1.5px solid var(--status-info);
+  background-color: var(--bg-surface);
+  color: var(--status-info-ink);
+}
+
+.cellNotDue {
+  composes: cell;
+  background-color: var(--bg-surface-sunken);
+  color: var(--ink-500);
+  font-weight: var(--weight-medium);
+}
+
+.cellQuiet {
+  composes: cellNotDue;
+}
+
+/* The second fact on a given dose: its second signature is not recorded. */
+.cellSignatureGap {
+  composes: unrecordedMark from '../../../styles/unrecorded.module.css';
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-sm);
+  font-weight: var(--weight-semibold);
+}
+
+/* A closed omission's mark: plain, because the closure is a record. */
+.cellClosed {
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  color: var(--ink-700);
+}
+
+/* ---------------------------------------------------------------- the detail */
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.fact {
+  display: flex;
+  gap: var(--space-4) var(--space-16);
+  align-items: baseline;
+  padding: var(--space-8) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.fact:first-child {
+  border-top: none;
+}
+
+.factName {
+  flex: 0 0 9rem;
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+}
+
+.factValue {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  margin: 0;
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.closure {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.factNote {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+/* ---------------------------------------------------------------- compact */
+
+@media (width < 1024px) {
+  .medicationHead,
+  .medicationCell {
+    width: 9.5rem;
+    min-width: 9.5rem;
+    padding-left: var(--space-16);
+  }
+
+  .medicationColumn {
+    width: 9.5rem;
+  }
+
+  .fact {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .factName {
+    flex: none;
+  }
+}

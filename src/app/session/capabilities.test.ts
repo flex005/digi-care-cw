@@ -15,7 +15,7 @@ import type { ResidentScope } from './resident-scope'
  * Each cell is what the role may do and over whom: `no` for a refusal, and for
  * a grant the reach. The row each act answers to is written beside it.
  */
-type Cell = 'no' | Extract<Grant, { kind: 'may' }>['over']
+type Cell = 'no' | 'contradicted' | Extract<Grant, { kind: 'may' }>['over']
 
 const PRD_TABLE_3: Record<
   CareActId,
@@ -49,7 +49,7 @@ const PRD_TABLE_3: Record<
   write_care_plan: { row: 'Care Plan — view', care_worker: 'no', senior_carer: 'no' },
   update_handover_status: {
     row: 'HO-01',
-    care_worker: 'not_stated',
+    care_worker: 'not_stated_beyond_your_list',
     senior_carer: 'your_list',
   },
   sign_handover: {
@@ -59,9 +59,15 @@ const PRD_TABLE_3: Record<
   },
   record_medication: {
     row: 'Medications — record Given/Not Given/PRN',
-    care_worker: 'not_stated',
+    care_worker: 'not_stated_beyond_your_list',
     senior_carer: 'your_list',
   },
+  record_controlled_drug_dose: {
+    row: 'Medications — countersign controlled drugs',
+    care_worker: 'contradicted',
+    senior_carer: 'your_list',
+  },
+  close_omission: { row: 'MED-01', care_worker: 'no', senior_carer: 'your_list' },
   view_controlled_drug_register: {
     row: 'MED-03',
     care_worker: 'no',
@@ -79,7 +85,7 @@ const PRD_TABLE_3: Record<
   },
   report_incident: {
     row: 'Incidents — report',
-    care_worker: 'not_stated',
+    care_worker: 'not_stated_beyond_your_list',
     senior_carer: 'your_list',
   },
   acknowledge_incident: {
@@ -104,7 +110,7 @@ const PRD_TABLE_3: Record<
   },
   add_goal_progress_note: {
     row: 'Goals — add progress note',
-    care_worker: 'not_stated',
+    care_worker: 'not_stated_beyond_your_list',
     senior_carer: 'your_list',
   },
   set_or_close_goal: {
@@ -114,7 +120,7 @@ const PRD_TABLE_3: Record<
   },
   record_attendance: {
     row: 'Activities — record attendance',
-    care_worker: 'not_stated',
+    care_worker: 'not_stated_beyond_your_list',
     senior_carer: 'your_list',
   },
   create_activity_session: {
@@ -144,7 +150,12 @@ const PRD_TABLE_3: Record<
   },
 }
 
-const cellOf = (grant: Grant): Cell => (grant.kind === 'may_not' ? 'no' : grant.over)
+const cellOf = (grant: Grant): Cell =>
+  grant.kind === 'may_not'
+    ? 'no'
+    : grant.kind === 'contradicted'
+      ? 'contradicted'
+      : grant.over
 
 describe('the role table', () => {
   for (const [act, expected] of Object.entries(PRD_TABLE_3) as [
@@ -180,13 +191,14 @@ describe('the role table', () => {
     }
   })
 
-  it('confirms with the medication PIN exactly the four acts the PRD signs with it', () => {
+  it('confirms with the medication PIN exactly the acts the PRD signs with it', () => {
     const signed = (Object.keys(CARE_ACTS) as CareActId[]).filter(
       (act) => CARE_ACTS[act].confirmation === 'medication_pin',
     )
     expect(signed.sort()).toEqual(
       [
         'countersign_controlled_drug',
+        'record_controlled_drug_dose',
         'record_medication',
         'score_risk_assessment',
         'sign_handover',
@@ -202,10 +214,10 @@ describe('the role table', () => {
       when: 'always',
     })
     // "Witness 2" on a controlled drug
-    expect(CARE_ACTS.record_medication.completion).toEqual({
+    expect(CARE_ACTS.record_controlled_drug_dose.completion).toEqual({
       kind: 'needs_a_second_signature',
       by: 'a_second_senior_witness',
-      when: 'controlled_drug',
+      when: 'always',
     })
     // "Can acknowledge · Manager closes"
     expect(CARE_ACTS.acknowledge_incident.completion).toMatchObject({
@@ -277,7 +289,36 @@ describe('asking', () => {
     ).toEqual({ kind: 'no_list_yet' })
   })
 
-  it('surfaces a silence as a question, never as yes or no', () => {
+  it('answers yes on the list, where the PRD is not silent', () => {
+    expect(
+      answerFor(
+        'care_worker',
+        named,
+        'record_medication',
+        { kind: 'resident', id: listed },
+        viewer,
+      ).kind,
+    ).toBe('yes')
+  })
+
+  it('quotes both rows of a contradiction, and does not decide it', () => {
+    const answer = answerFor(
+      'care_worker',
+      named,
+      'record_controlled_drug_dose',
+      { kind: 'resident', id: listed },
+      viewer,
+    )
+    expect(answer.kind).toBe('contradicted')
+    expect(answer).toMatchObject({
+      question: expect.stringContaining('Can (PIN required)'),
+    })
+    expect(answer).toMatchObject({
+      question: expect.stringContaining('Both must be Senior+'),
+    })
+  })
+
+  it('surfaces a silence as a question for a resident off the list, never as yes or no', () => {
     const answer = answerFor(
       'care_worker',
       named,

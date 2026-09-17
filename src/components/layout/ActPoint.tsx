@@ -63,6 +63,7 @@ function AnswerLine({
     case 'not_the_author':
       return <ActLine kind="refused">{answer.reason}</ActLine>
     case 'not_stated':
+    case 'contradicted':
       return <ActLine kind="not_stated">{answer.question}</ActLine>
     default:
       return assertNever(answer)

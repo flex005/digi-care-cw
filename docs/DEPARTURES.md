@@ -50,9 +50,27 @@ The two products describe one home. Where the Admin build already decided someth
 - **A review can be undone for the rest of the session** by whoever recorded it. A mis-click that silently removed a request for help would be worse than an undo that expires.
 - **Nobody is notified of a flag or a review**, and the screen says so at both acts (CN-01, CN-02 cross-portal pushes).
 
+## Medications (Phase 4)
+
+- **A care worker's controlled drug dose shows the contradiction in the role table, quoted, and Given stays unavailable.** "Medications — record Given/Not Given/PRN" gives a care worker "Can (PIN required)" and "Medications — countersign controlled drugs" says "Both must be Senior+". The build does not choose between them; see Questions for the PRD's author.
+- **A senior carer records a controlled drug dose as Witness 1, and it is half a record until Witness 2 countersigns** on the register with their own PIN (MED-03). The missing signature is drawn beside "Given" as its own gap. The same person cannot be both witnesses: the screen says so, and the dose stays half-recorded rather than pretending to be finished.
+- **A care worker's round shows the residents on their list, with a line saying why**: "Residents not on your list are not shown: the PRD does not say whether you record their doses." (MED-02; see Questions.)
+- **The medication PIN is checked only where one was chosen this session** (MED-02). Five wrong lock it for fifteen minutes on the real clock. For anybody else the screen says first that no PIN is held, and any four digits confirm: the same honesty as the six-digit code.
+- **"Resident vomiting" is a Not given reason** in the shared type, in both builds, as MED-02 lists it.
+- **An omission can be closed, with who, when and why, and closing leaves the gap** (MED-01: "Cannot close or dismiss — Senior Carer or Manager required"). The closure is in the shared type, in both builds. A closed omission is still a dose with no record, and the cell stays hatched with the closure beside it.
+- **The controlled drug register tab is drawn for a care worker and refuses**, with the role table's reason (MED-03: "Standard care workers cannot view this tab"). A hidden tab and a refused one say different things: the reader should know the register exists and is not theirs.
+- **The PRN outcome reminder after 30 minutes is not sent** (MED-02). A PRN dose shows "Outcome not recorded yet" with a way to record it, and a line saying no reminder is sent. The 30-minute push and the 60-minute alert to the senior on duty are likewise not sent, and the round says so; a discrepancy's alert to the manager is not sent, and the register says so.
+- **A round is recorded per resident, with one PIN confirming what it signs** (MED-02 asks for the PIN on each Given or PRN). The shared loader writes a resident's round as one act, so no round is left half-signed with some doses attributed and some not; the PIN step lists every dose and answer it confirms.
+- **The completion banner does not ask "Record now or close?"** (MED-02). Closing a round records nothing; the banner states how many are recorded and how many are not.
+- **Export as PDF is drawn and not built** (MED-04), and says no file is produced.
+- **A controlled drug whose stock count does not reconcile cannot be given**, with MED-03's words at the dose: "Stock count does not match the running balance. This must be resolved before any further administration." **A departure from the Admin build**, whose round deliberately stopped blocking; the PRD says the discrepancy blocks further administration, and this product is the one at the trolley.
+- **No PIN status per witness** (MED-03 asks for "Witness 1 + PIN status, Witness 2 + PIN status"). No record holds whether a signature was confirmed with a PIN, and a tick nothing stands behind would be the worst kind of reassurance. The register shows who signed and when; a missing second signature is its own gap.
+- **A PRN dose is recorded at the prescribed dose** (MED-02 asks for "Dose given"). The shared record holds no dose of its own for a PRN administration, so the screen shows the prescribed dose and says a different one cannot be recorded here.
+- **The MAR chart draws nine states, where the PRD names five.** Its five are given, not given, PRN, no record and window open. The chart adds: a controlled drug given with no second signature (two facts, not one), an omission somebody has closed (still no record, with the closure beside it), a round before the prescription started, and a round this chart holds no cell for. Each is a different thing to read, and collapsing any of them into "no record" would say something untrue.
+
 ## Questions for the PRD's author
 
-Not gaps in the build: places where the CW PRD's role table grants an act and does not say for which residents. Table 3's first row gives a care worker "assigned only" residents and "Care Notes — write" says "Assigned residents"; the rows below say only "Can". The build does not choose. Each act answers `not_stated` for a care worker (`capabilities.ts`), and a screen that reaches one draws the question at the act rather than a yes or a no.
+Not gaps in the build: places where the CW PRD's role table grants an act and does not say whether for residents off a care worker's list. Table 3's first row gives a care worker "assigned only" residents and "Care Notes — write" says "Assigned residents"; the rows below say only "Can". The build does not choose. For a care worker each act answers yes for a resident on their list and the question for a resident off it (`not_stated_beyond_your_list` in `capabilities.ts`), and a screen that reaches the question draws it at the act rather than a yes or a no. (Until Phase 4 the question was asked for every resident, which left a care worker unable to record a dose on their own list: see PROGRESS.md.)
 
 - **Record a dose given, not given or PRN** (Medications — record Given/Not Given/PRN: "Can (PIN required)"). For residents not on the care worker's list, as a round covers a floor rather than a list?
 - **Report an incident** (Incidents — report: "Can (any time)", "Any staff member"). About any resident the care worker witnesses, or only their own?
@@ -62,7 +80,7 @@ Not gaps in the build: places where the CW PRD's role table grants an act and do
 
 For a senior carer, "Can" reaches the whole home without a question: Table 3's first row gives a senior carer every resident, so there is no narrower list to be silent about.
 
-**One row contradicts another, and is left as written until Phase 4.** "Medications — countersign controlled drugs: Both must be Senior+" says the first signer of a controlled drug is a senior carer; "Medications — record Given/Not Given/PRN" lets a care worker record a dose, controlled drugs not excepted. It is for whoever wrote the table to settle.
+**One row contradicts another, and is drawn as a contradiction rather than settled.** "Medications — countersign controlled drugs: Both must be Senior+" says the first signer of a controlled drug is a senior carer; "Medications — record Given/Not Given/PRN" lets a care worker record a dose, controlled drugs not excepted. From Phase 4 a care worker's controlled drug dose quotes both rows at the act, with Given unavailable. It is for whoever wrote the table to settle.
 
 ## Authentication (Phase 1)
 

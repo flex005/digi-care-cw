@@ -111,6 +111,8 @@ Earned in this build. Each entry is here because something went wrong here, and 
 
 - **Undoing a mutation with version control undoes everything else in the file too.** Checking that the new `whole` kind of card draws no button, the mutation was reverted with `git checkout` on `Card.tsx`, which restored the file to the last commit and took the uncommitted change under test with it: the `whole` kind, the type and the conditional were gone, and the suite would have gone on to test the old rule. It was caught only because the next command printed nothing where a line was expected. **Revert a mutation by reversing the edit that made it, the same way it was made, and confirm the file then holds the change under test**, not merely that the mutation is gone.
 
+- **A replacement written as a pattern can match far more than the text in view.** Removing a four-line helper from an agent's file, the pattern allowed an optional docblock in front of it, written lazily across any characters; it matched from the file's first docblock down to the helper and deleted most of a file that had never been committed. It was recovered from the agent's own record of writing it, and caught only because the typecheck that followed named every export as missing. The same day's other entry is the same failure by a different tool: an undo sized by what it was meant to touch rather than by what it could. **Replace exact text, asserted to occur once, and check what the file still exports before moving on.**
+
 ## 9. Stop and ask
 
 Ask before doing anything expensive to reverse:
