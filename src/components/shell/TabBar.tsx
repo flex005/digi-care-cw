@@ -6,8 +6,9 @@ import { NavEntry } from './NavEntry'
 import styles from './TabBar.module.css'
 
 /**
- * The compact layout's navigation: four modules along the bottom, and More
- * holding the rest in the same sections the sidebar uses.
+ * The compact layout's navigation: the rail, moved to the bottom. Four modules
+ * as tabs, and More holding the rest in the same sections, the account
+ * included.
  */
 export function TabBar() {
   const [moreOpen, setMoreOpen] = useState(false)

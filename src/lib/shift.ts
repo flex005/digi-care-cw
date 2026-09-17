@@ -155,3 +155,24 @@ export function formatDuration(minutes: number): string {
   if (rest === 0) return hourPart
   return `${hourPart} ${minutePart}`
 }
+
+const hourLabel = (hour: number) => `${String(hour).padStart(2, '0')}:00`
+
+/** "14:00 to 21:00". The hours come from `SHIFTS`, never restated. */
+export function shiftHours(shift: ShiftId): string {
+  const found = SHIFTS.find((entry) => entry.id === shift)
+  if (found === undefined) throw new Error(`No shift ${shift}`)
+  return `${hourLabel(found.from)} to ${hourLabel(found.to)}`
+}
+
+/**
+ * The greeting at the head of a screen, by the wall clock of the home, not
+ * of the viewer's device: somebody reading Rosewood Court from abroad is
+ * still greeted in the home's evening.
+ */
+export function greetingAt(value: IsoDateTime, timeZone: TimeZone): string {
+  const hour = new Date(zonedWallClock(value, timeZone)).getUTCHours()
+  if (hour >= 5 && hour < 12) return 'Good morning'
+  if (hour >= 12 && hour < 18) return 'Good afternoon'
+  return 'Good evening'
+}

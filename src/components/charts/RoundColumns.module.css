@@ -1,0 +1,103 @@
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.columns {
+  display: flex;
+  gap: var(--space-12);
+  align-items: stretch;
+  height: 220px;
+  list-style: none;
+}
+
+.column,
+.columnCurrent {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: center;
+  min-width: 0;
+}
+
+/* The column is the whole round; what is not drawn in it is not yet due, and
+   its count says so beneath. No fill of its own: the hatch sits on the card's
+   white, where its bands can be seen. */
+.track {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+
+.gap {
+  composes: unrecordedMark from '../../styles/unrecorded.module.css';
+  width: 100%;
+}
+
+.done {
+  width: 100%;
+  background-color: var(--purple-600);
+}
+
+/* The round running now: its recorded part outlined, and its time in the
+   brand colour. The outline stays off the hatched part, whose dashed edge is
+   its own mark. */
+.columnCurrent .done {
+  box-shadow: inset 0 0 0 2px var(--purple-900);
+}
+
+.round {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-bold);
+}
+
+.columnCurrent .round {
+  color: var(--purple-600);
+}
+
+.count {
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-20);
+  list-style: none;
+}
+
+.legend li {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  color: var(--ink-700);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-semibold);
+}
+
+/* Drawn by the same classes as the segments they explain. */
+.swatchDone,
+.swatchGap {
+  width: var(--space-16);
+  height: var(--space-16);
+  border-radius: var(--radius-sm);
+}
+
+.swatchDone {
+  background-color: var(--purple-600);
+}
+
+.swatchGap {
+  composes: unrecordedMark from '../../styles/unrecorded.module.css';
+}

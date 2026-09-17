@@ -50,6 +50,16 @@ for (const match of (await readFile(TOKENS, 'utf8')).matchAll(/^\s*(--[\w-]+)\s*
   declared.add(match[1])
 }
 
+/**
+ * **The hero step has one owner.** `--text-hero` is the dark card's figure: the
+ * one number on a screen somebody acts on, readable across a room. A second
+ * stylesheet reaching for it would make two figures compete for that, so any
+ * other reference is a finding, however well spelled.
+ */
+const HERO = /var\(\s*--text-hero-/
+const HERO_OWNER = path.join(SRC, 'components', 'layout', 'ActionCard.module.css')
+let heroOwnerReaches = 0
+
 const findings = []
 let allowed = 0
 let referenced = 0
@@ -73,6 +83,13 @@ for await (const file of walk(SRC)) {
   )
 
   lines.forEach((line, index) => {
+    if (HERO.test(line)) {
+      if (file === HERO_OWNER) heroOwnerReaches += 1
+      else
+        findings.push(
+          `${path.relative(ROOT, file)}:${index + 1}  --text-hero belongs to the dark card alone; use --text-figure`,
+        )
+    }
     for (const match of line.matchAll(/var\(\s*(--[\w-]+)/g)) {
       referenced += 1
       const name = match[1]
@@ -88,14 +105,19 @@ for await (const file of walk(SRC)) {
   })
 }
 
+if (heroOwnerReaches === 0)
+  findings.push(
+    `${path.relative(ROOT, HERO_OWNER)}  no longer uses --text-hero, so the step has no owner and the rule excuses nothing`,
+  )
+
 if (findings.length > 0) {
   console.error(
-    `✖ tokens: ${findings.length} reference${findings.length === 1 ? '' : 's'} to a custom property that does not exist. An undefined property is silent: the declaration is dropped and the element renders with whatever it inherited.\n`,
+    `✖ tokens: ${findings.length} finding${findings.length === 1 ? '' : 's'}. A reference to an undefined property is silent: the declaration is dropped and the element renders with whatever it inherited.\n`,
   )
   for (const finding of findings) console.error(`  ${finding}`)
   process.exit(1)
 }
 
 console.log(
-  `✓ tokens — ${referenced} references, every one declared (${allowed} deliberate)`,
+  `✓ tokens — ${referenced} references, every one declared (${allowed} deliberate); --text-hero used by the dark card alone`,
 )

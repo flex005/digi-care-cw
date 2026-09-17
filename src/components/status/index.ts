@@ -12,3 +12,5 @@ export type { SettledProps } from './Settled'
 export { RecordedValue } from './RecordedValue'
 export { NotYourHome } from './NotYourHome'
 export { AggregateFigure } from './AggregateFigure'
+
+export { GapCount } from './GapCount'

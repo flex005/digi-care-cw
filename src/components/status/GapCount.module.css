@@ -1,0 +1,32 @@
+.card {
+  composes: unrecordedCard from '../../styles/unrecorded.module.css';
+}
+
+.label {
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.value {
+  margin-top: var(--space-8);
+  font-size: var(--text-figure-size);
+  line-height: var(--text-figure-line);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.03em;
+}
+
+.of {
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.detail {
+  max-width: 34ch;
+  margin-top: var(--space-8);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}

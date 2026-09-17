@@ -21,6 +21,8 @@ const BORDERS = ['--border-strong', '--border-subtle', '--border-unrecorded']
 const STATUSES = ['positive', 'caution', 'critical', 'info', 'unrecorded'] as const
 
 const TYPE_STEPS = [
+  'hero',
+  'figure',
   'display',
   'h1',
   'h2',
@@ -149,7 +151,7 @@ export function TokenSheet() {
       </section>
 
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Type: nine steps, five weights</h2>
+        <h2 className={styles.sectionTitle}>Type: eleven steps, five weights</h2>
         {TYPE_STEPS.map((step) => (
           <div key={step} className={styles.typeRow}>
             <span className={styles.typeToken}>--text-{step}</span>
@@ -160,9 +162,13 @@ export function TokenSheet() {
                 fontVariantNumeric: step === 'mono-num' ? 'tabular-nums' : undefined,
               }}
             >
-              {step === 'mono-num'
-                ? '08:04 · 1,024mg · 46 of 50'
-                : 'Emmanuel Okafor · Room 14'}
+              {step === 'hero'
+                ? '20:00'
+                : step === 'figure'
+                  ? '23 of 37'
+                  : step === 'mono-num'
+                    ? '08:04 · 1,024mg · 46 of 50'
+                    : 'Emmanuel Okafor · Room 14'}
             </span>
           </div>
         ))}

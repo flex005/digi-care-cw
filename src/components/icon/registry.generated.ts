@@ -16,6 +16,7 @@ import IconAlertNotification_Alert02 from '@/assets/icons-generated/alert-notifi
 import IconAlertNotification_AlertDiamond from '@/assets/icons-generated/alert-notification/alert-diamond.svg?react'
 import IconAlertNotification_InformationCircle from '@/assets/icons-generated/alert-notification/information-circle.svg?react'
 import IconAlertNotification_Notification01 from '@/assets/icons-generated/alert-notification/notification-01.svg?react'
+import IconArrowsRound_ArrowUpRight01Round from '@/assets/icons-generated/arrows-round/arrow-up-right-01-round.svg?react'
 import IconArrowsSharp_ArrowDown01Sharp from '@/assets/icons-generated/arrows-sharp/arrow-down-01-sharp.svg?react'
 import IconArrowsSharp_ArrowLeft01Sharp from '@/assets/icons-generated/arrows-sharp/arrow-left-01-sharp.svg?react'
 import IconArrowsSharp_ArrowRight01Sharp from '@/assets/icons-generated/arrows-sharp/arrow-right-01-sharp.svg?react'
@@ -38,11 +39,12 @@ import IconMoreMenu_MoreHorizontal from '@/assets/icons-generated/more-menu/more
 import IconNoteTask_Note01 from '@/assets/icons-generated/note-task/note-01.svg?react'
 import IconNoteTask_Note03 from '@/assets/icons-generated/note-task/note-03.svg?react'
 import IconNoteTask_NoteRemove from '@/assets/icons-generated/note-task/note-remove.svg?react'
+import IconUsers_UserCircle from '@/assets/icons-generated/users/user-circle.svg?react'
 import IconUsers_UserMultiple from '@/assets/icons-generated/users/user-multiple.svg?react'
 import IconUsers_UserSwitch from '@/assets/icons-generated/users/user-switch.svg?react'
 
 /**
- * Only the 30 icons actually used in source. Importing all of them
+ * Only the 32 icons actually used in source. Importing all of them
  * would compile every icon in the set into the bundle.
  *
  * Partial because it is keyed by the full IconName union. A missing entry
@@ -58,6 +60,7 @@ export const iconRegistry: Partial<
   'alert-notification/alert-diamond': IconAlertNotification_AlertDiamond,
   'alert-notification/information-circle': IconAlertNotification_InformationCircle,
   'alert-notification/notification-01': IconAlertNotification_Notification01,
+  'arrows-round/arrow-up-right-01-round': IconArrowsRound_ArrowUpRight01Round,
   'arrows-sharp/arrow-down-01-sharp': IconArrowsSharp_ArrowDown01Sharp,
   'arrows-sharp/arrow-left-01-sharp': IconArrowsSharp_ArrowLeft01Sharp,
   'arrows-sharp/arrow-right-01-sharp': IconArrowsSharp_ArrowRight01Sharp,
@@ -80,6 +83,7 @@ export const iconRegistry: Partial<
   'note-task/note-01': IconNoteTask_Note01,
   'note-task/note-03': IconNoteTask_Note03,
   'note-task/note-remove': IconNoteTask_NoteRemove,
+  'users/user-circle': IconUsers_UserCircle,
   'users/user-multiple': IconUsers_UserMultiple,
   'users/user-switch': IconUsers_UserSwitch,
 }

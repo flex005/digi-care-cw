@@ -12,11 +12,13 @@ import {
   VisuallyHidden,
 } from '@/components/primitives'
 import { useSession, useSignedIn } from '@/app/session/use-session'
+import { NavPill } from './NavPill'
 import { shellIcons } from './nav.icons'
 import styles from './TopBar.module.css'
 
 /**
- * The header: which home, and who is signed in.
+ * The top bar: a white pill holding the product, the shift's navigation, which
+ * home, and who is signed in.
  *
  * **The home is always visible**, including for somebody who works at only
  * one and gets no switcher. A record saved against the wrong home is the
@@ -26,72 +28,74 @@ import styles from './TopBar.module.css'
 export function TopBar() {
   const { sites, activeSite, setActiveSite, signOut } = useSession()
   const { member } = useSignedIn()
-  const name = member.ref.displayName
 
   return (
     <header className={styles.topbar}>
+      <span className={styles.lockup}>
+        <Logo variant="lockup" height={32} title="Radiant digicare" />
+      </span>
       <span className={styles.mark}>
-        <Logo variant="mark" height={28} title="Radiant digicare" />
+        <Logo variant="mark" height={32} title="Radiant digicare" />
       </span>
 
-      {sites.length > 1 ? (
-        <DropdownMenu>
-          {/* "Site" stays in the accessible name: a button whose whole name is
-              a place does not say what it does. WCAG 2.5.3 holds because the
-              visible text is contained in it. */}
-          <DropdownMenuTrigger
-            className={styles.site}
-            aria-label={`Site: ${activeSite.name}. Change site.`}
-            data-site-switcher
-          >
+      <div className={styles.nav}>
+        <NavPill />
+      </div>
+
+      <div className={styles.right}>
+        {sites.length > 1 ? (
+          <DropdownMenu>
+            {/* "Site" stays in the accessible name: a button whose whole name is
+                a place does not say what it does. */}
+            <DropdownMenuTrigger
+              className={styles.site}
+              aria-label={`Site: ${activeSite.name}. Change site.`}
+              data-site-switcher
+            >
+              <span className={styles.siteName}>{activeSite.name}</span>
+              <Icon name={shellIcons.siteSwitcher} size={16} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Switch site</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {sites.map((site) => (
+                <DropdownMenuItem key={site.id} onSelect={() => setActiveSite(site)}>
+                  {site.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <span className={styles.site} data-site-label>
+            <VisuallyHidden>Site: </VisuallyHidden>
             <span className={styles.siteName}>{activeSite.name}</span>
-            <Icon name={shellIcons.siteSwitcher} size={16} />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuLabel>Switch site</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {sites.map((site) => (
-              <DropdownMenuItem key={site.id} onSelect={() => setActiveSite(site)}>
-                {site.name}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ) : (
-        <span className={styles.site} data-site-label>
-          <VisuallyHidden>Site: </VisuallyHidden>
-          <span className={styles.siteName}>{activeSite.name}</span>
-        </span>
-      )}
+          </span>
+        )}
 
-      <div className={styles.spacer} />
-
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          className={styles.user}
-          aria-label={`Account menu for ${name}`}
-        >
-          <span aria-hidden="true">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className={styles.user}
+            aria-label={`Account menu for ${member.ref.displayName}`}
+          >
             <Avatar
               photo={{ kind: 'not_on_file' }}
               name={member.ref.fullName}
-              size="small"
+              size="medium"
               tone="brand"
             />
-          </span>
-          <span className={styles.userName}>{name}</span>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>
-            {member.ref.fullName} · {STAFF_ROLE_NAMES[member.role]}
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => signOut()}>
-            <Icon name={shellIcons.signOut} size={16} />
-            Sign out
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>
+              {member.ref.fullName} · {STAFF_ROLE_NAMES[member.role]}
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => signOut()}>
+              <Icon name={shellIcons.signOut} size={16} />
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </header>
   )
 }

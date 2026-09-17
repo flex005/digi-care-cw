@@ -1,7 +1,8 @@
 /**
  * THE UNRECORDED TREATMENT.
  *
- * This file holds the ONLY copy of the hatch in the entire project.
+ * This file holds the ONLY copy of the hatch in the entire project, in one
+ * size: the tint bands inside a dashed edge.
  * Every consumer reaches it with CSS Modules `composes:`, never by
  * reimplementing it:
  *
@@ -33,12 +34,9 @@
  * Under prefers-reduced-motion nothing changes here; the hatch is static
  * by design.
  *
- * **This gradient survives a Figma import; the SVG half does not.**
- * html.to.design renders `repeating-linear-gradient`, so every box carrying
- * this treatment arrives hatched. What it drops is `url(#…)`, which is how the
- * charts in features/dashboard/charts.tsx fill and stroke their hatch — so the
- * loss is confined to the Dashboard's bar gaps, donut arc and ring tracks.
- * See docs/FIGMA-HANDOFF.md.
+ * **This gradient survives a Figma import; an SVG pattern does not.**
+ * html.to.design renders `repeating-linear-gradient` and drops `url(#…)`, so
+ * every gap in this build, charts included, is HTML carrying this class.
  */
 
 .unrecorded {
@@ -49,38 +47,6 @@
     transparent 6px 12px
   );
   color: var(--status-unrecorded-ink);
-}
-
-/**
- * THE CHART SIZE — the same hatch, banded in the solid colour.
- *
- * **Two sizes, one owner. This is the rule stated properly, not the guard
- * weakening.** The treatment above bands `--status-unrecorded-tint` and is
- * correct on a box: a cell, a chip, a panel, a tile. It is 1.12:1 against the
- * surface, which reads as texture across 170px and reads as nothing across
- * seven.
- *
- * A chart's gap regions are 7–20px tall. At that size the tint is invisible,
- * and **a hatch nobody can see is a solid neutral fill** — the one thing Rule 2
- * says this treatment must never become, in the direction that hides a gap
- * rather than inventing one. So the chart bands `--status-unrecorded` instead,
- * at 3.43:1, which clears WCAG 1.4.11's 3:1 for non-text contrast where the
- * tint is a twelfth of the way there.
- *
- * The split is not new. It has always existed — the SVG `<pattern>` in
- * charts.tsx banded the solid colour for exactly this reason, and this makes
- * the same decision explicit in one medium and one file rather than implicit
- * across two.
- *
- * Same 45°, same 6px rhythm. Only the band colour differs, and only because
- * the size does.
- */
-.unrecordedChart {
-  background: repeating-linear-gradient(
-    45deg,
-    var(--status-unrecorded) 0 6px,
-    var(--bg-surface) 6px 12px
-  );
 }
 
 /**
@@ -193,4 +159,38 @@
   border-radius: var(--radius-md);
   font-size: var(--text-body-sm-size);
   line-height: var(--text-body-sm-line);
+}
+
+/**
+ * Card form: a card whose subject is a gap, such as the residents nobody has
+ * written up today. The card's shape (radius, padding) with the hatch as its
+ * surface, so on a page of white cards the one about a missing record is the
+ * one that looks unfinished.
+ *
+ * `background-color` after the composed shorthand keeps the bands over white
+ * rather than over the grey page.
+ */
+.unrecordedCard {
+  composes: unrecorded;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--card-padding);
+  border-radius: var(--radius-xl);
+  background-color: var(--bg-surface);
+}
+
+/**
+ * Mark form: the gap segment of a bar, and the legend swatch that explains it.
+ *
+ * **One class for both, because a legend is drawn in the medium of the thing it
+ * explains.** The tint bands are faint at a few pixels across, and the dashed
+ * edge is what carries a thin segment: two dashed lines a few pixels apart
+ * still read as unfinished where the bands alone would read as a pale fill.
+ *
+ * The Admin build banded its chart regions in the solid colour instead,
+ * because they had no edge. These do, so one size serves both.
+ */
+.unrecordedMark {
+  composes: unrecorded;
 }

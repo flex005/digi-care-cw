@@ -133,7 +133,10 @@
   /* ==================================================================
      SURFACES AND NEUTRALS.
      ================================================================== */
-  --bg-page: #f2f6fe; /* ✅ Application background */
+
+  /* The grey the cards float on. Lighter and greyer than the Admin build's
+     #f2f6fe, set by this build's visual direction (docs/cw-dashboard.html). */
+  --bg-page: #eef1f7;
   --bg-surface: #ffffff; /* ✅ Cards, tables, drawers, dialogs */
   --bg-surface-sunken: #f8fafe; /* ⚠️ unverified — table headers, inset panels */
 
@@ -173,8 +176,9 @@
      2.38:1 on --purple-50. A darker value was measured and declined: the colour
      never carries a caution state alone, because every caution state names
      itself in words inside the coloured element. So the fill may be drawn only
-     by StatusPill and Toast, which render their required words inside it, and
-     scripts/check-caution-carriers.mjs fails the build anywhere else.
+     by Toast, which renders its required title inside it, and
+     scripts/check-caution-carriers.mjs fails the build anywhere else. The
+     status pill uses the ink and tint and never the fill.
      docs/DEPARTURES.md. */
   --status-caution: #f07d13;
   --status-caution-ink: #a65200;
@@ -208,7 +212,7 @@
   /* ==================================================================
      TYPE.
 
-     The scale is CLOSED. Nine steps, five weights. No component may
+     The scale is CLOSED. Eleven steps, five weights. No component may
      introduce a size, line height or weight outside it; stylelint rejects
      any font-size / line-height / font-weight that is not var(--*).
      A tenth step is a conversation, not a local override.
@@ -223,7 +227,24 @@
   --font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   /* ⚠️ unverified — sizes are proportioned to the screenshot, not measured. */
-  --text-display-size: 2rem; /* 32 — dashboard greeting, one per page */
+
+  /* The two figure steps, above display. Added because the one number a care
+     worker reads at arm's length, while holding something, has to be readable
+     across a room, and 32px is not.
+
+     --text-hero is for the dark card's figure and nothing else: the next
+     round, the thing to act on. check-tokens fails the build if any other
+     stylesheet reaches for it, so the largest figure on a screen stays the one
+     somebody acts on.
+
+     --text-figure is for a figure with what it is out of beside it, in a card:
+     "23 of 37 due", "4 of your 9 residents". */
+  --text-hero-size: 3.25rem; /* 52 */
+  --text-hero-line: 3.5rem; /* 56 */
+  --text-figure-size: 2.5rem; /* 40 */
+  --text-figure-line: 2.75rem; /* 44 */
+
+  --text-display-size: 2rem; /* 32 — page head greeting, one per page */
   --text-display-line: 2.5rem; /* 40 */
   --text-h1-size: 1.5rem; /* 24 — page titles */
   --text-h1-line: 2rem; /* 32 */
@@ -264,16 +285,25 @@
   --space-64: 64px;
 
   /* ==================================================================
-     SHAPE AND ELEVATION.
-     ================================================================== */
-  --radius-sm: 8px; /* ⚠️ unverified — inputs, small buttons */
-  --radius-md: 12px; /* ⚠️ unverified — buttons, tags */
-  --radius-lg: 16px; /* ⚠️ unverified — cards */
-  --radius-xl: 20px; /* ⚠️ unverified — drawers, large panels */
-  --radius-pill: 999px; /* ✅ status pills, avatars */
+     SHAPE AND ELEVATION
 
-  /* ⚠️ unverified */
-  --shadow-card: 0 1px 2px rgba(30, 0, 89, 0.04), 0 4px 12px rgba(30, 0, 89, 0.06);
+     Set by the visual direction (docs/cw-dashboard.html), which wins over the
+     Admin build on radius and density. Chrome is fully rounded: the top bar,
+     the rail's groups, every rail button and every button take the pill.
+     Cards take --radius-xl, float on the page with no border, and carry the
+     two-layer shadow.
+     ================================================================== */
+  --radius-sm: 8px; /* inputs, small marks */
+  --radius-md: 14px; /* chips, rows, list items */
+  --radius-lg: 20px; /* inset panels, the hatched panel */
+  --radius-xl: 28px; /* cards */
+  --radius-pill: 999px; /* chrome, buttons, pills, avatars */
+
+  /* **The one spacing value off the 4px scale, by direction.** A card's
+     internal padding is 22px. Everything else stays on the scale. */
+  --card-padding: 22px;
+
+  --shadow-card: 0 1px 2px rgba(30, 0, 89, 0.03), 0 8px 24px rgba(30, 0, 89, 0.05);
 
   /* -------------------------------------------------------------------------
    * The document viewer's stage. Values from docs/documents-medication-intake.
@@ -300,22 +330,17 @@
          @media (width < 1024px)    the compact layout
          @media (width >= 1024px)   the wide layout
 
-     Below 1024px the sidebar gives way to a bottom tab bar and the gutter
-     narrows. 1024 rather than a phone width because a tablet held upright is
-     a handheld device in a care home, and a 248px sidebar would leave it a
-     520px column. There is no minimum width: the Admin build refused to render
+     Below 1024px the icon rail becomes a bottom tab bar, the navigation pill
+     leaves the top bar, and the gutter narrows. 1024 rather than a phone width
+     because a tablet held upright is a handheld device in a care home. There is no minimum width: the Admin build refused to render
      below 1280px, and this product is used on a phone during a shift.
 
-     --layout-max-width is `none`: content fills the viewport. Prose keeps a
-     readable measure through a `ch` bound on the text itself.
+     Content is centred within --layout-content-max, as the reference is.
      ================================================================== */
-  --layout-max-width: none;
   --layout-gutter: 24px;
   --layout-gutter-compact: 16px;
-  --layout-sidebar-width: 248px;
-  --layout-sidebar-width-collapsed: 72px;
-  --layout-topbar-height: 64px;
-  --layout-tabbar-height: 64px;
+  --layout-rail-width: 64px;
+  --layout-content-max: 1420px;
 
   /* ==================================================================
      FOCUS. 2px --purple-600 with 2px offset. Never removed.

@@ -4,7 +4,9 @@
   align-items: center;
   justify-content: center;
   border: 1.5px solid transparent;
-  border-radius: var(--radius-md);
+
+  /* Every button is a pill. Chrome is fully rounded in this build. */
+  border-radius: var(--radius-pill);
   font-size: var(--text-body-sm-size);
   line-height: var(--text-body-sm-line);
   font-weight: var(--weight-semibold);

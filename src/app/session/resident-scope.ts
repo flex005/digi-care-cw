@@ -1,4 +1,5 @@
 import type { IsoDate, ResidentId, StaffMember, StaffRef } from '@/data/types'
+import { pluralise } from '@/lib/format'
 import { assertNever } from '@/lib/assert-never'
 import { signInRoleOf } from './capabilities'
 
@@ -72,6 +73,59 @@ export function scopeReaches(scope: ResidentScope, residentId: ResidentId): bool
       return scope.residents.includes(residentId)
     case 'not_decided':
       return false
+    default:
+      return assertNever(scope)
+  }
+}
+
+/**
+ * How many residents a scope reaches at a home, out of the residents there.
+ * The count behind "4 of your 9 residents".
+ */
+export function residentsInScope(
+  scope: ResidentScope,
+  residentIds: ResidentId[],
+): number {
+  return residentIds.filter((id) => scopeReaches(scope, id)).length
+}
+
+/**
+ * The scope said out loud, for the head of a screen: "9 residents on your list".
+ *
+ * **The one owner of this wording.** Scope, never blame: it states what the
+ * person can see, and never who is responsible for what is missing.
+ */
+export function scopeLine(
+  scope: ResidentScope,
+  residentIds: ResidentId[],
+  homeName: string,
+): string {
+  switch (scope.kind) {
+    case 'every_resident':
+      return `every resident at ${homeName}, ${pluralise(residentIds.length, 'resident')}`
+    case 'named_residents':
+      return `${pluralise(residentsInScope(scope, residentIds), 'resident')} on your list`
+    case 'not_decided':
+      return 'nobody has given you a list of residents yet'
+    default:
+      return assertNever(scope)
+  }
+}
+
+/**
+ * The line under a figure counted over the viewer's residents, so the reader
+ * knows what population it covers: "Counted over your list, not the home's."
+ */
+export function scopeNote(scope: ResidentScope, homeName: string): string {
+  switch (scope.kind) {
+    case 'every_resident':
+      return scope.because === 'senior_carer'
+        ? `Counted over every resident at ${homeName}.`
+        : `Counted over your list, which is every resident at ${homeName}.`
+    case 'named_residents':
+      return "Counted over your list, not the home's."
+    case 'not_decided':
+      return 'Nothing is counted: nobody has given you a list.'
     default:
       return assertNever(scope)
   }

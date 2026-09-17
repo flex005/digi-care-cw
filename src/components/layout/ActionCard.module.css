@@ -1,0 +1,57 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-24);
+  border-radius: var(--radius-xl);
+  background-color: var(--purple-900);
+  color: var(--bg-surface);
+}
+
+/* --purple-200 on --purple-900 measures 11.5:1. */
+.kicker {
+  color: var(--purple-200);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.figure {
+  margin-top: var(--space-12);
+  font-size: var(--text-hero-size);
+  line-height: var(--text-hero-line);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.03em;
+}
+
+.of {
+  color: var(--purple-200);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.foot {
+  display: flex;
+  gap: var(--space-12);
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-16);
+  padding-top: var(--space-16);
+  border-top: 1px solid var(--purple-600);
+  color: var(--purple-200);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.footValue {
+  color: var(--bg-surface);
+  font-weight: var(--weight-bold);
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-16);
+}

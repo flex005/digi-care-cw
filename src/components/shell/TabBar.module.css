@@ -1,12 +1,14 @@
+/* The rail, moved to the bottom: a floating white pill of icon tabs. */
 .tabbar {
-  padding: var(--space-4) var(--space-8)
-    calc(var(--space-4) + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--border-subtle);
-  background-color: var(--bg-surface);
+  padding: 0 var(--space-12) calc(var(--space-12) + env(safe-area-inset-bottom));
 }
 
 .tabs {
   display: flex;
+  padding: var(--space-8);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
   list-style: none;
 }
 
@@ -14,6 +16,11 @@
   display: flex;
   flex: 1;
   min-width: 0;
+}
+
+/* More holds no module name, so it gives its width to the four that do. */
+.slot:last-child {
+  flex: 0 0 var(--space-48);
 }
 
 /* 48px tall: a thumb target, clear of WCAG 2.5.8's 24px floor. */
@@ -27,8 +34,8 @@
   min-width: 0;
   min-height: var(--space-48);
   padding: var(--space-4);
-  border-radius: var(--radius-md);
-  color: var(--ink-700);
+  border-radius: var(--radius-pill);
+  color: var(--ink-500);
   font-size: var(--text-micro-size);
   line-height: var(--text-micro-line);
   font-weight: var(--weight-semibold);
@@ -42,8 +49,8 @@
 }
 
 .active {
-  background-color: var(--purple-50);
-  color: var(--purple-600);
+  background-color: var(--purple-600);
+  color: var(--bg-surface);
 }
 
 .disabled {
@@ -85,8 +92,8 @@
   align-items: center;
   width: 100%;
   min-height: var(--space-48);
-  padding: var(--space-8) var(--space-12);
-  border-radius: var(--radius-md);
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-pill);
   color: var(--ink-700);
   font-size: var(--text-body-size);
   line-height: var(--text-body-line);

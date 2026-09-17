@@ -26,71 +26,47 @@
  */
 .pill {
   display: inline-flex;
-
-  /*
-   * Never wider than what holds it. As an inline-flex with a nowrap line, the
-   * pill's floor was the sum of its two children's min-content, so a long
-   * detail pushed it past its table cell — "3 months overdue" ran 3px into the
-   * next column. Small, and the same shape as the tile denominator that ran
-   * off the screen: a box declaring a width its container never agreed to.
-   */
   max-width: 100%;
-  gap: var(--space-4);
+  gap: var(--space-8);
   align-items: center;
-
-  /* So the detail wraps inside the pill rather than widening it. The table it
-     sits in is `table-layout: fixed`, so the column cannot grow to meet it. */
   flex-wrap: wrap;
-  padding: var(--space-4) var(--space-8);
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  font-size: var(--text-micro-size);
-  line-height: var(--text-micro-line);
-  font-weight: var(--weight-semibold);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-bold);
 }
 
-/**
- * There is no dot.
- *
- * It was justified as "a second, non-textual carrier so the pill survives
- * greyscale" — but that was never true. In greyscale a red dot and an amber
- * dot are the same grey, exactly as their fills and borders are. The dot
- * carried hue, and hue only; it was the fourth encoding of the same thing and
- * the one that made a badge look like a control.
- *
- * What actually survives greyscale is the LABEL — "Falls — HIGH" against
- * "Falls — MODERATE" — and, for the distinction that matters most, the solid
- * border against the dashed hatch of <Unrecorded>. Neither depends on colour.
- */
+/* A dot in the ink colour, never the fill: the words carry the state, and the
+   dot is the shape that says this is a recorded status rather than a gap. */
+.dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background-color: currentColor;
+}
 
 .detail {
   font-weight: var(--weight-regular);
-  letter-spacing: normal;
-  text-transform: none;
 }
 
 .positive {
-  border-color: var(--status-positive);
   background-color: var(--status-positive-tint);
   color: var(--status-positive-ink);
 }
 
 .caution {
-  border-color: var(--status-caution);
   background-color: var(--status-caution-tint);
   color: var(--status-caution-ink);
 }
 
 .critical {
-  border-color: var(--status-critical);
   background-color: var(--status-critical-tint);
   color: var(--status-critical-ink);
 }
 
 .info {
-  border-color: var(--status-info);
   background-color: var(--status-info-tint);
   color: var(--status-info-ink);
 }
@@ -99,7 +75,6 @@
    bad news — it is a recorded clinical decision, and colouring it red or
    green would editorialise. */
 .brand {
-  border-color: var(--purple-600);
   background-color: var(--purple-50);
   color: var(--purple-900);
 }
@@ -116,6 +91,8 @@
   padding: var(--space-4);
   border-radius: var(--radius-sm);
   text-align: center;
-  text-transform: none;
-  letter-spacing: normal;
+}
+
+.block .dot {
+  display: none;
 }

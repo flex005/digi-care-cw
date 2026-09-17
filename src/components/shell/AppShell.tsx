@@ -1,22 +1,24 @@
 import type { ReactNode } from 'react'
 import { MovedClockLine } from './MovedClockLine'
+import { Rail } from './Rail'
 import { RequireSignIn } from './RequireSignIn'
-import { Sidebar } from './Sidebar'
 import { TabBar } from './TabBar'
 import { TopBar } from './TopBar'
 import styles from './AppShell.module.css'
 
 /**
- * The signed-in frame: sidebar, top bar and content on a wide screen; top bar,
- * content and a bottom tab bar on a compact one.
+ * The signed-in frame, in the shape the visual direction sets
+ * (docs/cw-dashboard.html): a pill top bar across the page, an icon rail
+ * beside the content on a wide screen, and bottom tabs on a compact one.
+ *
+ * **The page scrolls, not a panel inside it**, so a full-page capture takes the
+ * whole screen, and the rail stays in view by sticking rather than by the
+ * content scrolling under it.
  *
  * **Which layout shows is decided by CSS alone**, at the one breakpoint in
- * tokens.css, never by reading the window in script. A Figma capture taken at
- * a width gets that width's layout, with nothing in the DOM that differs
- * between a capture and a person using it.
+ * tokens.css. A Figma capture taken at a width gets that width's layout.
  *
- * **Flex throughout, never grid.** Figma has no grid, and its importer builds
- * auto-layout from flex and gap; `scripts/check-figma-export.mjs` holds that.
+ * **Flex throughout, never grid.** Figma has no grid.
  */
 export function AppShell({ children }: { children?: ReactNode }) {
   return (
@@ -24,18 +26,18 @@ export function AppShell({ children }: { children?: ReactNode }) {
       <a className="skipToContent" href="#main">
         Skip to content
       </a>
-      <div className={styles.shell}>
-        <div className={styles.sidebar}>
-          <Sidebar />
-        </div>
-        <div className={styles.column}>
-          <div className={styles.topbar}>
-            <TopBar />
+      <div className={styles.page}>
+        <div className={styles.frame}>
+          <TopBar />
+          <div className={styles.body}>
+            <div className={styles.rail}>
+              <Rail />
+            </div>
+            <main id="main" className={styles.main}>
+              <MovedClockLine />
+              {children}
+            </main>
           </div>
-          <main id="main" className={styles.main}>
-            <MovedClockLine />
-            {children}
-          </main>
         </div>
         <div className={styles.tabbar}>
           <TabBar />

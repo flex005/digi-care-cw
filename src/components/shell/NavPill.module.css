@@ -1,0 +1,46 @@
+.pill {
+  padding: var(--space-4);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-page);
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-4);
+  list-style: none;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  min-height: var(--space-40);
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-pill);
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+}
+
+.tab:hover {
+  color: var(--ink-900);
+}
+
+/*
+ * **No raised thumb.** A grey track with a white thumb is the segmented
+ * control's shape: one of a few presentations of the same data, such as the
+ * MAR's week and month. Navigation moves to different data, so it cannot share
+ * that shape, and both will be on one screen. The tab you are on reads by ink
+ * (--ink-900 against --ink-500) and by weight (bold against medium), and
+ * aria-current carries it for assistive technology.
+ */
+.active {
+  color: var(--ink-900);
+  font-weight: var(--weight-extrabold);
+}
+
+/* Not built. The popover says why in words. */
+.disabled {
+  color: var(--ink-400);
+}

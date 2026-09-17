@@ -6,16 +6,19 @@
  * the value alone.
  */
 
+/* No surface of its own: a figure sits inside a card, and the card is the
+   surface. */
 .figure {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  height: 100%;
-  padding: var(--space-16) var(--space-20);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  background-color: var(--bg-surface);
-  box-shadow: var(--shadow-card);
+  gap: var(--space-8);
+}
+
+.valueRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-8);
+  align-items: baseline;
 }
 
 .caption {
@@ -28,9 +31,10 @@
 }
 
 .value {
+  letter-spacing: -0.03em;
   color: var(--ink-900);
-  font-size: var(--text-display-size);
-  line-height: var(--text-display-line);
+  font-size: var(--text-figure-size);
+  line-height: var(--text-figure-line);
   font-weight: var(--weight-extrabold);
   font-variant-numeric: tabular-nums;
 }
@@ -55,10 +59,7 @@
  * the card's foot, separated by a rule so it does not read as more denominator.
  */
 .note {
-  margin-top: var(--space-8);
-  padding-top: var(--space-8);
-  border-top: 1px solid var(--border-subtle);
-  color: var(--ink-700);
+  color: var(--ink-500);
   font-size: var(--text-caption-size);
   line-height: var(--text-caption-line);
   font-weight: var(--weight-medium);
@@ -66,9 +67,10 @@
 
 /* The denominator. Never optional, never smaller than legible. */
 .coverage {
-  color: var(--ink-700);
+  color: var(--ink-500);
   font-size: var(--text-body-sm-size);
   line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 

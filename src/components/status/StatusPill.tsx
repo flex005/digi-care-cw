@@ -52,6 +52,7 @@ export function StatusPill({ tone, label, detail, block = false }: StatusPillPro
 
   return (
     <span className={className} data-state="recorded" data-tone={tone}>
+      <span className={styles.dot} aria-hidden="true" />
       <span>{label}</span>
       {detail ? <span className={styles.detail}>{detail}</span> : null}
     </span>

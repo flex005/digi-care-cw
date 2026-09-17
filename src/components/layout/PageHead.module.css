@@ -1,0 +1,56 @@
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16) var(--space-24);
+  align-items: flex-start;
+  margin-bottom: var(--space-24);
+}
+
+.text {
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.title {
+  color: var(--ink-900);
+  font-size: var(--text-display-size);
+  line-height: var(--text-display-line);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.03em;
+}
+
+.emphasis {
+  color: var(--ink-400);
+  font-weight: var(--weight-semibold);
+}
+
+.lines {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.side {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  align-items: center;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  min-height: var(--space-48);
+  padding: var(--space-8) var(--space-20);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}

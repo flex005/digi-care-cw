@@ -6,9 +6,11 @@ import pillStyles from './StatusPill.module.css'
 import toastStyles from '../primitives/Toast.module.css'
 
 /**
- * The half of the caution rule a script cannot hold: each component allowed to
- * draw the caution fill draws its words inside the coloured element, refuses
- * empty words, and keeps the words required.
+ * The half of the caution rule a script cannot hold: the component allowed to
+ * draw the caution fill (the toast) draws its words inside the coloured edge,
+ * refuses empty words, and keeps the words required. The status pill no longer
+ * draws the fill, and is held here to the same words because a caution state
+ * drawn by it must still name itself.
  *
  * `check-caution-carriers.mjs` holds the other half, that nothing else draws
  * the fill. Neither checks that the words name the state; that is a question

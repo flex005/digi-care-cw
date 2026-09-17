@@ -111,3 +111,42 @@ The comparison page (pills, dots, bar segments and toast edges on each ground, i
 - **What it cannot check, said plainly**: whether the words name the state. `label="Recorded"` on a caution pill passes. Nor whether the words are visible once styled, which is the screenshot's job.
 - **Mutations**, each confirmed landed in code and restored: a caution background in `TopBar.module.css` (✖ names the line); `` `var(--status-${t})` `` in `NavEntry.tsx` (✖ "built at run time"); caution removed from `Toast.module.css` (✖ the dead entry, naming Toast); `label` made optional (TS2578, unused `@ts-expect-error`); the label drawn outside the pill, the empty-label refusal disabled, the toast title not drawn (each fails its test).
 - **The Admin build is not guarded.** The fill is drawn there in 26 declarations across 17 feature files besides its status pill and toast, and none has been checked for words beside it. Its `PROGRESS.md`, `AM_PRD_STATUS.md` and `tokens.css` record the decision and say that its precondition is not established there.
+
+---
+
+## Visual direction applied (17/09/2026)
+
+The shape language is `docs/cw-dashboard.html`: it wins on radius, density and layout, and Phase 0 wins on token values and meaning.
+
+### What changed
+
+- **Tokens**: `--bg-page` `#eef1f7` (named in the direction, so applied although it is a token value); radii `md` 14, `lg` 20, `xl` 28; `--shadow-card` the reference's two layers; `--card-padding` 22px, the one spacing value off the 4px scale; sidebar layout tokens replaced by `--layout-rail-width` and `--layout-content-max`.
+- **Shell**: a pill top bar holding the lockup, the navigation pill, the home and the account; an icon rail in two grouped pills (every module, then profile and sign out); on a compact screen a floating pill of bottom tabs, and no navigation pill. The page scrolls and the rail sticks. The labelled sidebar is gone.
+- **Primitives**: every button a pill; `Card` with no border, 28px radius and 22px inside; `CardHead` with a required expand button (`ExpandButton`), which says "not built" when tried if the card leads nowhere yet; `StatusPill` as tint, ink and a dot in the ink colour, sentence case, no border; `AggregateFigure` with no surface of its own and the figure and its denominator on one baseline.
+- **New**: `PageHead`, `ActionCard` (the one dark card), `GapCount` (the hatched card counting a gap), `RoundColumns` (one straight column per round, with counts beneath and a legend drawn by the same class as the segments), `shiftHours`, `greetingAt`, and `scopeLine` / `scopeNote` as the one owner of "N residents on your list" and "Counted over your list, not the home's."
+- **Specimens**: a Shapes tab first, with every new shape; specimen sections are cards.
+
+### Decisions taken
+
+- **The type scale stays closed.** The reference's 52px and 40px figures are not on it; the dark card and the gap card use `--text-display` (32px). The largest figure on a screen is still the dark card's, by position rather than by an extra step.
+- **The rail holds every module, and the pill holds five of them in the reference's order** (Today, Residents, Medications, Handover, Activities), declared once as `PILL_MODULES`. Both mark the module you are in. The dashboard's name in navigation is "Today", as the reference has it.
+- **The home stays in the top bar**, as a pill beside the avatar, because §2 requires it visible on every screen and the reference only names it in the dashboard's head.
+- **The reference's search and notification buttons are not drawn.** Neither is in this build, and a red dot on a bell is colour carrying a count with no number.
+- **The page head sits beside the rail, not above it**, because it belongs to each screen rather than to the shell.
+- **The compact layout had to be designed**: the reference at 390px overflows to the right and draws no bottom tabs.
+- **Nothing in the chrome is green.**
+
+### Found and fixed
+
+- **The hatch had two sizes, and the heavy one was wrong for bars.** The Admin build's solid-banded chart size read as dark stripes across a tall segment. The reference bands the tint inside a dashed edge, and the dashed edge is what carries a thin segment. So `.unrecordedMark` composes the ordinary hatch, the chart size is removed, and `check-hatch` holds one size; mutated with a second gradient, it failed.
+- **The bar hatch was invisible on a grey track.** The tint bands measure nothing against `--bg-page`; the columns now have no fill, and the hatch sits on the card's white as it does in the reference. The current round's outline moved to its recorded part, off the dashed edge.
+- **"23 across 37 doses due".** `AggregateFigure` wrote "across" for every count, which is right for notes over residents and wrong for a subset. `relation` is now required.
+- **The status pill no longer draws the caution fill**, and `check-caution-carriers` failed on its now-dead entry, naming the pill. The toast is the only carrier, and every record saying "StatusPill and Toast" is corrected.
+- **The navigation pill followed the rail's order**, putting Handover before Medications. Caught by the test naming the five in order.
+- **"Medications" truncated in the bottom tabs**; More gives its width to the four.
+- **The chrome specimen overflowed at 390px**; it scrolls inside its card.
+
+### Two fixes on review
+
+- **Two type steps added above display**: `--text-hero` 52px on a 56px line, for the dark card's figure only, and `--text-figure` 40px on a 44px line, for a figure with its denominator in a card (the gap card and a lead `AggregateFigure`). `check-tokens` now fails if any stylesheet but `ActionCard.module.css` reaches for `--text-hero`, and if that one stops; both mutated, both failed, naming the line. Its heading said "a custom property that does not exist" over a hero finding, which was untrue of it, and now counts findings.
+- **The navigation pill lost its white thumb.** A raised thumb on a grey track is the segmented control's shape, for presentations of the same data, and navigation goes to different data. The tab you are on is `--ink-900` at extra-bold against `--ink-500` at medium; checked by screenshot with the real active class applied, since no pill module is built yet. At 390px the pill is not drawn at all: the bottom tabs replace it.

@@ -6,7 +6,8 @@ import { staffAkinyemi, staffEze } from '@/data/fixtures/organisation'
 import { SessionProvider } from '@/app/session/SessionProvider'
 import { useSession } from '@/app/session/use-session'
 import { TooltipProvider } from '@/components/primitives'
-import { Sidebar } from './Sidebar'
+import { Rail } from './Rail'
+import { NavPill } from './NavPill'
 import { TopBar } from './TopBar'
 
 vi.mock('next/navigation', () => ({
@@ -36,9 +37,9 @@ const renderAs = (id: string, ui: React.ReactNode) =>
     </SessionProvider>,
   )
 
-describe('the sidebar', () => {
-  it('lists every module, links the built one and marks the rest not built', async () => {
-    renderAs(staffEze.id, <Sidebar />)
+describe('the icon rail', () => {
+  it('lists every module as an icon named for it, links the built one and marks the rest not built', async () => {
+    renderAs(staffEze.id, <Rail />)
     const nav = await screen.findByRole('navigation', { name: 'Main navigation' })
 
     const specimens = within(nav).getByRole('link', { name: 'Specimens' })
@@ -46,7 +47,7 @@ describe('the sidebar', () => {
     expect(specimens.getAttribute('aria-current')).toBe('page')
 
     for (const label of [
-      'Dashboard',
+      'Today',
       'Residents',
       'Care notes',
       'Medications',
@@ -57,10 +58,42 @@ describe('the sidebar', () => {
     }
   })
 
-  it('offers nothing a care worker or senior carer has no access to', async () => {
-    renderAs(staffEze.id, <Sidebar />)
+  it('holds the account and signing out in its second group', async () => {
+    renderAs(staffEze.id, <Rail />)
     const nav = await screen.findByRole('navigation', { name: 'Main navigation' })
-    expect(nav.textContent).not.toMatch(/Reports|Compliance|Settings|Team/)
+    const groups = nav.querySelectorAll(':scope > ul')
+    expect(groups).toHaveLength(2)
+    expect(
+      within(groups[1] as HTMLElement).getByRole('button', {
+        name: 'Profile and settings, not built',
+      }),
+    ).toBeTruthy()
+    expect(
+      within(groups[1] as HTMLElement).getByRole('button', { name: 'Sign out' }),
+    ).toBeTruthy()
+  })
+
+  it('offers nothing a care worker or senior carer has no access to', async () => {
+    renderAs(staffEze.id, <Rail />)
+    const nav = await screen.findByRole('navigation', { name: 'Main navigation' })
+    expect(nav.innerHTML).not.toMatch(/Reports|Compliance|Team/)
+  })
+})
+
+describe('the navigation pill', () => {
+  it('holds the five modules a shift moves between, and no others', async () => {
+    renderAs(staffEze.id, <NavPill />)
+    const nav = await screen.findByRole('navigation', { name: 'Shift navigation' })
+    const names = [...nav.querySelectorAll('[data-nav-module]')].map((entry) =>
+      entry.getAttribute('data-nav-module'),
+    )
+    expect(names).toEqual([
+      'dashboard',
+      'residents',
+      'medications',
+      'handover',
+      'activities',
+    ])
   })
 })
 

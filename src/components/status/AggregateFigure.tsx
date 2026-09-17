@@ -33,6 +33,14 @@ export interface AggregateFigureProps {
    */
   denominatorNoun: string
   /**
+   * How a count relates to its denominator, stated by the caller because the
+   * data cannot say. `of` for a subset: "23 of 37 doses due". `across` for a
+   * count of one thing over a population of another: "114 notes across 28
+   * residents", where "of" would state a ratio that does not exist. A
+   * percentage is always `of`.
+   */
+  relation: 'of' | 'across'
+  /**
    * Three forms, because a set of figures read together has a shape and the
    * layout should carry it rather than leaving the reader to work it out.
    *
@@ -79,6 +87,7 @@ export function AggregateFigure({
   caption,
   aggregate,
   denominatorNoun,
+  relation,
   emphasis = 'lead',
   note,
   qualifier,
@@ -93,14 +102,13 @@ export function AggregateFigure({
         </span>{' '}
         {caption}
         {', '}
-        {/* "across", not "of", and the difference is Rule 4 rather than
-            style: a note count is not a subset of a resident count, and "42
-            notes by K. Osei, of 28 residents" states a ratio that does not
-            exist. Same wording as the card form, so the two cannot disagree
-            about what the denominator means. */}
+        {/* The caller states the relation, because the data cannot: "of" for a
+            subset, "across" for a count of one thing over a population of
+            another. "42 notes by K. Osei, of 28 residents" states a ratio that
+            does not exist. */}
         {aggregate.unit === 'percentage'
           ? `${formatCount(aggregate.coverage.covered)} of ${formatCount(aggregate.coverage.total)} ${denominatorNoun}`
-          : `across ${formatCount(aggregate.coverage.total)} ${denominatorNoun}`}
+          : `${relation} ${formatCount(aggregate.coverage.total)} ${denominatorNoun}`}
         {qualifier ? ` · ${qualifier}` : '.'}
       </p>
     )
@@ -119,7 +127,7 @@ export function AggregateFigure({
             {', '}
             {aggregate.unit === 'percentage'
               ? `${formatCount(aggregate.coverage.covered)} of ${formatCount(aggregate.coverage.total)} ${denominatorNoun}`
-              : `across ${formatCount(aggregate.coverage.total)} ${denominatorNoun}`}
+              : `${relation} ${formatCount(aggregate.coverage.total)} ${denominatorNoun}`}
           </span>
           {note ? <span className={styles.bannerNote}>{note}</span> : null}
         </span>
@@ -146,14 +154,18 @@ export function AggregateFigure({
       return (
         <div className={styles.figure} data-emphasis={emphasis}>
           <span className={styles.caption}>{caption}</span>
-          <span className={styles.value} data-numeric>
-            {formatCount(aggregate.value)}
-            {aggregate.unit === 'percentage' ? '%' : ''}
-          </span>
-          <span className={styles.coverage}>
-            {aggregate.unit === 'percentage'
-              ? `${formatCount(aggregate.coverage.covered)} of ${formatCount(aggregate.coverage.total)} ${denominatorNoun}`
-              : `across ${formatCount(aggregate.coverage.total)} ${denominatorNoun}`}
+          {/* The figure and what it is out of, on one baseline: read as one
+              statement, never as a number with a footnote. */}
+          <span className={styles.valueRow}>
+            <span className={styles.value} data-numeric>
+              {formatCount(aggregate.value)}
+              {aggregate.unit === 'percentage' ? '%' : ''}
+            </span>
+            <span className={styles.coverage}>
+              {aggregate.unit === 'percentage'
+                ? `${formatCount(aggregate.coverage.covered)} of ${formatCount(aggregate.coverage.total)} ${denominatorNoun}`
+                : `${relation} ${formatCount(aggregate.coverage.total)} ${denominatorNoun}`}
+            </span>
           </span>
           {note ? <span className={styles.note}>{note}</span> : null}
         </div>

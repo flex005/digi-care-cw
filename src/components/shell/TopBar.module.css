@@ -1,19 +1,35 @@
+/* Fully rounded: the top bar is a pill, not a rounded rectangle. */
 .topbar {
   display: flex;
-  gap: var(--space-16);
+  gap: var(--space-24);
   align-items: center;
-  height: var(--layout-topbar-height);
-  padding: 0 var(--layout-gutter);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  padding: var(--space-12) var(--space-12) var(--space-12) var(--space-24);
+  border-radius: var(--radius-pill);
   background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
   color: var(--ink-900);
 }
 
-/* The sidebar carries the lockup on a wide screen; the bar carries the mark on
-   a compact one, where there is no sidebar. */
+.lockup {
+  display: flex;
+  flex-shrink: 0;
+}
+
+/* The mark stands in for the lockup on a compact screen. */
 .mark {
   display: none;
+}
+
+.nav {
+  min-width: 0;
+}
+
+.right {
+  display: flex;
+  gap: var(--space-12);
+  align-items: center;
+  min-width: 0;
+  margin-left: auto;
 }
 
 .site {
@@ -21,12 +37,11 @@
   gap: var(--space-8);
   align-items: center;
   min-width: 0;
-  min-height: var(--space-32);
-  padding: var(--space-4) var(--space-12);
-  border: 1px solid var(--border-strong);
+  min-height: var(--space-40);
+  padding: var(--space-8) var(--space-16);
   border-radius: var(--radius-pill);
-  background-color: var(--purple-50);
-  color: var(--purple-900);
+  background-color: var(--bg-page);
+  color: var(--ink-900);
   font-size: var(--text-body-sm-size);
   line-height: var(--text-body-sm-line);
   font-weight: var(--weight-semibold);
@@ -38,47 +53,25 @@
   white-space: nowrap;
 }
 
-.spacer {
-  flex: 1;
-}
-
 .user {
   display: flex;
   flex-shrink: 0;
-  gap: var(--space-8);
-  align-items: center;
-  min-height: var(--space-40);
-  padding: var(--space-4) var(--space-12) var(--space-4) var(--space-4);
   border-radius: var(--radius-pill);
-  background-color: var(--bg-page);
-  color: var(--ink-900);
-  font-size: var(--text-body-sm-size);
-  line-height: var(--text-body-sm-line);
-  font-weight: var(--weight-semibold);
-}
-
-.user:hover,
-.user[data-state='open'] {
-  background-color: var(--purple-200);
 }
 
 @media (width < 1024px) {
   .topbar {
     gap: var(--space-8);
-    padding: 0 var(--space-12);
+    padding: var(--space-8) var(--space-8) var(--space-8) var(--space-12);
+  }
+
+  .lockup,
+  .nav {
+    display: none;
   }
 
   .mark {
     display: flex;
     flex-shrink: 0;
-  }
-
-  /* The name moves into the menu's label; the avatar stays a 40px target. */
-  .userName {
-    display: none;
-  }
-
-  .user {
-    padding: var(--space-4);
   }
 }

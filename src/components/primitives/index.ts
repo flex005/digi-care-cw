@@ -14,8 +14,8 @@ export type { AvatarProps, AvatarSize } from './Avatar'
 export { Button, buttonClassName } from './Button'
 export type { ButtonProps, ButtonSize, ButtonVariant } from './Button'
 
-export { Card, CardHeader } from './Card'
-export type { CardProps, CardHeaderProps } from './Card'
+export { Card, CardHead, ExpandButton } from './Card'
+export type { CardProps, CardHeadProps, CardExpand } from './Card'
 
 export { Section } from './Section'
 export type { SectionProps } from './Section'

@@ -44,10 +44,16 @@ function Pair({
   )
 }
 
-const AGGREGATES: { caption: string; noun: string; aggregate: Aggregate }[] = [
+const AGGREGATES: {
+  caption: string
+  noun: string
+  relation: 'of' | 'across'
+  aggregate: Aggregate
+}[] = [
   {
     caption: 'Care notes today',
     noun: 'residents',
+    relation: 'across',
     aggregate: {
       kind: 'measured',
       unit: 'count',
@@ -58,6 +64,7 @@ const AGGREGATES: { caption: string; noun: string; aggregate: Aggregate }[] = [
   {
     caption: 'Doses recorded this week',
     noun: 'doses due',
+    relation: 'of',
     aggregate: {
       kind: 'measured',
       unit: 'percentage',
@@ -68,6 +75,7 @@ const AGGREGATES: { caption: string; noun: string; aggregate: Aggregate }[] = [
   {
     caption: 'Falls risk',
     noun: 'residents',
+    relation: 'of',
     aggregate: {
       kind: 'insufficient_evidence',
       coverage: { covered: 4, total: 28 },
@@ -192,6 +200,7 @@ export function StatusStates() {
                 caption={entry.caption}
                 aggregate={entry.aggregate}
                 denominatorNoun={entry.noun}
+                relation={entry.relation}
                 emphasis="supporting"
               />
             </div>

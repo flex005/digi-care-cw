@@ -9,12 +9,13 @@
  * one place in the build where a rule would otherwise be held by a sentence, so
  * it is held by construction instead:
  *
- *   1. The fill token may be declared only by the components that carry words
- *      inside the coloured element: StatusPill (its required `label`) and Toast
- *      (its required `title`). Anywhere else is a finding.
+ *   1. The fill token may be declared only by a component that carries words
+ *      inside the coloured element: Toast, with its required `title`. The
+ *      status pill drew it once, as a border, and no longer draws it at all.
+ *      Anywhere else is a finding.
  *   2. A status token name built at run time (`--status-${tone}`) is a finding
  *      outside the token sheet, because no script can see which status it names.
- *   3. `caution-carriers.test.tsx` holds the other half: each carrier renders its
+ *   3. `caution-carriers.test.tsx` holds the other half: the carrier renders its
  *      words inside the coloured element, refuses empty words, and keeps the
  *      prop required.
  *
@@ -41,10 +42,6 @@ const FILL = /--status-caution(?![\w-])/
 const BUILT = /--status-\$\{/
 
 const CARRIERS = [
-  {
-    file: 'src/components/status/StatusPill.module.css',
-    why: 'StatusPill renders its required label inside the bordered pill',
-  },
   {
     file: 'src/components/primitives/Toast.module.css',
     why: 'Toast renders its required title inside the edged panel',
@@ -117,12 +114,13 @@ if (findings.length > 0) {
   )
   for (const finding of findings) console.error(`  ${finding}`)
   console.error(
-    '\n  Draw a caution state with <StatusPill tone="caution" label="…" /> or a caution\n' +
-      '  <Toast title="…" />, which carry the words inside the colour. docs/DEPARTURES.md.',
+    '\n  Draw a caution state with <StatusPill tone="caution" label="…" />, which uses\n' +
+      '  the ink and tint and never the fill, or a caution <Toast title="…" />, which\n' +
+      '  carries its words inside the coloured edge. docs/DEPARTURES.md.',
   )
   process.exit(1)
 }
 
 console.log(
-  `✓ caution carriers — ${read} files read; the fill is drawn only by ${CARRIERS.length} components that carry words inside it`,
+  `✓ caution carriers — ${read} files read; the fill is drawn only by ${CARRIERS.length === 1 ? 'the one component' : `${CARRIERS.length} components`} that carries words inside it`,
 )

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>diGi-Care — Care Worker</title>
+<link href="https://fonts.googleapis.com/css?family=Manrope:400,500,600,700,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --purple-900:#1E0059; --purple-600:#6935CF; --purple-400:#A284F1;
+  --purple-200:#D5C6FB; --purple-50:#F1ECFF;
+  --bg-page:#EEF1F7; --bg-surface:#FFFFFF; --bg-sunken:#F8FAFE;
+  --ink-900:#1E0059; --ink-700:#443B63; --ink-500:#6E6688; --ink-400:#9A93B0;
+  --border-strong:#E7E4FD; --border-subtle:#EFEAFE;
+  --positive:#1B9C28; --positive-ink:#1F7A33; --positive-tint:#EEF9EE;
+  --caution:#F07D13;  --caution-ink:#A65200;  --caution-tint:#FFEFE1;
+  --critical:#DD4347; --critical-ink:#B3272B; --critical-tint:#FFEFEF;
+  --info:#1563FF;     --info-ink:#0B45B8;     --info-tint:#ECF2FF;
+  --unrecorded:#8E86A8; --unrecorded-ink:#5C5470; --unrecorded-tint:#F2F1F6;
+  --r-md:14px; --r-lg:20px; --r-xl:28px; --r-pill:999px;
+  --shadow-card:0 1px 2px rgba(30,0,89,.03),0 8px 24px rgba(30,0,89,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg-page);color:var(--ink-900);
+  font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;padding:20px}
+button{font:inherit;cursor:pointer;border:0;background:none}
+.wrap{max-width:1420px;margin:0 auto}
+
+/* hatch — the one owner. Never decorative. */
+.hatch{background:repeating-linear-gradient(45deg,var(--unrecorded-tint) 0 6px,transparent 6px 12px);
+  border:1.5px dashed var(--unrecorded)}
+
+/* ---- top bar ---- */
+.topbar{background:var(--bg-surface);border-radius:var(--r-pill);padding:14px 20px;
+  display:flex;align-items:center;gap:20px;box-shadow:var(--shadow-card);margin-bottom:24px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:-.02em}
+.brandMark{width:36px;height:36px;border-radius:12px;background:var(--purple-600);color:#fff;
+  display:grid;place-items:center;font-size:16px;font-weight:800}
+.navPill{margin-left:26px;display:flex;gap:2px;background:var(--bg-page);border-radius:var(--r-pill);padding:5px}
+.navPill a{padding:9px 18px;border-radius:var(--r-pill);font-size:14px;font-weight:600;
+  color:var(--ink-500);text-decoration:none}
+.navPill a.on{background:var(--bg-surface);color:var(--ink-900);box-shadow:0 1px 3px rgba(30,0,89,.08)}
+.topRight{margin-left:auto;display:flex;align-items:center;gap:12px}
+.iconBtn{width:40px;height:40px;border-radius:var(--r-pill);background:var(--bg-page);
+  display:grid;place-items:center;color:var(--ink-700);position:relative}
+.dot{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;
+  background:var(--critical);border:2px solid var(--bg-page)}
+.avatar{width:42px;height:42px;border-radius:var(--r-pill);background:var(--purple-600);color:#fff;
+  display:grid;place-items:center;font-weight:700;font-size:14px}
+
+/* ---- page head ---- */
+.head{display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap;margin-bottom:24px;padding:0 6px}
+.head h1{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.head h1 span{color:var(--ink-400);font-weight:600}
+.head .sub{font-size:14px;color:var(--ink-500);margin-top:6px}
+.headRight{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{background:var(--bg-surface);border-radius:var(--r-pill);padding:11px 18px;font-size:14px;
+  font-weight:600;box-shadow:var(--shadow-card);display:flex;align-items:center;gap:9px}
+.btnPrimary{background:var(--purple-600);color:#fff;border-radius:var(--r-pill);padding:12px 22px;
+  font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+
+/* ---- layout ---- */
+.shell{display:flex;gap:20px;align-items:flex-start}
+.rail{width:64px;flex:0 0 64px;display:flex;flex-direction:column;gap:22px;position:sticky;top:20px}
+.railGroup{background:var(--bg-surface);border-radius:var(--r-pill);padding:8px;display:flex;
+  flex-direction:column;gap:4px;box-shadow:var(--shadow-card)}
+.railBtn{width:48px;height:48px;border-radius:var(--r-pill);display:grid;place-items:center;color:var(--ink-500)}
+.railBtn.on{background:var(--purple-600);color:#fff}
+.railBtn svg{width:20px;height:20px}
+.main{flex:1;min-width:0}
+
+.grid{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:20px;align-items:start}
+.col{display:flex;flex-direction:column;gap:20px}
+
+.card{background:var(--bg-surface);border-radius:var(--r-xl);padding:22px;box-shadow:var(--shadow-card)}
+.cardHead{display:flex;align-items:flex-start;gap:12px;margin-bottom:18px}
+.cardHead h2{font-size:15.5px;font-weight:700;letter-spacing:-.01em}
+.cardHead .cs{font-size:12.5px;color:var(--ink-500);margin-top:2px}
+.expand{margin-left:auto;width:36px;height:36px;flex:0 0 36px;border-radius:var(--r-pill);
+  background:var(--bg-page);display:grid;place-items:center;color:var(--ink-700)}
+.expand svg{width:15px;height:15px}
+
+/* hero — the round, brand purple */
+.hero{background:var(--purple-900);color:#fff;border-radius:24px;padding:24px}
+.hero .k{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--purple-200)}
+.hero .v{font-size:52px;font-weight:800;letter-spacing:-.03em;line-height:1;margin:12px 0 2px}
+.hero .of{font-size:14px;color:var(--purple-200);font-weight:600}
+.hero .when{margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.16);
+  display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--purple-200)}
+.hero .when b{color:#fff;font-weight:700;font-size:15px}
+.heroBtn{margin-top:18px;width:100%;background:#fff;color:var(--purple-900);border-radius:var(--r-pill);
+  padding:13px;font-size:14.5px;font-weight:700}
+
+/* figure with denominator — never bare */
+.fig{display:flex;align-items:baseline;gap:8px}
+.fig .n{font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.fig .of{font-size:14px;color:var(--ink-500);font-weight:600}
+.figNote{font-size:12.5px;color:var(--ink-500);margin-top:8px;line-height:1.5}
+
+/* bar chart — hatch means unrecorded, never texture */
+.bars{display:flex;align-items:flex-end;gap:14px;height:180px;margin-top:8px;padding-top:10px}
+.barCol{flex:1;display:flex;flex-direction:column;align-items:center;gap:9px;height:100%}
+.barStack{flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;
+  border-radius:12px;overflow:hidden}
+.barGap{width:100%}
+.barDone{width:100%;background:var(--purple-600)}
+.barCol.now .barDone{background:var(--purple-600);box-shadow:inset 0 0 0 2px var(--purple-900)}
+.barLabel{font-size:12px;font-weight:700;color:var(--ink-500)}
+.barCol.now .barLabel{color:var(--purple-600)}
+.legend{display:flex;gap:18px;margin-top:16px;flex-wrap:wrap}
+.legend div{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-700);font-weight:600}
+.sw{width:15px;height:15px;border-radius:5px}
+.sw.solid{background:var(--purple-600)}
+
+/* resident rows */
+.rows{display:flex;flex-direction:column}
+.row{display:flex;align-items:center;gap:14px;padding:13px 10px;border-radius:16px}
+.row:hover{background:var(--bg-page)}
+.rAv{width:42px;height:42px;flex:0 0 42px;border-radius:var(--r-pill);background:var(--purple-50);
+  color:var(--purple-600);display:grid;place-items:center;font-weight:700;font-size:13px}
+.rName{font-size:14.5px;font-weight:700}
+.rMeta{font-size:12px;color:var(--ink-500);margin-top:2px}
+.rState{margin-left:auto;display:flex;align-items:center;gap:10px}
+.pill{padding:7px 13px;border-radius:var(--r-pill);font-size:12px;font-weight:700;
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.pill.crit{background:var(--critical-tint);color:var(--critical-ink)}
+.pill.caut{background:var(--caution-tint);color:var(--caution-ink)}
+.pill.done{background:var(--positive-tint);color:var(--positive-ink)}
+.pill.gap{color:var(--unrecorded-ink);background:repeating-linear-gradient(45deg,var(--unrecorded-tint) 0 6px,transparent 6px 12px);border:1.5px dashed var(--unrecorded)}
+.pill .d{width:7px;height:7px;border-radius:50%;background:currentColor;flex:0 0 7px}
+.chev{color:var(--ink-400);font-size:18px}
+
+/* gap card */
+.gapCard{border-radius:var(--r-xl);padding:20px;color:var(--unrecorded-ink);
+  background:repeating-linear-gradient(45deg,var(--unrecorded-tint) 0 7px,#fff 7px 14px);
+  border:1.5px dashed var(--unrecorded)}
+.gapCard .k{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.gapCard .v{font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1;margin:10px 0 2px}
+.gapCard .of{font-size:13.5px;font-weight:600}
+.gapCard .d{font-size:12.5px;margin-top:10px;line-height:1.5;max-width:30ch}
+
+/* flagged */
+.flagRow{display:flex;gap:12px;padding:13px 0;border-top:1px solid var(--border-subtle)}
+.flagRow:first-of-type{border-top:0}
+.flagIcon{width:34px;height:34px;flex:0 0 34px;border-radius:11px;background:var(--critical-tint);
+  color:var(--critical-ink);display:grid;place-items:center;font-weight:800;font-size:13px}
+.flagT{font-size:13.5px;font-weight:600;line-height:1.45}
+.flagM{font-size:11.5px;color:var(--ink-500);margin-top:3px}
+
+.foot{margin-top:24px;padding:18px 22px;background:var(--bg-surface);border-radius:var(--r-xl);
+  font-size:12.5px;color:var(--ink-500);line-height:1.6;box-shadow:var(--shadow-card)}
+.foot b{color:var(--ink-700);font-weight:700}
+
+@media (max-width:1100px){
+  .grid{grid-template-columns:1fr}
+  .rail{display:none}
+  .navPill{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand"><span class="brandMark">d</span> diGi-Care</div>
+    <nav class="navPill">
+      <a href="#" class="on">Today</a>
+      <a href="#">Residents</a>
+      <a href="#">Medications</a>
+      <a href="#">Handover</a>
+      <a href="#">Activities</a>
+    </nav>
+    <div class="topRight">
+      <button class="iconBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="19" height="19"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg></button>
+      <button class="iconBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="19" height="19"><path d="M18 8a6 6 0 10-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/></svg><span class="dot"></span></button>
+      <div class="avatar">KO</div>
+    </div>
+  </div>
+
+  <div class="head">
+    <div>
+      <h1>Good evening, <span>Kwame</span></h1>
+      <div class="sub">Late shift · 14:00 to 22:00 · Rosewood Court · 9 residents on your list</div>
+    </div>
+    <div class="headRight">
+      <div class="chip">Tuesday 16 Sep · 20:20</div>
+      <button class="btnPrimary">+ Write a care note</button>
+    </div>
+  </div>
+
+  <div class="shell">
+    <div class="rail">
+      <div class="railGroup">
+        <button class="railBtn on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></button>
+        <button class="railBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.4"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M17 11h4M19 9v4"/></svg></button>
+        <button class="railBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></button>
+        <button class="railBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg></button>
+      </div>
+      <div class="railGroup">
+        <button class="railBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4.5 8-11V5l-8-3-8 3v6c0 6.5 8 11 8 11z"/></svg></button>
+        <button class="railBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 11-4 0v-.1A1.6 1.6 0 009 19.4a1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 110-4h.1A1.6 1.6 0 004.6 9a1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 114 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z"/></svg></button>
+        <button class="railBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg></button>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="grid">
+
+        <!-- LEFT -->
+        <div class="col">
+          <div class="card" style="padding:0;background:none;box-shadow:none">
+            <div class="hero">
+              <div class="k">Your next round</div>
+              <div class="v">20:00</div>
+              <div class="of">14 doses across 9 residents</div>
+              <div class="when">
+                <span>Window closes</span>
+                <b>21:00 · in 40 min</b>
+              </div>
+              <button class="heroBtn">Start the round</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="cardHead">
+              <div><h2>Doses this shift</h2><div class="cs">Yours to give, since 14:00.</div></div>
+              <button class="expand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17L17 7M9 7h8v8"/></svg></button>
+            </div>
+            <div class="fig"><span class="n">23</span><span class="of">of 37 due</span></div>
+            <div class="figNote">14 still to give. Nothing here is late yet.</div>
+          </div>
+
+          <div class="gapCard">
+            <div class="k">Not written up</div>
+            <div class="v">4</div>
+            <div class="of">of your 9 residents</div>
+            <div class="d">Nobody has recorded a care note for them today. Counted over your list, not the home's.</div>
+          </div>
+        </div>
+
+        <!-- MIDDLE -->
+        <div class="col">
+          <div class="card">
+            <div class="cardHead">
+              <div><h2>Your rounds today</h2><div class="cs">Solid is recorded. Hatched is due and not recorded.</div></div>
+              <button class="expand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17L17 7M9 7h8v8"/></svg></button>
+            </div>
+            <div class="bars">
+              <div class="barCol"><div class="barStack"><div class="barGap hatch" style="height:9%"></div><div class="barDone" style="height:58%"></div></div><div class="barLabel">08:00</div></div>
+              <div class="barCol"><div class="barStack"><div class="barGap hatch" style="height:5%"></div><div class="barDone" style="height:74%"></div></div><div class="barLabel">14:00</div></div>
+              <div class="barCol"><div class="barStack"><div class="barGap hatch" style="height:22%"></div><div class="barDone" style="height:47%"></div></div><div class="barLabel">18:00</div></div>
+              <div class="barCol now"><div class="barStack"><div class="barGap hatch" style="height:72%"></div><div class="barDone" style="height:12%"></div></div><div class="barLabel">20:00</div></div>
+            </div>
+            <div class="legend">
+              <div><span class="sw solid"></span> Recorded</div>
+              <div><span class="sw hatch"></span> Due, not recorded</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="cardHead">
+              <div><h2>Your residents</h2><div class="cs">9 on your list this shift, in room order.</div></div>
+              <button class="expand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17L17 7M9 7h8v8"/></svg></button>
+            </div>
+            <div class="rows">
+              <div class="row">
+                <span class="rAv">GA</span>
+                <div><div class="rName">Grace Adeyemi</div><div class="rMeta">Room 302 · last note 15:52 by you</div></div>
+                <div class="rState"><span class="pill crit"><span class="d"></span>Dose overdue</span><span class="chev">›</span></div>
+              </div>
+              <div class="row">
+                <span class="rAv">AP</span>
+                <div><div class="rName">Arthur Pemberton</div><div class="rMeta">Room 315 · last note 19:04 by N. Eze</div></div>
+                <div class="rState"><span class="pill done"><span class="d"></span>Up to date</span><span class="chev">›</span></div>
+              </div>
+              <div class="row">
+                <span class="rAv">BH</span>
+                <div><div class="rName">Beryl Hutchinson</div><div class="rMeta">Room 214 · last note 11:20 by F. Adebayo</div></div>
+                <div class="rState"><span class="pill gap">Not written up today</span><span class="chev">›</span></div>
+              </div>
+              <div class="row">
+                <span class="rAv">EO</span>
+                <div><div class="rName">Emmanuel Okafor</div><div class="rMeta">Room 14 · last note 18:31 by you</div></div>
+                <div class="rState"><span class="pill caut"><span class="d"></span>Dose due 20:00</span><span class="chev">›</span></div>
+              </div>
+              <div class="row">
+                <span class="rAv">IS</span>
+                <div><div class="rName">Ismail Sowande</div><div class="rMeta">Room 4 · admitted 22/08</div></div>
+                <div class="rState"><span class="pill gap">Never written up</span><span class="chev">›</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="col">
+          <div class="card">
+            <div class="cardHead">
+              <div><h2>Handover</h2><div class="cs">Late to night, 22:00.</div></div>
+              <button class="expand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17L17 7M9 7h8v8"/></svg></button>
+            </div>
+            <div class="fig"><span class="n">5</span><span class="of">of 9 reviewed</span></div>
+            <div class="figNote">A handover is complete only when both shifts have signed it. Nobody has signed this one.</div>
+            <div style="margin-top:16px"><button class="btnPrimary" style="width:100%;justify-content:center">Open handover</button></div>
+          </div>
+
+          <div class="card">
+            <div class="cardHead">
+              <div><h2>Flagged for your attention</h2><div class="cs">Raised on your residents.</div></div>
+              <button class="expand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17L17 7M9 7h8v8"/></svg></button>
+            </div>
+            <div class="flagRow">
+              <span class="flagIcon">!</span>
+              <div><div class="flagT">Grace Adeyemi's furosemide has no record against the 12:00 round.</div>
+                <div class="flagM">Escalated 13:06 · 8h 20m ago</div></div>
+            </div>
+            <div class="flagRow">
+              <span class="flagIcon">!</span>
+              <div><div class="flagT">Beryl Hutchinson has never had a falls assessment.</div>
+                <div class="flagM">Since admission · a senior carer can score it</div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="cardHead">
+              <div><h2>Activities</h2><div class="cs">This evening.</div></div>
+              <button class="expand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17L17 7M9 7h8v8"/></svg></button>
+            </div>
+            <div class="fig"><span class="n">12</span><span class="of">of 16 invited attended</span></div>
+            <div class="figNote">Chair exercises, 19:00. Attendance recorded by you.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="foot">
+        <b>Nothing on this screen is green because it is empty.</b> A hatched block means nobody has
+        recorded it yet — never that the answer was no. Every figure carries what it is out of, and
+        anything counted over your own list says so.
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

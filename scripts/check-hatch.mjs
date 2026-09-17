@@ -44,12 +44,12 @@ const FORBIDDEN_TSX = [
 ]
 
 /**
- * Two sizes in the owner file, and the number is the point. One bands the tint
- * for boxes, where the hatch covers enough area to read as texture. One bands
- * the solid colour for regions a few pixels tall — a bar per round — where the
- * tint measures 1.12:1 and a hatch nobody can see is a plain neutral fill.
+ * One gradient in the owner file. The Admin build needed a second, banded in
+ * the solid colour, for chart regions with no edge; every gap here, a bar
+ * segment included, carries the dashed edge that makes a thin one readable, so
+ * one size serves all of them. A second is a size nobody has justified.
  */
-const OWNER_GRADIENTS = 2
+const OWNER_GRADIENTS = 1
 const GRADIENT_DECLARATION = /^\s*background:\s*repeating-linear-gradient\(/
 
 async function* walk(dir) {
@@ -91,8 +91,8 @@ const ownerGradients = stripCssComments(await readFile(CANONICAL, 'utf8'))
 if (ownerGradients !== OWNER_GRADIENTS) {
   console.error(
     `✖ hatch: ${path.relative(ROOT, CANONICAL)} declares ${ownerGradients} gradients, expected ${OWNER_GRADIENTS}.\n` +
-      '  .unrecorded bands the tint, for boxes. .unrecordedChart bands the solid colour,\n' +
-      '  for regions a few pixels tall. A third is a size nobody has justified.',
+      '  The hatch has one size: the tint bands inside a dashed edge, which carries\n' +
+      '  a thin bar segment as well as a card. A second is a size nobody has justified.',
   )
   process.exit(1)
 }
@@ -108,6 +108,4 @@ if (findings.length > 0) {
   process.exit(1)
 }
 
-console.log(
-  `✓ hatch — one owner, ${OWNER_GRADIENTS} sizes; ${read} other files read, none redraws it`,
-)
+console.log(`✓ hatch — one owner, one size; ${read} other files read, none redraws it`)
