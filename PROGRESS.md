@@ -202,3 +202,51 @@ Each confirmed landed, then restored:
 The Admin build's Team and invitation screens were screenshotted with the new fixtures before its commit; what they show is in that build's `PROGRESS.md`.
 
 **The first set of screenshots showed the old fixtures, and came from my command, not the build.** The line started `rm -f …/admin/*.png` on an empty folder. zsh fails a glob that matches nothing, which stopped the `&&` chain before `vite build` ran. The `tail` of the build log that followed then read the log left over from an earlier build, and the preview served that build's `dist`: seven-day expiry, no Hannah Price. Every line read was true of something, and none of it was the build under review. It is the Admin build's "the previous dist was checked" entry, arrived at through the shell. What caught it was the screenshot contradicting the change: "Expires 22/09/2026" for an invitation sent 15/09. **Before trusting a screenshot of a build, confirm the bundle it came from contains the change**: its mtime, a string only the change introduced, and the bundle name the server actually serves.
+
+---
+
+## Proposed: how this build says what a role can do (17/09/2026, not built)
+
+The CW PRD's role table is the authority for care worker and senior carer access. The Admin build's shape (a level per module) cannot hold what those roles do, so this build needs its own. Proposed here, before anything depends on it.
+
+**One entry per act the PRD names, never per module.** Each says, per role, whether the role may, and if so over which residents; how it is confirmed; whether finishing it needs somebody else; and where the rule came from.
+
+```ts
+interface CareAct {
+  module: NavModuleId
+  source:
+    | { kind: 'role_table'; row: string } // "Care Notes — write"
+    | { kind: 'screen'; screen: string } // "MED-03"
+    | { kind: 'departure'; see: string } // docs/DEPARTURES.md
+  roles: Record<SignInRole, Grant>
+  confirmation: 'none' | 'medication_pin'
+  completion:
+    | { kind: 'done_when_done' }
+    | { kind: 'needs_a_second_signature'; by: 'incoming_senior_carer' | 'second_senior_witness' }
+    | { kind: 'handed_on'; next: string; by: 'manager' } // acknowledged here, closed by a manager
+}
+
+type Grant =
+  | { kind: 'may'; over: 'your_residents' | 'every_resident' | 'no_resident' | 'not_stated' }
+  | { kind: 'may_not'; reason: string; whoDoes: 'senior_carer' | 'manager' | 'clinician_or_manager' | 'admin' }
+```
+
+**Screens ask a question, never a role.** `ask(viewer, act, resident?)` answers in terms a screen can draw:
+
+```ts
+type Answer =
+  | { kind: 'yes'; confirmation: 'none' | 'medication_pin'; completion: CareAct['completion'] }
+  | { kind: 'not_your_role'; reason: string } // the one line at the act
+  | { kind: 'not_on_your_list' } // scope, never blame
+  | { kind: 'no_list_yet' } // nobody has given this care worker residents
+  | { kind: 'not_stated' } // the PRD is silent: the screen must not guess
+```
+
+What each part is for:
+
+- **`over`** holds "assigned residents only" as the viewer's `ResidentScope`, rather than as a level. **`not_stated`** makes the PRD's silences visible: Table 3 says a care worker can record a dose, not over whose residents, and a screen reaching `not_stated` is a decision to raise, not a default to pick.
+- **`completion`** holds "both shifts must sign", "Witness 2" and "acknowledge, a manager closes" as facts about the act. So a screen can show a signature as half the record, not the whole of it.
+- **`source`** names the Table 3 row or screen for every cell. A row that moves on review is found by name, and a test holds each cell against a hand-typed copy of that row, never against the table itself.
+- **Kept to one file, and guarded.** A check fails on `'care_worker'` or `'senior_carer'` in any screen, so no role rule can escape the file. The CW PRD is a draft; this is what makes a disputed row one edit.
+
+It replaces today's `CARE_ACTS`, which says only holds or refused, and folds `resident-scope.ts` in as the reach half of the answer.
