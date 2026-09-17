@@ -4,4 +4,6 @@ import type { IconName } from '@/components/icon/registry.names.generated'
 export const profileIcons = {
   back: 'arrows-sharp/arrow-left-01-sharp',
   call: 'communications/call',
+  earlier: 'arrows-sharp/arrow-left-01-sharp',
+  later: 'arrows-sharp/arrow-right-01-sharp',
 } satisfies Record<string, IconName>

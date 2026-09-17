@@ -297,11 +297,62 @@
 /* ------------------------------------------------------------------ tab strip */
 
 .strip {
-  overflow-x: auto;
+  display: flex;
   border-radius: var(--radius-xl);
   background-color: var(--bg-surface);
   box-shadow: var(--shadow-card);
-  scrollbar-width: thin;
+}
+
+/* The row scrolls between its edges. No scrollbar: the edges say it scrolls,
+   and in words, where a thin bar under the tabs said it only to a reader who
+   spotted one. */
+.stripScroll {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+/* An edge with tabs past it: the count and a chevron. Beside the row rather
+   than over it, so it never covers the tab somebody is on, and a hairline says
+   where the row goes on under it. */
+.edge {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--space-4);
+  align-items: center;
+  padding: 0 var(--space-12);
+  border: none;
+  background-color: var(--bg-surface);
+  color: var(--purple-900);
+  font: inherit;
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.edge:hover {
+  color: var(--purple-600);
+}
+
+.edgeStart {
+  composes: edge;
+  border-right: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+}
+
+.edgeEnd {
+  composes: edge;
+  border-left: 1px solid var(--border-strong);
+  border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
+}
+
+@media (width < 1024px) {
+  .edge {
+    padding: 0 var(--space-8);
+  }
 }
 
 .tabs {
@@ -335,6 +386,17 @@
   border-bottom-color: var(--purple-600);
   color: var(--ink-900);
   font-weight: var(--weight-bold);
+}
+
+@media (width < 1024px) {
+  /* A tab's gap words under its name, so a tab with a note still fits between
+     the edges of a phone-width row. */
+  .tabLink {
+    flex-direction: column;
+    gap: var(--space-4);
+    align-items: flex-start;
+    justify-content: center;
+  }
 }
 
 .tab {

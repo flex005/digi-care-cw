@@ -14,6 +14,8 @@ import { wholeDaysBetween } from '@/lib/review-interval'
 import { CARE_ACTS, signInRoleOf } from '@/app/session/capabilities'
 import { memberById } from '@/data/access/team-store'
 import { renderProfileTab } from '@/test/render-signed-in'
+import { resetSessionSiteConfig, setActive } from '@/data/access/site-config-store'
+import { carePlanGaps } from '@/features/residents/profile/record-gaps'
 import { CarePlanTab } from './CarePlanTab'
 import { currentVersion } from './plan-fields'
 
@@ -45,6 +47,7 @@ vi.mock('next/navigation', () => ({
 
 afterEach(() => {
   resetSessionReviewFlags()
+  resetSessionSiteConfig()
 })
 
 const NOW_ISO = now().toISOString() as IsoDateTime
@@ -220,6 +223,36 @@ describe('the domain list', () => {
 })
 
 /* ------------------------------------------------------------ read-only */
+
+describe('counted over what the home keeps', () => {
+  it('leaves a domain the home stopped keeping out of the count, and draws it plain', async () => {
+    const resident = residents.find((entry) =>
+      entry.carePlan.some((domain) => domain.status.kind === 'not_started'),
+    )!
+    const unwritten = resident.carePlan.find(
+      (domain) => domain.status.kind === 'not_started',
+    )!
+    const before = carePlanGaps(resident)
+    setActive(resident.siteId, unwritten.domainId, false)
+    const after = carePlanGaps(resident)
+    expect(after).toMatchObject({
+      asked: before.asked - 1,
+      neverWritten: before.neverWritten - 1,
+    })
+
+    const tab = await openTab(staffAkinyemi.id, resident)
+    const lead = tab.querySelector('[data-never-written]') as HTMLElement
+    expect(lead.getAttribute('data-never-written')).toBe(String(after.neverWritten))
+    expect(lead.textContent).toContain(`of ${after.asked} parts`)
+    const row = tab.querySelector(
+      `[data-domain="${unwritten.domainId}"]`,
+    ) as HTMLElement
+    expect(row.querySelector('[data-not-kept]')).not.toBeNull()
+    expect(row.querySelector('[data-state="unrecorded"]')).toBeNull()
+    expect(row.textContent).not.toMatch(/Contact your manager/)
+    expect(tab.querySelector('[data-retired-note]')).not.toBeNull()
+  })
+})
 
 describe('read, not written', () => {
   it('opens a draft to be read, and says it is not what staff follow', async () => {

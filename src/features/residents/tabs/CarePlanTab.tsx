@@ -4,13 +4,15 @@ import { CARE_PLAN_DOMAINS } from '@/data/types'
 import { now as appNow } from '@/data/fixtures/clock'
 import { staffLabel } from '@/data/access/team-store'
 import { Accordion, AccordionSection, Card, CardHead } from '@/components/primitives'
-import { StatusPill, SupportLevelBadge, Unrecorded } from '@/components/status'
+import { Settled, StatusPill, SupportLevelBadge, Unrecorded } from '@/components/status'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { assertNever } from '@/lib/assert-never'
 import { formatCount, formatLateness, pluralise } from '@/lib/format'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
+import { carePlanGaps } from '@/features/residents/profile/record-gaps'
+import { configuredState } from '@/data/access/site-config-store'
 import { OwedReviews } from './care-plan-owed-reviews'
 import { PLAN_FIELDS, currentVersion, versionCount } from './plan-fields'
 import { reviewTiming, type ReviewTiming } from './review-timing'
@@ -33,39 +35,50 @@ import styles from './risk-and-plan.module.css'
  * to be read rather than edited.
  */
 export function CarePlanTab() {
-  const { resident } = useOpenRecord()
+  const { resident, site } = useOpenRecord()
   const viewer = useViewer()
   // One instant for the whole tab, so the owed block and a row cannot disagree
   // about whether a date has passed.
   const [now] = useState<IsoDateTime>(() => appNow().toISOString() as IsoDateTime)
 
   const byDomain = new Map(resident.carePlan.map((entry) => [entry.domainId, entry]))
-  const rows = CARE_PLAN_DOMAINS.map((domain) => ({
-    domain,
-    record: byDomain.get(domain.id),
-  }))
-
-  const neverWritten = rows.filter(
-    (row) => row.record === undefined || row.record.status.kind === 'not_started',
-  ).length
+  const rows = CARE_PLAN_DOMAINS.map((domain) => {
+    const record = byDomain.get(domain.id)
+    return {
+      domain,
+      record,
+      state: configuredState(
+        resident.siteId,
+        domain.id,
+        record !== undefined && record.status.kind !== 'not_started',
+      ),
+    }
+  })
 
   /*
+   * **Counted over the domains this home keeps**, by the same function the risk
+   * templates and consent types have beside it, so three counts on one record
+   * mean one thing by a denominator. A retired domain stays on the list below.
+   *
    * Part-written and unsigned is not counted in the figure, and is not nothing
    * either. "Never been written down" is a precise claim and a draft breaks it,
    * but a domain nobody has signed gives staff nothing to follow, so the count
    * is named in the sentence instead of becoming a second figure competing with
    * the first.
    */
-  const unsigned = rows.filter(
-    (row) => row.record !== undefined && row.record.status.kind === 'in_progress',
-  ).length
+  const { asked, neverWritten, unsigned } = carePlanGaps(resident)
+  const retired = rows.length - asked
 
   return (
     <div className={styles.tab} data-tab-body="care-plan">
       <Card>
         <CardHead
           title={`${resident.preferredName}’s care plan`}
-          subtitle={`Counted over all ${rows.length} care plan domains.`}
+          subtitle={
+            retired > 0
+              ? `Counted over the ${asked} of ${rows.length} domains ${site.name} keeps.`
+              : `Counted over all ${rows.length} care plan domains.`
+          }
           expand={{ kind: 'not_built' }}
         />
         <div className={styles.stack}>
@@ -79,7 +92,7 @@ export function CarePlanTab() {
             </span>
             <span className={styles.leadBody}>
               <span className={styles.leadTitle}>
-                of <span data-numeric>{formatCount(rows.length)}</span> parts of{' '}
+                of <span data-numeric>{formatCount(asked)}</span> parts of{' '}
                 {resident.preferredName}&rsquo;s care have never been written down
               </span>
               <span className={styles.leadDetail}>
@@ -90,13 +103,20 @@ export function CarePlanTab() {
                     A further <span data-numeric>
                       {pluralise(unsigned, 'domain')}
                     </span>{' '}
-                    of {formatCount(rows.length)} started, not signed, and nothing staff
-                    can follow yet.
+                    of {formatCount(asked)} started, not signed, and nothing staff can
+                    follow yet.
                   </>
                 ) : null}
               </span>
             </span>
           </div>
+          {retired > 0 ? (
+            <p className={styles.note} data-retired-note>
+              {formatCount(retired)} of the {formatCount(rows.length)} domains are not
+              kept at {site.name} and are not counted above; anything already written
+              for them is still below.
+            </p>
+          ) : null}
           <ActPoint
             answer={viewer.ask('write_care_plan', resident.id)}
             label="Edit care plan"
@@ -113,7 +133,7 @@ export function CarePlanTab() {
           expand={{ kind: 'not_built' }}
         />
         <ul className={styles.list}>
-          {rows.map(({ domain, record }) => (
+          {rows.map(({ domain, record, state }) => (
             <li
               key={domain.id}
               className={styles.domain}
@@ -124,7 +144,7 @@ export function CarePlanTab() {
                 <div className={styles.rowAbout}>
                   <p className={styles.rowName}>{domain.name}</p>
                   <ResidentVoice record={record} />
-                  {record === undefined ? null : (
+                  {record === undefined || state === 'retired_unanswered' ? null : (
                     <div className={styles.rowSupport}>
                       <SupportLevelBadge level={record.supportLevel} />
                     </div>
@@ -132,7 +152,13 @@ export function CarePlanTab() {
                 </div>
 
                 <div className={styles.rowState} data-state-cell>
-                  {record === undefined ? (
+                  {state === 'retired_unanswered' ? (
+                    /* Plain, never hatched: the home does not keep this part of
+                       the plan, so nothing here is a gap anybody can close. */
+                    <p data-not-kept>
+                      <Settled label="Not kept at this home" />
+                    </p>
+                  ) : record === undefined ? (
                     <Unrecorded
                       variant="chip"
                       label="No record for this domain"
@@ -147,12 +173,20 @@ export function CarePlanTab() {
                           Version <span data-numeric>{versionCount(record)}</span>
                         </p>
                       ) : null}
+                      {state === 'retired_answered' ? (
+                        <p className={styles.rowMeta} data-retired>
+                          This home no longer keeps this part of the plan. What was
+                          written stays.
+                        </p>
+                      ) : null}
                     </>
                   )}
                 </div>
               </div>
 
-              <DomainReading name={domain.name} record={record} />
+              {state === 'retired_unanswered' ? null : (
+                <DomainReading name={domain.name} record={record} />
+              )}
             </li>
           ))}
         </ul>

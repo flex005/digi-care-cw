@@ -1,5 +1,9 @@
 import type { AnyConsent, Resident } from '@/data/types'
-import { CONSENT_TYPES, RISK_ASSESSMENT_TEMPLATES } from '@/data/types'
+import {
+  CARE_PLAN_DOMAINS,
+  CONSENT_TYPES,
+  RISK_ASSESSMENT_TEMPLATES,
+} from '@/data/types'
 import { configuredState, countsTowardsExpected } from '@/data/access/site-config-store'
 
 /**
@@ -51,6 +55,47 @@ export function consentGaps(resident: Resident): {
   return {
     asked: asked.length,
     neverSought: asked.filter((row) => row.status.kind === 'not_sought').length,
+  }
+}
+
+/**
+ * The care plan's domains, counted over the ones this home keeps.
+ *
+ * **The same ruling as the risk templates and the consent types**, so the three
+ * counts on one record agree about what their denominator means. A domain the
+ * home has stopped keeping is not a part of this person's care anybody here is
+ * expected to write down, and counting it would report a gap that is an
+ * artefact of a setting rather than of the record.
+ *
+ * `neverWritten` is a domain with no record or nothing started; `unsigned` is a
+ * draft with nothing signed, which is not never written and not something staff
+ * can follow either.
+ */
+export function carePlanGaps(resident: Resident): {
+  asked: number
+  neverWritten: number
+  unsigned: number
+} {
+  const byDomain = new Map(resident.carePlan.map((entry) => [entry.domainId, entry]))
+  const asked = CARE_PLAN_DOMAINS.map((domain) => {
+    const record = byDomain.get(domain.id)
+    return {
+      record,
+      state: configuredState(
+        resident.siteId,
+        domain.id,
+        record !== undefined && record.status.kind !== 'not_started',
+      ),
+    }
+  }).filter((row) => countsTowardsExpected(row.state))
+  return {
+    asked: asked.length,
+    neverWritten: asked.filter(
+      (row) => row.record === undefined || row.record.status.kind === 'not_started',
+    ).length,
+    unsigned: asked.filter(
+      (row) => row.record !== undefined && row.record.status.kind === 'in_progress',
+    ).length,
   }
 }
 

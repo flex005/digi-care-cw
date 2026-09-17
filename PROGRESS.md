@@ -265,7 +265,7 @@ It replaces today's `CARE_ACTS`, which says only holds or refused, and folds `re
 
 ### Found on the way
 
-- **Search did not work in the Admin build's hook, and worked here by accident.** `useResidentFilters` memoises the visible rows on everything but the search text. In the Admin build the list it filters keeps its identity between renders, so typing changes nothing; here the list was rebuilt on every render, which recomputed the memo and hid the bug. Memoising the list for an unrelated reason would have broken search silently. Fixed with the dependency and a test that fails without it. **The Admin build's copy is not fixed**: it is the same line, and changing it is that build's commit.
+- **Search did not work in the Admin build's hook, and worked here by accident.** Confirmed there with a probe test, since removed: "Pemberton" typed, 28 rows still shown. `useResidentFilters` memoises the visible rows on everything but the search text. In the Admin build the list it filters keeps its identity between renders, so typing changes nothing; here the list was rebuilt on every render, which recomputed the memo and hid the bug. Memoising the list for an unrelated reason would have broken search silently. Fixed with the dependency and a test that fails without it. **The Admin build's copy is not fixed**: it is the same line, and changing it is that build's commit.
 - **`RequireSignIn` carried `?from=` and nothing read it.** Its docblock said signing in lands where the reader was going; it landed on the start page. The sign-in screen now reads the parameter as it mounts and the pending sign-in carries it through the code and the choice of home, only ever to a page in this product. The same shape as `?timeout=` in Phase 1: a value in the address read after the navigation that dropped it, here read by nobody at all.
 - **The placeholder-instrument notice was drawn in the hatch.** The Admin build argued a missing validated instrument is an absence. Here the hatch means nobody has recorded something and appears nowhere else, and the assessments under the notice were recorded; it is now a statement in the info tint.
 - **Two cards had no head and so no expand button**, holding only the edit act. The act now sits on the page above the first card on every tab that has no head card of its own.
@@ -275,7 +275,12 @@ It replaces today's `CARE_ACTS`, which says only holds or refused, and folds `re
 
 ### Open
 
-- **Care plan counts ignore the home's domain settings**, as in the Admin build. Risk assessments and consent count over what the home asks; if a retired domain should leave the Care Plan count, that belongs in `record-gaps.ts` beside the other two.
 - **`ConsentBadge` names a pending request's asker by `displayName`**, so a deactivated person would show without "(deactivated)". Shared with the Admin build.
-- **At 1440 the tab strip shows nine of eleven tabs** and scrolls for the rest, with no mark that it does. The tab you are on is always scrolled into view.
 - **A draft over a signed care plan version** renders and is not reached by any fixture.
+
+### After review (17/09/2026)
+
+- **The Care Plan counts over the domains the home keeps**, by `carePlanGaps` beside the risk and consent counts, so the three figures on one record mean one thing by a denominator. A domain the home no longer keeps stays on the list: plain "Not kept at this home" where nothing was written, and its record with a line where something was. Broken on purpose (the denominator put back to all ten): the retired-domain test fails.
+- **The tab strip says when it scrolls.** An edge with tabs past it carries "2 more" and a chevron, drawn only while tabs are hidden on that side, and pressing it moves the row. **It sits beside the row, not over it**: the first version laid it over a fade, which read at 1440 and at 390 covered most of the tab the reader was on. The row's own scrollbar is hidden, since the edges now say it scrolls in words. Which tabs are hidden is one function, tested on its own, and the edge is tested against measured positions.
+- **The five acts a care worker's "Can" leaves without a reach** are recorded in `docs/DEPARTURES.md` as questions for the PRD's author, with the controlled drug contradiction, which stays as written until Phase 4.
+- **The search defect is recorded in the Admin build's `PROGRESS.md`** as a known defect there, not fixed.

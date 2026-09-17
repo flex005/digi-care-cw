@@ -7,6 +7,7 @@ import { renderProfileTab } from '@/test/render-signed-in'
 import { CareNotesTab } from './LaterPhaseTab'
 import { PROFILE_TABS } from './profile-tabs'
 import { consentGaps, riskAssessmentGaps } from './record-gaps'
+import { hiddenTabs } from './hidden-tabs'
 
 const navigation = vi.hoisted(() => ({
   pathname: '/residents/res-okafor/notes',
@@ -161,5 +162,59 @@ describe('the tab strip', () => {
     expect(
       await screen.findByText('This tab is built in Phase 3, care notes.'),
     ).toBeTruthy()
+  })
+})
+
+describe('whether the tab strip says it scrolls', () => {
+  const view = { left: 100, right: 1000 }
+
+  it('counts nothing hidden when every tab is inside the row', () => {
+    expect(
+      hiddenTabs(
+        [
+          { left: 110, right: 300 },
+          { left: 300, right: 990 },
+        ],
+        view,
+      ),
+    ).toEqual({ before: 0, after: 0 })
+  })
+
+  it('counts a tab cut by either edge as hidden on that side', () => {
+    expect(
+      hiddenTabs(
+        [
+          { left: 40, right: 160 },
+          { left: 160, right: 900 },
+          { left: 900, right: 1060 },
+          { left: 1060, right: 1200 },
+        ],
+        view,
+      ),
+    ).toEqual({ before: 1, after: 2 })
+  })
+
+  it('draws the edge with the count only while tabs are hidden past it', async () => {
+    const original = Element.prototype.getBoundingClientRect
+    Element.prototype.getBoundingClientRect = function (this: Element) {
+      if (this.tagName === 'NAV') return { left: 0, right: 900 } as DOMRect
+      const tab = this.querySelector('[data-tab]')?.getAttribute('data-tab')
+      if (this.tagName === 'LI' && tab) {
+        const index = PROFILE_TABS.findIndex(
+          (entry) => (entry.segment === '' ? 'general' : entry.segment) === tab,
+        )
+        return { left: index * 100, right: index * 100 + 100 } as DOMRect
+      }
+      return original.call(this)
+    }
+    try {
+      open('res-okafor')
+      renderProfileTab(staffEze.id, <CareNotesTab />)
+      const more = await screen.findByRole('button', { name: 'Show 2 more tabs' })
+      expect(more.textContent).toBe('2 more')
+      expect(document.querySelector('[data-hidden-tabs="before"]')).toBeNull()
+    } finally {
+      Element.prototype.getBoundingClientRect = original
+    }
   })
 })

@@ -33,6 +33,20 @@ The two products describe one home. Where the Admin build already decided someth
 - **Senior carer acts the PRD names without a screen** (acknowledge an incident, record consent, upload a document, create an activity session, conduct a review) **adapt the Admin build's screens for the same acts**, narrowed to what the role table allows. They are the same acts with a narrower permission, and a second design would be two answers to one question.
 - **A care worker sees the residents they were given, and that is scope, never blame.** "1 of your 9 residents" states what they can see. The assignment never decides a figure about a person.
 
+## Questions for the PRD's author
+
+Not gaps in the build: places where the CW PRD's role table grants an act and does not say for which residents. Table 3's first row gives a care worker "assigned only" residents and "Care Notes — write" says "Assigned residents"; the rows below say only "Can". The build does not choose. Each act answers `not_stated` for a care worker (`capabilities.ts`), and a screen that reaches one draws the question at the act rather than a yes or a no.
+
+- **Record a dose given, not given or PRN** (Medications — record Given/Not Given/PRN: "Can (PIN required)"). For residents not on the care worker's list, as a round covers a floor rather than a list?
+- **Report an incident** (Incidents — report: "Can (any time)", "Any staff member"). About any resident the care worker witnesses, or only their own?
+- **Add a goal progress note** (Goals — add progress note: "Can", "Both roles").
+- **Record activity attendance** (Activities — record attendance: "Can"). A session is for the home; is attendance recordable for everyone at it?
+- **Update a resident's handover status** (HO-01, where both roles update the board). The board is the home's; is a care worker's status limited to their list?
+
+For a senior carer, "Can" reaches the whole home without a question: Table 3's first row gives a senior carer every resident, so there is no narrower list to be silent about.
+
+**One row contradicts another, and is left as written until Phase 4.** "Medications — countersign controlled drugs: Both must be Senior+" says the first signer of a controlled drug is a senior carer; "Medications — record Given/Not Given/PRN" lets a care worker record a dose, controlled drugs not excepted. It is for whoever wrote the table to settle.
+
 ## Authentication (Phase 1)
 
 - **"Email or password not recognised", never which** (AUTH-04). The same words for an unknown address and a refused password. **A deliberate divergence from the Admin build**, whose sign-in says "No account here uses that address": telling somebody guessing that an address is real is what the PRD's wording prevents.
