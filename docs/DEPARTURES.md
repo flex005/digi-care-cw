@@ -33,6 +33,25 @@ The two products describe one home. Where the Admin build already decided someth
 - **Senior carer acts the PRD names without a screen** (acknowledge an incident, record consent, upload a document, create an activity session, conduct a review) **adapt the Admin build's screens for the same acts**, narrowed to what the role table allows. They are the same acts with a narrower permission, and a second design would be two answers to one question.
 - **A care worker sees the residents they were given, and that is scope, never blame.** "1 of your 9 residents" states what they can see. The assignment never decides a figure about a person.
 
+## Authentication (Phase 1)
+
+- **"Email or password not recognised", never which** (AUTH-04). The same words for an unknown address and a refused password. **A deliberate divergence from the Admin build**, whose sign-in says "No account here uses that address": telling somebody guessing that an address is real is what the PRD's wording prevents.
+- **A password is refused when it breaks the account's own rules**, and only then. Nothing stores a password, so none is checked against a record; one nobody could have set is a real refusal, and it makes "not recognised" and the five-attempt lock reachable honestly. The lock is fifteen minutes on the real clock. The PRD's email alert and the Admin's "account temporarily locked" are not sent, and the screen says so.
+- **Ten characters, where the Admin build asks for twelve.** Each follows its own PRD. One account system should have one policy; it is recorded here to be settled rather than chosen silently.
+- **Any six digits pass a code** (AUTH-03, AUTH-05), as in the Admin build, because accepting one particular code would be a check that looks real and is not. The screen says so first. The PRD's "after 5 wrong attempts, resend activates immediately" cannot be reached, and is not drawn.
+- **Invitations last 72 hours in both builds' fixtures**, where they lasted seven days. An invitation is sent from one product and accepted in the other, so both read one constant. Invitations are dated, so 72 hours is three days from the day sent.
+- **The existing-account invitation is not drawn** (AUTH-01: "the link logs them in and adds the new site"). No fixture holds somebody invited to a second home, so the branch could not be reached.
+- **The invitation email is drawn, never sent**, and an Invitations list stands in for the inbox as the way to reach it.
+- **The name on account setup is shown, not editable** (AUTH-02). A staff member's name is the team record's, changed by a manager; a field that accepted a correction and kept none would be a control that does nothing.
+- **Setting up an account is real for the session.** Access is granted on the team record in memory, and the chosen medication PIN is held, so the person can verify and sign in. Signing out discards both, and the sign-out screen lists the PIN among what would go.
+- **The medication PIN cannot be checked against a birth year** (AUTH-02). No staff date of birth is held, and the screen says so rather than showing the rule as met.
+- **The password strength bar is "N of 5 rules met"** with every rule visible from the start, as in the Admin build.
+- **Choosing a home shows name, role, residents and timezone** (AUTH-07); no home's address and no last visit is held. **Nothing remembers the choice**, and the screen says so.
+- **Biometric sign-in and shared-device mode are stated unavailable** at phone width (AUTH-06), not drawn.
+- **The last forgot-password screen does not say the password was updated** (AUTH-08), because nothing was: it says any password meeting the rules signs in. No reset or confirmation email is sent, no session is ended, and each screen says so.
+- **A session ends after twelve hours of inactivity** (AUTH-09, web), where the Admin build uses eight. `?timeout=<minutes>` shortens it for review. **No draft is recovered on the next sign-in**, because nothing survives a sign-out; the signed-out screen says the work is gone.
+- **Terms and privacy links are not drawn**: the notices are not written for this build, and the screen says so.
+
 ## Figures refused
 
 Both are refused on the screen, in one line where the figure would have been, rather than left as an empty space. The line gives the standing reason and no number: a refusal whose reason quotes a count is false the day the count moves.
@@ -49,8 +68,11 @@ Both are refused on the screen, in one line where the figure would have been, ra
 
 - **Specimens**, under Design reference in the navigation: every token, primitive and evidence state, rendered by the components the screens use. The source for the Figma library. Not in the PRD.
 - **The compact layout runs below 1024px**, so a tablet held upright gets the bottom tab bar. The PRD asks for web and mobile without a breakpoint.
-- **A sign-in stand-in** offers the care workers and senior carers whose access is live, until the authentication screens (AUTH-01 to 09) are built.
+- **"Who would you like to sign in as?"** under the sign-in form fills in an address and a password that meets the rules, labelled as a demonstration: the only way to see the product as each role.
 
 ## Fixture changes shared with the Admin build
+
+- **Hannah Price, a senior carer, holds an invitation that expired**: nine days old, against invitations good for three. No care worker or senior carer held an expired invitation, so this product's expired state could not be reached. She is added to the team only, never to `carersAndSeniors`, so no seeded record moves.
+- **Invitations last three days (72 hours)** rather than seven.
 
 - **Tolu Akinyemi, a senior carer, works at both Rosewood Court and Ashgrove Lodge.** Without it nobody who signs into this product works at two homes, and the site selector (AUTH-07) could not be reached. A senior carer rather than a care worker, because a care worker's assignment can say "every resident at the site", which names no site once there are two. **The Admin build's fixtures do not have this yet**, so its Team screens show Akinyemi at Rosewood only.

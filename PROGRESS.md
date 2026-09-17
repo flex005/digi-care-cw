@@ -150,3 +150,49 @@ The shape language is `docs/cw-dashboard.html`: it wins on radius, density and l
 
 - **Two type steps added above display**: `--text-hero` 52px on a 56px line, for the dark card's figure only, and `--text-figure` 40px on a 44px line, for a figure with its denominator in a card (the gap card and a lead `AggregateFigure`). `check-tokens` now fails if any stylesheet but `ActionCard.module.css` reaches for `--text-hero`, and if that one stops; both mutated, both failed, naming the line. Its heading said "a custom property that does not exist" over a hero finding, which was untrue of it, and now counts findings.
 - **The navigation pill lost its white thumb.** A raised thumb on a grey track is the segmented control's shape, for presentations of the same data, and navigation goes to different data. The tab you are on is `--ink-900` at extra-bold against `--ink-500` at medium; checked by screenshot with the real active class applied, since no pill module is built yet. At 390px the pill is not drawn at all: the bottom tabs replace it.
+
+---
+
+## Phase 1 — Authentication (17/09/2026)
+
+### What exists
+
+- **Sign in** (AUTH-04, 06), **the code step** (AUTH-05, and AUTH-03 when setting up an account), **choosing a home** (AUTH-07), **invitations** (an index standing in for the inbox, the email drawn, account setup, and the expired state; AUTH-01, 02), **forgot password** in four screens (AUTH-08), **signed out by inactivity**, **the session expiry warning** in the shell, and **the sign-out confirmation** listing what would be lost (AUTH-09). Outside the shell they share `AuthPage`: the grey page, the logo, one white card, no dark panel.
+- **A pending sign-in held in the session** (`awaiting_code`, `choosing_home`), so each step is reachable only by passing the one before it and a reload starts at sign-in.
+- **The rules as predicates**: `password-rules.ts` (five, rendered as "N of 5 rules met" and used to refuse a sign-in), `pin-rules.ts` (and the one it cannot check), `lockout.ts` (five refusals, fifteen minutes, real clock), `session-timeout.ts` (twelve hours, `?timeout=` read once).
+- **`TextField`**, taking its label and input from the password field.
+- **`medication-pins.ts`**: the PIN chosen at setup is held for the session and counted at sign-out.
+- **Fixtures, in both builds**: invitations good for three days; Hannah Price's expired invitation. The Admin suite passes with them (77 files, 1,366 tests).
+
+### Decisions taken
+
+- **The address a person signs in with is the Admin build's derivation**, so it is the same in both products.
+- **"Who would you like to sign in as?"** replaces the stand-in, labelled as a demonstration; it fills a password that meets every rule, so a reviewer can reach each role without inventing one.
+- **Setting up an account grants access for the session** rather than stopping at "nothing was created", so AUTH-02, AUTH-03 and the first dashboard are one reachable path.
+- **The sign-out confirmation is a panel, not a card**: it has nowhere to expand to, and an expand button that could only say "not built" would be noise.
+- **`autoFocus` on the code field has a named ESLint exception** at the call site: the PRD asks for it and the screen has one field.
+
+### Found and fixed
+
+- **`?timeout=` did nothing.** The timeout module read the address when the shell's code loaded, after signing in had navigated twice and dropped the query. Found when the screenshot walk timed out waiting for the warning. It is now read once by the session provider on its first render. `session-end.test.tsx` renders under an address carrying `?timeout=10`, drops it, and asserts the warning; mutated back to reading the address at render (confirmed landed), it failed.
+- **The read-only fields rendered as the browser's own inputs.** `.readOnly` composed `.input` in the same file, which composes from `password-field.module.css`, and the chain did not resolve. It now composes from the password field directly; no other stylesheet has that chain.
+- **A test asserted `expect(container).toBeTruthy()`** under the name "says nothing is sent before anything else", which could not fail. It now asserts the not-performed line is the form's first element, and moving the line below the field fails it.
+
+### Mutations run, and what came back
+
+Each confirmed landed, then restored:
+
+| Broken on purpose | Result |
+| --- | --- |
+| an unknown address refused as "No account uses that address" | the naming-neither-field test fails |
+| the lock not checked on submit | the lockout test fails |
+| a two-home person signed straight in after the code | the choose-a-home test fails |
+| `1234` allowed as a PIN | the PIN rule test and the setup test fail |
+| the nothing-sent line moved below the code field | the first-element test fails |
+| no sign-out when the session reaches zero | the expiry test fails |
+| the sign-out button without its count | the sign-out list test fails |
+| the warning reading `?timeout=` from the current address | the kept-timeout test fails |
+
+### The one to remember from Phase 1
+
+**A parameter read after the navigation that made it irrelevant is invisible to every test.** `?timeout=` was read when the shell's code loaded, which is after sign-in has navigated twice and dropped the query, so it silently did nothing. Every unit test rendered the banner with the value already in hand, the suite was green, and only walking the real flow in a browser showed a warning that never came. Where a value arrives in the address, read it where the address is still the one it arrived in.

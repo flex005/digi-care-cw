@@ -5,7 +5,14 @@ import { now as appNow } from '@/data/fixtures/clock'
 import { configuredSites, organisationAsConfigured } from '@/data/access/settings-store'
 import { endSession } from '@/data/access/session-losses'
 import { resetViewerScope, setViewer } from '@/data/access/viewer-scope'
-import { SessionContext, TimeZoneContext, type SignInState } from './context'
+import { resetMedicationPins } from './medication-pins'
+import { SESSION_TIMEOUT_MINUTES, requestedMinutes } from './session-timeout'
+import {
+  SessionContext,
+  TimeZoneContext,
+  type PendingSignIn,
+  type SignInState,
+} from './context'
 
 /**
  * Holds who is signed in and at which home.
@@ -16,6 +23,9 @@ import { SessionContext, TimeZoneContext, type SignInState } from './context'
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [activeSiteId, setActiveSiteId] = useState<SiteId>('site-rosewood-court')
   const [signIn, setSignIn] = useState<SignInState>({ kind: 'signed_out' })
+  const [pending, setPending] = useState<PendingSignIn>({ kind: 'none' })
+  /* Read once, from the address the page loaded at. */
+  const [timeoutMinutes] = useState(() => requestedMinutes() ?? SESSION_TIMEOUT_MINUTES)
 
   const configuredAll = useMemo(() => configuredSites(), [])
 
@@ -57,6 +67,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
      */
     setViewer(member.id)
     setActiveSiteId(site.id)
+    setPending({ kind: 'none' })
     setSignIn({
       kind: 'signed_in',
       member,
@@ -68,8 +79,32 @@ export function SessionProvider({ children }: { children: ReactNode }) {
      against a signed-out session while the stores still hold this one's writes. */
   const signOut = useCallback(() => {
     endSession()
+    resetMedicationPins()
+    setPending({ kind: 'none' })
     setSignIn({ kind: 'signed_out' })
   }, [])
+
+  const awaitCode = useCallback(
+    (member: StaffMember, address: string, purpose: 'sign_in' | 'set_up_account') =>
+      setPending({ kind: 'awaiting_code', member, address, purpose }),
+    [],
+  )
+
+  const cancelPending = useCallback(() => setPending({ kind: 'none' }), [])
+
+  const acceptCode = useCallback((): 'signed_in' | 'choosing_home' => {
+    if (pending.kind !== 'awaiting_code')
+      throw new Error('A code was accepted with no sign-in waiting for one.')
+    const { member } = pending
+    const theirs = configuredAll.filter((site) => member.siteIds.includes(site.id))
+    const only = theirs[0]
+    if (theirs.length === 1 && only !== undefined) {
+      signInAs(member, only)
+      return 'signed_in'
+    }
+    setPending({ kind: 'choosing_home', member })
+    return 'choosing_home'
+  }, [pending, configuredAll, signInAs])
 
   /*
    * A session ends when this provider goes, not only when somebody signs out.
@@ -87,8 +122,25 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       signIn,
       signInAs,
       signOut,
+      timeoutMinutes,
+      pending,
+      awaitCode,
+      acceptCode,
+      cancelPending,
     }),
-    [activeSite, sites, configuredOrganisation, signIn, signInAs, signOut],
+    [
+      activeSite,
+      sites,
+      configuredOrganisation,
+      signIn,
+      signInAs,
+      signOut,
+      timeoutMinutes,
+      pending,
+      awaitCode,
+      acceptCode,
+      cancelPending,
+    ],
   )
 
   return (

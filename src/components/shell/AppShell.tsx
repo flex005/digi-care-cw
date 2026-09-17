@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { MovedClockLine } from './MovedClockLine'
 import { Rail } from './Rail'
+import { SessionExpiry } from './SessionExpiry'
 import { RequireSignIn } from './RequireSignIn'
 import { TabBar } from './TabBar'
 import { TopBar } from './TopBar'
@@ -34,6 +35,9 @@ export function AppShell({ children }: { children?: ReactNode }) {
               <Rail />
             </div>
             <main id="main" className={styles.main}>
+              {/* First, because it counts down to this session's work being
+                  destroyed and the reader has minutes. */}
+              <SessionExpiry />
               <MovedClockLine />
               {children}
             </main>

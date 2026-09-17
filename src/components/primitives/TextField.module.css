@@ -1,0 +1,31 @@
+.field {
+  composes: field from './password-field.module.css';
+}
+
+.label {
+  composes: label from './password-field.module.css';
+}
+
+/* The password input's box, without the room it keeps for the reveal. */
+.input {
+  composes: input from './password-field.module.css';
+  padding-right: var(--space-16);
+}
+
+/* Composed from the password field directly: a class composing a local class
+   that composes another file's did not resolve, and the field rendered as the
+   browser's own input. */
+.readOnly {
+  composes: input from './password-field.module.css';
+  padding-right: var(--space-16);
+  border-color: var(--border-subtle);
+  background: var(--bg-surface-sunken);
+  color: var(--ink-500);
+}
+
+.hint {
+  margin-top: var(--space-8);
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}

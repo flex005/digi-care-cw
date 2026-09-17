@@ -35,9 +35,108 @@ const SCREENS = {
     { ssr: false },
   ),
   signIn: dynamic(
+    () => import('@/features/auth/SignInRoute').then((module) => module.SignInRoute),
+    {
+      ssr: false,
+    },
+  ),
+  signInCode: dynamic(
+    () => import('@/features/auth/CodeStep').then((module) => module.SignInCodeRoute),
+    {
+      ssr: false,
+    },
+  ),
+  signInHome: dynamic(
     () =>
-      import('@/features/auth/SignInStandIn').then((module) => module.SignInStandIn),
-    { ssr: false },
+      import('@/features/auth/HomeChoiceRoute').then(
+        (module) => module.HomeChoiceRoute,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  signedOut: dynamic(
+    () =>
+      import('@/features/auth/SignedOutRoute').then((module) => module.SignedOutRoute),
+    {
+      ssr: false,
+    },
+  ),
+  signOut: dynamic(
+    () => import('@/features/auth/SignOutRoute').then((module) => module.SignOutRoute),
+    {
+      ssr: false,
+    },
+  ),
+  forgotPassword: dynamic(
+    () =>
+      import('@/features/auth/ForgotPassword').then(
+        (module) => module.ForgotPasswordRoute,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  forgotPasswordSent: dynamic(
+    () =>
+      import('@/features/auth/ForgotPassword').then(
+        (module) => module.ForgotPasswordSentRoute,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  forgotPasswordReset: dynamic(
+    () =>
+      import('@/features/auth/ForgotPassword').then(
+        (module) => module.ForgotPasswordResetRoute,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  forgotPasswordDone: dynamic(
+    () =>
+      import('@/features/auth/ForgotPassword').then(
+        (module) => module.ForgotPasswordDoneRoute,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  invitations: dynamic(
+    () =>
+      import('@/features/auth/InvitationRoutes').then(
+        (module) => module.InvitationIndexRoute,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  invitationEmail: dynamic(
+    () =>
+      import('@/features/auth/InvitationRoutes').then(
+        (module) => module.InvitationEmailRoute,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  invitationSetup: dynamic(
+    () =>
+      import('@/features/auth/InvitationRoutes').then(
+        (module) => module.InvitationSetupRoute,
+      ),
+    {
+      ssr: false,
+    },
+  ),
+  invitationVerify: dynamic(
+    () =>
+      import('@/features/auth/CodeStep').then((module) => module.InvitationVerifyRoute),
+    {
+      ssr: false,
+    },
   ),
   home: dynamic(
     () => import('@/features/home/HomeRoute').then((module) => module.HomeRoute),

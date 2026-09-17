@@ -1,3 +1,4 @@
+import { useRouter } from 'next/navigation'
 import { STAFF_ROLE_NAMES } from '@/data/types'
 import { Icon } from '@/components/icon/Icon'
 import { Logo } from '@/components/brand/Logo'
@@ -26,7 +27,8 @@ import styles from './TopBar.module.css'
  * hidden, on either layout.
  */
 export function TopBar() {
-  const { sites, activeSite, setActiveSite, signOut } = useSession()
+  const { sites, activeSite, setActiveSite } = useSession()
+  const router = useRouter()
   const { member } = useSignedIn()
 
   return (
@@ -89,7 +91,7 @@ export function TopBar() {
               {member.ref.fullName} · {STAFF_ROLE_NAMES[member.role]}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => signOut()}>
+            <DropdownMenuItem onSelect={() => router.push('/sign-out')}>
               <Icon name={shellIcons.signOut} size={16} />
               Sign out
             </DropdownMenuItem>

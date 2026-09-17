@@ -21,6 +21,18 @@ export interface RouteDeclaration {
 
 export const ROUTES: RouteDeclaration[] = [
   { path: '/sign-in', screen: 'signIn', inShell: false },
+  { path: '/sign-in/code', screen: 'signInCode', inShell: false },
+  { path: '/sign-in/home', screen: 'signInHome', inShell: false },
+  { path: '/signed-out', screen: 'signedOut', inShell: false },
+  { path: '/forgot-password', screen: 'forgotPassword', inShell: false },
+  { path: '/forgot-password/sent', screen: 'forgotPasswordSent', inShell: false },
+  { path: '/forgot-password/reset', screen: 'forgotPasswordReset', inShell: false },
+  { path: '/forgot-password/done', screen: 'forgotPasswordDone', inShell: false },
+  { path: '/invitation', screen: 'invitations', inShell: false },
+  { path: '/invitation/[staffId]', screen: 'invitationSetup', inShell: false },
+  { path: '/invitation/[staffId]/email', screen: 'invitationEmail', inShell: false },
+  { path: '/invitation/[staffId]/verify', screen: 'invitationVerify', inShell: false },
+  { path: '/sign-out', screen: 'signOut', inShell: true },
   { path: '/', screen: 'home', inShell: true },
   { path: '/specimens', screen: 'specimens', module: 'specimens', inShell: true },
 ]

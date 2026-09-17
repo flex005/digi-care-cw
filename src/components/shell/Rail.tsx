@@ -1,6 +1,6 @@
 import { Icon } from '@/components/icon/Icon'
 import { Tooltip } from '@/components/primitives'
-import { useSession } from '@/app/session/use-session'
+import { useRouter } from 'next/navigation'
 import { NAV_ITEMS, shellIcons } from './nav.icons'
 import { NavEntry } from './NavEntry'
 import styles from './Rail.module.css'
@@ -11,7 +11,7 @@ import styles from './Rail.module.css'
  * a tooltip.
  */
 export function Rail() {
-  const { signOut } = useSession()
+  const router = useRouter()
   const group = (rail: 'modules' | 'account') =>
     NAV_ITEMS.filter((item) => item.rail === rail).map((item) => (
       <li key={item.module}>
@@ -38,7 +38,7 @@ export function Rail() {
               type="button"
               className={styles.button}
               aria-label="Sign out"
-              onClick={() => signOut()}
+              onClick={() => router.push('/sign-out')}
               data-sign-out
             >
               <Icon name={shellIcons.signOut} size={20} />

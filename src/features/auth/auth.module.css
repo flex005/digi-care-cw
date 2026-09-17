@@ -1,0 +1,317 @@
+/* ---- refusals ---- */
+
+.refusal {
+  color: var(--status-critical-ink);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.refusalBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* A line for a phone only, chosen by CSS so a capture at a width gets it. */
+.compactOnly {
+  display: none;
+}
+
+@media (width < 1024px) {
+  .compactOnly {
+    display: block;
+  }
+}
+
+/* ---- who to sign in as, and the invitations waiting ---- */
+
+.people {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding-top: var(--space-20);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.peopleTitle {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.peopleList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  list-style: none;
+}
+
+.person,
+.personOn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+  width: 100%;
+  padding: var(--space-12) var(--space-16);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-surface);
+  text-align: left;
+}
+
+.person:hover {
+  background-color: var(--bg-page);
+}
+
+.personOn {
+  border-color: var(--purple-600);
+  background-color: var(--purple-50);
+}
+
+.personName {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-bold);
+}
+
+.personMeta {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.personState {
+  display: flex;
+  margin-top: var(--space-4);
+}
+
+/* ---- the code step ---- */
+
+.timer {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+/* ---- choosing a home ---- */
+
+.homes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  border: 0;
+}
+
+.visuallyHiddenLegend {
+  position: absolute;
+  overflow: hidden;
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  white-space: nowrap;
+}
+
+.home,
+.homeOn {
+  display: flex;
+  gap: var(--space-12);
+  align-items: center;
+  padding: var(--space-16) var(--space-20);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-surface);
+  cursor: pointer;
+}
+
+.homeOn {
+  border-color: var(--purple-600);
+  background-color: var(--purple-50);
+}
+
+.home:focus-within,
+.homeOn:focus-within {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.homeRadio {
+  position: absolute;
+  opacity: 0;
+}
+
+.homeText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.homeName {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-bold);
+}
+
+.homeMeta {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+/* ---- password and PIN rules ---- */
+
+.rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.rulesCount {
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-bold);
+}
+
+.ruleList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  list-style: none;
+}
+
+/* Met and unmet differ by the mark as well as the ink: a tick against a ring. */
+.rule,
+.ruleMet {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.ruleMet {
+  color: var(--ink-900);
+  font-weight: var(--weight-semibold);
+}
+
+.detailLine {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+/* ---- the invitation email ---- */
+
+.email {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.emailHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-16);
+  background-color: var(--bg-surface-sunken);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.emailHead div {
+  display: flex;
+  gap: var(--space-8);
+}
+
+.emailHead dt {
+  flex: 0 0 4rem;
+  color: var(--ink-500);
+}
+
+.emailHead dd {
+  color: var(--ink-900);
+  font-weight: var(--weight-semibold);
+}
+
+.emailBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  align-items: flex-start;
+  padding: var(--space-20) var(--space-16);
+  color: var(--ink-700);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+}
+
+.emailSmall {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+/* ---- signing out ---- */
+
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  max-width: 640px;
+  padding: var(--card-padding);
+  border-radius: var(--radius-xl);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.confirmTitle {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-bold);
+}
+
+.losses {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+.loss {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-12) 0;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.lossCount {
+  color: var(--ink-900);
+  font-weight: var(--weight-bold);
+}
+
+.nothingToLose {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.signOutActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  justify-content: flex-end;
+}

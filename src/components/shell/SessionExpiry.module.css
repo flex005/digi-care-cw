@@ -1,0 +1,24 @@
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-16);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-16);
+  padding: var(--space-12) var(--space-12) var(--space-12) var(--space-24);
+  border-radius: var(--radius-pill);
+  background-color: var(--status-caution-tint);
+  color: var(--status-caution-ink);
+}
+
+.text {
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+@media (width < 1024px) {
+  .bar {
+    padding: var(--space-12) var(--space-16);
+    border-radius: var(--radius-lg);
+  }
+}
