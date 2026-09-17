@@ -9,6 +9,13 @@ import type { NextConfig } from 'next'
  */
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  /*
+   * `next dev` writes a block of its own into CLAUDE.md on every start, which
+   * puts an uncommitted change into a file whose wording is a stop-and-ask
+   * (CLAUDE.md §9) and which nobody in this project wrote. Off, so the file
+   * says what the people working on it decided and nothing else.
+   */
+  agentRules: false,
   turbopack: {
     rules: {
       '*.svg': {
