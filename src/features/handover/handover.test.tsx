@@ -172,6 +172,26 @@ describe('the board', () => {
   })
 })
 
+/*
+ * Ashgrove is the thinner home, and the only one where a group is empty. A
+ * group with no rows keeps its pill, its zero and its own sentence: dropping it
+ * would make "nobody is urgent" and "nobody has checked whether anybody is
+ * urgent" the same absence.
+ */
+describe('a group with nobody in it', () => {
+  it('keeps its pill and says its zero in words', async () => {
+    const user = userEvent.setup()
+    renderSignedIn(staffAkinyemi.id, <HandoverRoute />, 'site-ashgrove-lodge')
+    await screen.findByRole('group', { name: 'Resident status' })
+
+    const urgent = document.querySelector<HTMLElement>('[data-status-pill="urgent"]')
+    expect(urgent?.textContent).toContain('Urgent · 0')
+    await user.click(urgent!)
+    expect(screen.getByText('Nobody who was reviewed is urgent.')).toBeInTheDocument()
+    expect(rowsShown()).toHaveLength(0)
+  })
+})
+
 describe('recording a status', () => {
   it('needs a choice, needs words for urgent, and says nothing is sent', async () => {
     const { user } = await openBoard()
