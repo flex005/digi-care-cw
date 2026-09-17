@@ -51,7 +51,7 @@ export function PlanSections({ resident }: { resident: Resident }) {
           <CardHead
             title={section.title}
             subtitle={section.description}
-            expand={{ kind: 'not_built' }}
+            expand={{ kind: 'whole' }}
           />
           <div className={styles.sectionBody}>
             {section.banner ? section.banner(resident) : null}

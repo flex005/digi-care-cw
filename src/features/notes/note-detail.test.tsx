@@ -121,6 +121,13 @@ describe('one care note', () => {
     expect(
       within(link).getByRole('link', { name: 'Open that note' }).getAttribute('href'),
     ).toBe(`/residents/res-okafor/notes/${GAP_NOTE_IDS.supersededOriginal}`)
+    // The one card here showing part of something else, so the one whose
+    // expand button goes somewhere: the note it excerpts.
+    expect(
+      screen.getByRole('link', { name: 'Open Correction' }).getAttribute('href'),
+    ).toBe(`/residents/res-okafor/notes/${GAP_NOTE_IDS.supersededOriginal}`)
+    expect(screen.queryByRole('link', { name: 'Open Supervision' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Open .*, not built$/ })).toBeNull()
   })
 
   it('marks a superseded note, and links it to its correction', async () => {

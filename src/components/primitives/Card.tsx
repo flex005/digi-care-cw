@@ -30,14 +30,20 @@ export function Card({ children, padded = true, className }: CardProps) {
 }
 
 /**
- * Where a card's expand button goes.
+ * Whether a card shows part of something larger, and where the whole is.
  *
- * **Required, because every card has one.** A card that leads nowhere has to
- * say so rather than drop the button, or a reader learns that the button is
- * sometimes there and stops looking for it. `not_built` draws the button and
- * says, when tried, that the screen behind it does not exist yet.
+ * **Required, so every card says which it is** (CLAUDE.md §6):
+ *
+ * - `link`: a subset, and the button goes to the whole.
+ * - `not_built`: a subset whose whole is not built yet. The button is drawn and
+ *   says so when tried.
+ * - `whole`: the card is the whole thing (a form, a record's own detail, a list
+ *   already holding every row). **No button**: there is nowhere to expand to,
+ *   and a button that does nothing on press is a control that looks reachable
+ *   and is not.
  */
-export type CardExpand = { kind: 'link'; href: string } | { kind: 'not_built' }
+export type CardExpand =
+  { kind: 'link'; href: string } | { kind: 'not_built' } | { kind: 'whole' }
 
 export interface CardHeadProps {
   title: string
@@ -53,7 +59,7 @@ export function CardHead({ title, subtitle, expand }: CardHeadProps) {
         <h2 className={styles.title}>{title}</h2>
         {subtitle === undefined ? null : <p className={styles.subtitle}>{subtitle}</p>}
       </div>
-      <ExpandButton what={title} expand={expand} />
+      {expand.kind === 'whole' ? null : <ExpandButton what={title} expand={expand} />}
     </header>
   )
 }
@@ -62,7 +68,13 @@ export function CardHead({ title, subtitle, expand }: CardHeadProps) {
  * The small grey circle with a diagonal arrow in a card's top right corner.
  * 36px: large enough for a thumb.
  */
-export function ExpandButton({ what, expand }: { what: string; expand: CardExpand }) {
+export function ExpandButton({
+  what,
+  expand,
+}: {
+  what: string
+  expand: Exclude<CardExpand, { kind: 'whole' }>
+}) {
   const arrow = <Icon name={shellIcons.expand} size={16} />
   if (expand.kind === 'link') {
     return (

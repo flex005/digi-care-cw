@@ -1,13 +1,19 @@
 import { useCallback, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import type { CareNote, CareNoteId, IsoDateTime } from '@/data/types'
+import type { CareNote, CareNoteId, IsoDateTime, ResidentId } from '@/data/types'
 import { MOOD_LABELS } from '@/data/types'
 import { getCareNote, reviewRecordedThisSession } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import { staffLabel } from '@/data/access/team-store'
 import { now } from '@/data/fixtures/clock'
-import { Button, Card, CardHead, EmptyState } from '@/components/primitives'
+import {
+  Button,
+  Card,
+  CardHead,
+  EmptyState,
+  type CardExpand,
+} from '@/components/primitives'
 import { MoodBadge, NotYourHome, StatusPill, Unrecorded } from '@/components/status'
 import { Icon } from '@/components/icon/Icon'
 import { ActPoint } from '@/components/layout/ActPoint'
@@ -175,7 +181,7 @@ export function NoteDetailRoute() {
             <CardHead
               title="Supervision"
               subtitle="Whether this note was flagged for a senior, and what came of it."
-              expand={{ kind: 'not_built' }}
+              expand={{ kind: 'whole' }}
             />
             <SupervisionRecord note={note} />
             {/*
@@ -204,7 +210,7 @@ export function NoteDetailRoute() {
               <CardHead
                 title="Correction"
                 subtitle="Both notes stay on the record."
-                expand={{ kind: 'not_built' }}
+                expand={chainExpand(resident.id, corrects, correctedBy)}
               />
               <ul className={styles.chainList} data-correction-chain>
                 {corrects === 'none' ? null : (
@@ -239,7 +245,7 @@ function NoteHead({ note }: { note: CareNote }) {
     <CardHead
       title={note.corrects === 'none' ? 'Care note' : 'Care note: a correction'}
       subtitle={`${CATEGORY_NAME(note.category)} · ${format.dateTime(note.recordedAt)}`}
-      expand={{ kind: 'not_built' }}
+      expand={{ kind: 'whole' }}
     />
   )
 }
@@ -374,6 +380,25 @@ function SupervisionRecord({ note }: { note: CareNote }) {
     default:
       return assertNever(review)
   }
+}
+
+/**
+ * **The one card on this page that shows part of something else**: an excerpt
+ * of the other note in the chain. Its expand button goes to that note. A note
+ * that both corrects one and was corrected by another has two wholes, and a
+ * button that chose one would hide the other, so it has none and each row
+ * keeps its own link.
+ */
+function chainExpand(
+  residentId: ResidentId,
+  corrects: CareNote | 'none',
+  correctedBy: CareNote | 'none',
+): CardExpand {
+  if (corrects !== 'none' && correctedBy !== 'none') return { kind: 'whole' }
+  const other = corrects === 'none' ? correctedBy : corrects
+  if (other === 'none')
+    throw new Error('A correction card was drawn with no other note.')
+  return { kind: 'link', href: noteHref(residentId, other.id) }
 }
 
 function ChainLink({

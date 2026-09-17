@@ -51,7 +51,7 @@ export function DocumentsTab() {
     <CardHead
       title={`${resident.preferredName}’s documents`}
       subtitle="What is on file, when it expires, and who filed it."
-      expand={{ kind: 'not_built' }}
+      expand={{ kind: 'whole' }}
     />
   )
 
@@ -126,7 +126,7 @@ export function DocumentsTab() {
             <CardHead
               title="Library"
               subtitle={`All ${formatCount(DOCUMENT_CATEGORIES.length)} categories, in the order an emergency needs them.`}
-              expand={{ kind: 'not_built' }}
+              expand={{ kind: 'whole' }}
             />
             <div className={styles.categories}>
               {library.categories.map((category) => (

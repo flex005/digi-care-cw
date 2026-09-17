@@ -69,7 +69,7 @@ export function ProfileSections({ resident }: { resident: Resident }) {
           <CardHead
             title={section.title}
             subtitle={section.description}
-            expand={{ kind: 'not_built' }}
+            expand={{ kind: 'whole' }}
           />
           <div className={styles.sectionBody} data-section={section.id}>
             {section.banner === undefined ? null : section.banner(resident)}

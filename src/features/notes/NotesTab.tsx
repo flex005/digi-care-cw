@@ -61,7 +61,7 @@ export function NotesTab() {
         <CardHead
           title={`${resident.preferredName}’s care notes`}
           subtitle="Newest first. A care note is never changed once saved."
-          expand={{ kind: 'not_built' }}
+          expand={{ kind: 'whole' }}
         />
         <div className={styles.tabAct}>
           {answer.kind === 'yes' ? (

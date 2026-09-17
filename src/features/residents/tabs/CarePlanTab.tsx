@@ -79,7 +79,7 @@ export function CarePlanTab() {
               ? `Counted over the ${asked} of ${rows.length} domains ${site.name} keeps.`
               : `Counted over all ${rows.length} care plan domains.`
           }
-          expand={{ kind: 'not_built' }}
+          expand={{ kind: 'whole' }}
         />
         <div className={styles.stack}>
           <OwedReviews residentId={resident.id} now={now} />
@@ -130,7 +130,7 @@ export function CarePlanTab() {
         <CardHead
           title="Every domain"
           subtitle={`All ${rows.length}, whether or not anybody has written them.`}
-          expand={{ kind: 'not_built' }}
+          expand={{ kind: 'whole' }}
         />
         <ul className={styles.list}>
           {rows.map(({ domain, record, state }) => (

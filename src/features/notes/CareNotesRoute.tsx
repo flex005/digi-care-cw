@@ -149,7 +149,7 @@ export function CareNotesRoute() {
           <CardHead
             title="Care notes about your residents"
             subtitle={scopeNote(viewer.scope, activeSite.name)}
-            expand={{ kind: 'not_built' }}
+            expand={{ kind: 'whole' }}
           />
           <Unrecorded
             variant="panel"
@@ -365,7 +365,7 @@ function FlaggedView({
       <CardHead
         title="Flagged, not reviewed"
         subtitle="Notes somebody asked a senior to look at, the longest waiting first."
-        expand={{ kind: 'not_built' }}
+        expand={{ kind: 'whole' }}
       />
       <div className={styles.viewHead}>
         <p className={styles.claim} data-flagged-claim>
@@ -441,7 +441,7 @@ function QuietView({
       <CardHead
         title="No note today"
         subtitle={`Nobody has written about these residents today. It is ${format.time(moment)} at ${scoped.home}.`}
-        expand={{ kind: 'not_built' }}
+        expand={{ kind: 'whole' }}
       />
       <div className={styles.viewHead}>
         <p className={styles.claim} data-quiet-claim>
@@ -493,7 +493,7 @@ function YoursView({
       <CardHead
         title="Your notes"
         subtitle="Only notes you wrote. A resident with nothing here may have notes by somebody else."
-        expand={{ kind: 'not_built' }}
+        expand={{ kind: 'whole' }}
       />
       <div className={styles.viewHead}>
         <p className={styles.claim} data-yours-claim>
@@ -534,7 +534,7 @@ function ShiftView({
       <CardHead
         title="By shift"
         subtitle={`Filtered to the ${name} shift today, ${shiftHours(shift)}. A resident below was not written about on this shift; somebody on another may have.`}
-        expand={{ kind: 'not_built' }}
+        expand={{ kind: 'whole' }}
       />
       <div className={styles.viewHead}>
         <div className={styles.pills} role="group" aria-label="Which shift">
@@ -617,7 +617,7 @@ function EverythingView({
       <CardHead
         title="All notes"
         subtitle="Every care note about these residents, by everybody, newest first, a page at a time."
-        expand={{ kind: 'not_built' }}
+        expand={{ kind: 'whole' }}
       />
       <div className={styles.viewHead}>
         <p className={styles.claim} data-everything-claim>

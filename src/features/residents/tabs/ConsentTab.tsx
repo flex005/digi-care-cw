@@ -55,7 +55,7 @@ export function ConsentTab() {
         <CardHead
           title={`${resident.preferredName}’s consent`}
           subtitle="What was agreed, refused or withdrawn, and who decided."
-          expand={{ kind: 'not_built' }}
+          expand={{ kind: 'whole' }}
         />
         <div className={styles.head}>
           <div
@@ -104,7 +104,7 @@ export function ConsentTab() {
         <CardHead
           title="Consent decisions"
           subtitle={`All ${formatCount(CONSENT_TYPES.length)} consent types, whether or not anybody has asked.`}
-          expand={{ kind: 'not_built' }}
+          expand={{ kind: 'whole' }}
         />
         <ul className={styles.list}>
           {rows.map(({ type, status, state }) => (

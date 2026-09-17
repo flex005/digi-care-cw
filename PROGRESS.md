@@ -313,3 +313,16 @@ It replaces today's `CARE_ACTS`, which says only holds or refused, and folds `re
 - **Two are one defect** (`SessionProvider.tsx`, lines 33 and 78). Signing out resets the settings store, which reverts a home's name and timezone changed that session, but the provider stays mounted and its memo is not told, so after signing back in the header still shows the changed name and every clinical timestamp renders in the changed zone, while screens that read the store directly show the originals. Confirmed with a probe test through the real sign-in, settings and sign-out screens. The fix is one line in `signOut` (bump the counter after `endSession()`), confirmed against a patched copy; not applied. Recorded in the Admin build's `PROGRESS.md` as a known defect.
 - **`NotesTab.tsx` line 68 and `StaffDetailRoute.tsx` line 73 are harmless**: a memo recomputed over an empty list the screen does not use, and a counter whose re-render is what refreshes the screen while the memo reads nothing that could change.
 - This build has no settings writes, so its provider is not exposed.
+
+---
+
+## The expand-button sweep (17/09/2026)
+
+CLAUDE.md §6 now says a card showing a subset of something larger carries an expand button to the whole, and a card that is the whole thing carries none. `CardExpand` gained `whole`, which draws no button. Every card that had drawn a "not built" button was checked on its own, 27 of them:
+
+- **24 are the whole thing**, and lost the button: the section cards of General Information, Important People and Future Plans; the head and list cards of Risk Assessments, Care Plan, Consent and Documents; both residents list cards; the later-phase placeholder; the Care Notes tab; the care notes list's no-list card and each of its five views (a view holds every row of that view, and the pills beside it already reach the others); the note detail's own card and its supervision record; and the Status pills specimen.
+- **3 are genuine subsets.** Two specimen cards, "Doses this shift" and "Your rounds today", show part of the medication round and the MAR, and keep "not built" until Phase 4 builds them. **The correction card on a note's detail** shows an excerpt of another note, so its button now goes to that note; a note that both corrects one and was corrected by another has two wholes, and gets none rather than a button that picks one.
+
+Two tab tests had encoded the old rule, asserting a "not built" button on every section card, and now assert the act alone.
+
+**While checking that `whole` draws no button, the mutation was reverted with `git checkout`**, which put `Card.tsx` back to the last commit and removed the uncommitted change under test. Re-applied and confirmed; §8 has the entry.

@@ -138,7 +138,7 @@ export function ShapesSheet() {
           <CardHead
             title="Status pills"
             subtitle="Tint and ink, a dot, never the fill."
-            expand={{ kind: 'not_built' }}
+            expand={{ kind: 'whole' }}
           />
           <div className={styles.stack}>
             <StatusPill tone="critical" label="Dose overdue" />

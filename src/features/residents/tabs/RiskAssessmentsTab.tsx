@@ -72,7 +72,7 @@ export function RiskAssessmentsTab() {
               ? `Counted over the ${gaps.asked} of ${rows.length} templates ${site.name} carries out.`
               : `Counted over the ${gaps.asked} templates ${site.name} carries out.`
           }
-          expand={{ kind: 'not_built' }}
+          expand={{ kind: 'whole' }}
         />
         <div className={styles.figures}>
           <div
@@ -125,7 +125,7 @@ export function RiskAssessmentsTab() {
         <CardHead
           title="Every template"
           subtitle={`All ${rows.length}, whether or not anybody has assessed them.`}
-          expand={{ kind: 'not_built' }}
+          expand={{ kind: 'whole' }}
         />
         <div className={styles.banner}>
           <PlaceholderBanner />

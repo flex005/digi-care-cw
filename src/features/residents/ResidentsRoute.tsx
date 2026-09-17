@@ -108,7 +108,7 @@ export function ResidentsRoute() {
           <CardHead
             title="Your residents"
             subtitle={scopeNote(viewer.scope, activeSite.name)}
-            expand={{ kind: 'not_built' }}
+            expand={{ kind: 'whole' }}
           />
           <Unrecorded
             variant="panel"
@@ -219,7 +219,7 @@ export function ResidentsRoute() {
           <CardHead
             title="Your residents"
             subtitle="Sort by oldest care note to find the residents nobody has written up."
-            expand={{ kind: 'not_built' }}
+            expand={{ kind: 'whole' }}
           />
         </div>
         <ResidentsFilterBar listing={listing} />

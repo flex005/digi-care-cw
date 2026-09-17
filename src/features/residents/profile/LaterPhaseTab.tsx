@@ -23,7 +23,7 @@ function LaterPhaseTab({ segment }: { segment: string }) {
     <Card>
       <CardHead
         title={`${resident.preferredName}’s ${tab.label.toLowerCase()}`}
-        expand={{ kind: 'not_built' }}
+        expand={{ kind: 'whole' }}
       />
       <ActLine kind="not_built">{`This tab is built in ${PHASE_WORDS[tab.builtIn]}.`}</ActLine>
     </Card>

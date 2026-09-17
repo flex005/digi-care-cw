@@ -166,15 +166,13 @@ describe('the tab within the profile', () => {
     await screen.findByText('In an emergency')
 
     const panel = container.querySelector('[class*="tabPanel"]') as HTMLElement
-    // The act and the cards' expand buttons, and nothing else.
+    // The act, and nothing else. Each section card is the whole of its
+    // section, so it carries no expand button (CLAUDE.md §6).
     expect(
       within(panel)
         .getAllByRole('button')
         .map((button) => button.textContent || button.getAttribute('aria-label')),
-    ).toEqual([
-      'Edit profile',
-      ...FUTURE_PLANS_SECTIONS.map((section) => `Open ${section.title}, not built`),
-    ])
+    ).toEqual(['Edit profile'])
   })
 
   it('keeps the subject header mounted alongside it', async () => {
