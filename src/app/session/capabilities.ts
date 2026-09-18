@@ -413,6 +413,36 @@ export const CARE_ACTS = {
     confirmation: 'none',
     completion: done,
   },
+  change_your_email: {
+    name: 'Change your own email address',
+    source: {
+      kind: 'screen',
+      screen: 'PROF-01',
+      says: 'cannot change email — an admin does this in Team Management',
+    },
+    care_worker: mayNot(
+      'An admin changes your email address, in Team Management.',
+      'admin',
+    ),
+    senior_carer: mayNot(
+      'An admin changes your email address, in Team Management.',
+      'admin',
+    ),
+    confirmation: 'none',
+    completion: done,
+  },
+  change_your_role: {
+    name: 'Change your own role',
+    source: {
+      kind: 'screen',
+      screen: 'PROF-01',
+      says: 'cannot change role — an admin action',
+    },
+    care_worker: mayNot('An admin changes your role.', 'admin'),
+    senior_carer: mayNot('An admin changes your role.', 'admin'),
+    confirmation: 'none',
+    completion: done,
+  },
   open_compliance_and_reports: {
     name: 'Open compliance and reports',
     source: row('Compliance and Reports'),

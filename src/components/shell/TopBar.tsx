@@ -91,6 +91,11 @@ export function TopBar() {
               {member.ref.fullName} · {STAFF_ROLE_NAMES[member.role]}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            {/* PROF-01's own way in on the web, beside the rail's. */}
+            <DropdownMenuItem onSelect={() => router.push('/profile')}>
+              <Icon name={shellIcons.profile} size={16} />
+              Profile and settings
+            </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => router.push('/sign-out')}>
               <Icon name={shellIcons.signOut} size={16} />
               Sign out

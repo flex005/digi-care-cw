@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { sessionLosses } from '@/data/access/session-losses'
 import { pinHoldings } from '@/app/session/medication-pins'
 import { draftHoldings } from '@/features/notes/composer/draft-store'
+import { preferenceHoldings } from '@/features/profile/preference-store'
 import { useSession, useSignedIn } from '@/app/session/use-session'
 import { Button, buttonClassName } from '@/components/primitives'
 import { PageHead } from '@/components/layout/PageHead'
@@ -28,6 +29,7 @@ export function SignOutRoute() {
     ...sessionLosses(),
     ...pinHoldings(),
     ...draftHoldings(),
+    ...preferenceHoldings(),
   ])
   const total = losses.reduce((running, entry) => running + entry.count, 0)
   const firstName = member.ref.fullName.split(/\s+/)[0] ?? member.ref.fullName

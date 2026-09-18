@@ -74,11 +74,12 @@ describe('the icon rail', () => {
     const nav = await screen.findByRole('navigation', { name: 'Main navigation' })
     const groups = nav.querySelectorAll(':scope > ul')
     expect(groups).toHaveLength(2)
+    // Phase 10 built PROF-01, so the account is a link like every other module.
     expect(
-      within(groups[1] as HTMLElement).getByRole('button', {
-        name: 'Profile and settings, not built',
-      }),
-    ).toBeTruthy()
+      within(groups[1] as HTMLElement)
+        .getByRole('link', { name: 'Profile and settings' })
+        .getAttribute('href'),
+    ).toBe('/profile')
     expect(
       within(groups[1] as HTMLElement).getByRole('button', { name: 'Sign out' }),
     ).toBeTruthy()

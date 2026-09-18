@@ -125,6 +125,7 @@ export const ROUTES: RouteDeclaration[] = [
     screen: 'uploadDocument',
     inShell: true,
   },
+  { path: '/profile', screen: 'profile', module: 'profile', inShell: true },
   { path: '/specimens', screen: 'specimens', module: 'specimens', inShell: true },
 ]
 

@@ -397,6 +397,11 @@ const SCREENS = {
       ssr: false,
     },
   ),
+  profile: dynamic(
+    () =>
+      import('@/features/profile/ProfileRoute').then((module) => module.ProfileRoute),
+    { ssr: false },
+  ),
   specimens: dynamic(
     () =>
       import('@/features/specimens/SpecimensRoute').then(

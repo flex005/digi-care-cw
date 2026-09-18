@@ -7,6 +7,7 @@ import { endSession } from '@/data/access/session-losses'
 import { resetViewerScope, setViewer } from '@/data/access/viewer-scope'
 import { resetMedicationPins } from './medication-pins'
 import { resetNoteDrafts } from '@/features/notes/composer/draft-store'
+import { resetNotificationPreferences } from '@/features/profile/preference-store'
 import { SESSION_TIMEOUT_MINUTES, requestedMinutes } from './session-timeout'
 import {
   SessionContext,
@@ -82,6 +83,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     endSession()
     resetMedicationPins()
     resetNoteDrafts()
+    resetNotificationPreferences()
     setPending({ kind: 'none' })
     setSignIn({ kind: 'signed_out' })
   }, [])

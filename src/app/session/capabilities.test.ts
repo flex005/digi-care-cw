@@ -143,6 +143,16 @@ const PRD_TABLE_3: Record<
     care_worker: 'no',
     senior_carer: 'your_list',
   },
+  change_your_email: {
+    row: 'PROF-01',
+    care_worker: 'no',
+    senior_carer: 'no',
+  },
+  change_your_role: {
+    row: 'PROF-01',
+    care_worker: 'no',
+    senior_carer: 'no',
+  },
   open_compliance_and_reports: {
     row: 'Compliance and Reports',
     care_worker: 'no',

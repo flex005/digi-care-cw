@@ -1,0 +1,237 @@
+/* Profile and settings. Flex throughout, never grid. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+/* The photograph beside the fields, and above them where the column is narrow. */
+.you {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-24);
+  align-items: flex-start;
+  margin-top: var(--space-16);
+}
+
+.photo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  align-items: flex-start;
+  max-width: 320px;
+}
+
+.fields {
+  display: flex;
+  flex: 1 1 340px;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-bottom: var(--space-16);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.field:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.fieldName {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fieldValue {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: flex-start;
+  margin: 0;
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+}
+
+.quiet {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-regular);
+}
+
+.homes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.here {
+  color: var(--ink-500);
+}
+
+/* Both credential forms, in one column at every width: a password field and
+   the rules under it read as a sequence, never as two columns. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  align-items: stretch;
+  max-width: 520px;
+  margin-top: var(--space-16);
+}
+
+.waiting {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* What the act said when it was last performed. Quiet, because a recorded and
+   unremarkable outcome is plain text rather than a filled pill. */
+.said {
+  padding: var(--space-12) var(--space-16);
+  margin-top: var(--space-16);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface-sunken);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.ruleList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.rule {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.rule[data-met='true'] {
+  color: var(--status-positive-ink);
+}
+
+/* Appendix D. Five columns is wider than a phone, so the table scrolls inside
+   the card rather than the page scrolling sideways. */
+.scroll {
+  margin-top: var(--space-16);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.caption {
+  padding-bottom: var(--space-12);
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  text-align: left;
+}
+
+.table th,
+.table td {
+  padding: var(--space-12) var(--space-16) var(--space-12) 0;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table thead th {
+  color: var(--ink-500);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.rowHead {
+  min-width: 240px;
+  color: var(--ink-900);
+  font-weight: var(--weight-semibold);
+}
+
+/* Words, not a switch drawn off: an off switch would read as a notification
+   somebody turned off rather than one the PRD refuses to let anybody turn off. */
+.fixed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  color: var(--ink-900);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.switches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  margin-top: var(--space-16);
+}
+
+.deviceRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: flex-start;
+}
+
+.sessions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: 0;
+  margin: var(--space-16) 0 0;
+  list-style: none;
+}
+
+.session {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-16);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-surface-sunken);
+}
+
+.sessionWhat {
+  color: var(--ink-900);
+  font-weight: var(--weight-semibold);
+}
+
+.noOthers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: flex-start;
+  margin-top: var(--space-16);
+}

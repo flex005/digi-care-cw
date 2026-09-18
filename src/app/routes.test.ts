@@ -80,7 +80,7 @@ describe('routes', () => {
    * of their own: Phase 8 built those acts on a resident's record, which is
    * where they belong, and a home-wide screen for each is not in the CW PRD.
    */
-  it('has every module but Risk assessments, Consent and Documents live after Phase 9', () => {
+  it('has every module but Risk assessments, Consent and Documents live after Phase 10', () => {
     expect(
       NAV_ITEMS.filter((item) => isBuilt(item.module)).map((item) => item.label),
     ).toEqual([
@@ -93,6 +93,7 @@ describe('routes', () => {
       'Goals',
       'Activities',
       'Specimens',
+      'Profile and settings',
     ])
   })
 })

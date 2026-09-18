@@ -199,4 +199,5 @@ export const shellIcons = {
   expand: 'arrows-round/arrow-up-right-01-round',
   siteSwitcher: 'arrows-sharp/arrow-down-01-sharp',
   signOut: 'login-logout/logout-01',
+  profile: 'users/user-circle',
 } satisfies Record<string, IconName>

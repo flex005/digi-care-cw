@@ -589,3 +589,28 @@ Each was confirmed landed in the code the tests read, then reversed by hand.
 **Mutations run**, each confirmed landed and reversed: `dueSoon` zeroed, the finding segment drawn with the hatch, the scope filter removed so a care worker's figures counted the home, and the Already late list sorted newest first.
 
 `npm run verify` passes at the committed tree: 67 test files, 907 tests, icons, typecheck, ten lint stages, format and build.
+
+---
+
+## Phase 10: profile and restricted access (18/09/2026)
+
+**What was built.** PROF-01 at `/profile`, reached from the account menu and the rail: who you are and who changes each part of it, the two credential forms, the PRD's Appendix D in full with its switches, the device settings, where you are signed in, and signing out. Departures are in `docs/DEPARTURES.md` under Profile and settings. It is the last screen in this build.
+
+**The screen is mostly refusals, and one real act.** Four of its six sections describe something this product cannot do — authenticate, store a file, send a notification, or hold a session on another device — so each says what it does not do at the point it is offered. The medication PIN is the exception and it is a genuine one: the PIN is held in this tab and confirms a dose, a handover signature and a risk assessment afterwards, so changing it here changes those. Drawing it inert alongside the rest would have been cheaper and less true. A wrong current PIN counts towards the same five-try lock as a round does, because it is one PIN, and the screen says so before anybody types.
+
+**Appendix D turned out to exist.** The PRD's section D is a heading promising every notification with its channel, timing, role and whether it can be disabled, and reads as a promise with nothing under it; Table 19, eight lines further on, is the table. It is now `notification-table.ts`, typed cell for cell, and it disagrees with PROF-01: PROF-01 names four notifications as the safety-critical ones that cannot be turned off, and Appendix D's own column refuses six and calls two of them safety critical. Neither is preferred. The column decides whether a switch is drawn, the words "safety critical" appear only where the table writes them, and the disagreement is quoted at the act and asserted in a test, so correcting either document fails by name.
+
+**Reports and Compliance, confirmed rather than built.** No route, no rail entry, no link anywhere in the source, and `restricted-access.test.ts` holds all three. The refusal itself stays in `capabilities.test.ts` against Table 3: `check-role-names.mjs` reads test files too, and it was right to reject a second file naming a role — a disputed row must move in one place.
+
+**A guard the codebase had claimed to have for ten phases.** `session-losses.ts` came across from the Admin build with a docblock saying `scripts/check-session-losses.mjs` fails the build if a store is added that the loss list does not ask. That script was never ported. Nobody noticed, because nobody had added a session store since Phase 0 — until this phase added one for the notification preferences. It is written now, it reads both halves (every `*Holdings` export is asked by something that builds the loss list; every `reset*` is called where a session ends), and it is a stage of `npm run lint`.
+
+**Found on the way.**
+
+- **A guard that passed because an import mentioned the name.** The first mutation against the new guard removed `preferenceHoldings()` from the sign-out screen's list and the guard said the store was asked. The mutation had landed in the code the guard reads — the §8 procedure was followed — and the guard was still wrong: it tested whether the name appeared in the file, and the import at the top still carried it. Imports are stripped now, and the mutation fails. New §8 entry.
+- **Colour alone carried whether a PIN rule was met.** Caught by looking at the greyscale capture, not by a test. The password rules beside it have carried a mark since Phase 1; these three were new and had only a colour. A mark as well now, and a test that fails without it.
+- **The hatch had wandered onto a device list.** "No other session is known" was drawn as a gap chip. A session on another device is not a care record somebody failed to write, and spending the one signal that means "nobody has recorded this" on it would blunt it — the same reasoning that keeps it off a resident's missing photograph. The words carry the whole claim instead, and a test asserts the screen draws no hatch at all.
+- **A stale server on the screenshot port, again.** `next start` reported success, the page returned 200, and the log's last lines were an `EADDRINUSE` from a server three phases old. The capture would have been of a build with no profile screen in it. Phase 4 met the same thing; what caught it this time was reading the server log rather than the status code.
+
+**Mutations run**, each confirmed landed in the code under test and reversed by hand: the notification switch drawn on every row including the six the PRD fixes; the PIN change writing a new PIN over a wrong current one; the preference store accepting a notification Appendix D refuses to let anybody turn off; the PIN rule mark removed; and the two against the new guard.
+
+Screenshots: both roles, 1440 and 390, colour and greyscale, at `/private/tmp/claude-501/-Users-frankyflex-Documents-digi-care-cw/440b06aa-1a63-4210-af3c-bb85b83e94d5/scratchpad/shots-p10-final`.
