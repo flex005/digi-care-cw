@@ -21,14 +21,118 @@
   align-items: stretch;
 }
 
+/*
+ * The dark card holds the left of the row at a fixed width, and the four tiles
+ * take the rest two up and two down.
+ *
+ * **It does not grow.** It did (`flex: 1 1 320px`), which put it and the tile
+ * strip on a share each and left the tiles in one row of four — four figures
+ * in a line beside the thing they are context for. The card is the reading
+ * order's first stop and the tiles are the surroundings, so the card is sized
+ * to what it says and the tiles wrap into the space that is left.
+ */
 .lead {
   display: flex;
-  flex: 1 1 320px;
+  flex: 1 1 480px;
   flex-direction: column;
 }
 
 .lead > section {
   flex: 1;
+}
+
+/*
+ * The four tiles, two up and two down, beside the card.
+ *
+ * **Flex, never grid**: two per row comes from a basis of half the row less
+ * half the gap, so `2 × (50% − 8px) + 16px` is exactly the row. Below about
+ * 900px the basis loses to the tile floor and they go one per row, which is
+ * the compact layout doing what it should without a second breakpoint.
+ *
+ * **The block's own basis is the narrowest it can honestly be** — two tiles at
+ * their floor plus the gap. It was 420px, and the card's width and the tiles'
+ * are one sum: at 460 the row stopped fitting just above the compact
+ * breakpoint, the block dropped below the card, and the card sat alone on a
+ * line with 430px of nothing beside it. A band narrow enough that only a
+ * measurement finds it.
+ *
+ * Reached through `[data-metric-tile]` because `MetricTile` owns its own class
+ * and four other modules draw the same card: a tile is two-up **here**, and
+ * Residents, Care notes, Handover and Medications keep the row of four they
+ * were built with.
+ */
+.tileGrid {
+  /**
+   * The narrowest a tile may be here, and the number the block's basis is
+   * built from, so the two cannot drift apart.
+   *
+   * **176 is solved, not chosen.** It has to clear two bounds at once. Above
+   * 171 — half a 390px phone's content less the gap — or the tiles sit two
+   * across on a phone at 171px each, which is narrower than the strip's own
+   * floor. At or below 180, because the card, the gap and two tiles are one
+   * sum: at 1024 the content is 892px and the card takes 480 of it, which
+   * leaves (892 − 480 − 16 − 16) / 2 for a tile. Outside that range something
+   * breaks at one end or the other, and both ends were measured.
+   */
+  --tile-floor: 176px;
+
+  display: flex;
+
+  /*
+   * **A grow factor of 999 against the card's 1**, so the spare width on a
+   * shared row goes to the tiles and the card stays at the 480px it was sized
+   * to. The card still grows — which is the point: below about 850 the tiles
+   * wrap onto their own line, and a card that could not grow sat there at
+   * 480px with 300px of white beside it. Now it fills the line it is alone on
+   * and holds its width on the line it shares.
+   */
+  flex: 999 1 calc(var(--tile-floor) * 2 + var(--space-16));
+  min-width: 0;
+}
+
+.tileGrid > section {
+  flex: 1;
+  align-content: stretch;
+}
+
+.tileGrid [data-metric-tile] {
+  flex: 1 1 calc(50% - var(--space-16) / 2);
+
+  /*
+   * 180px, not the strip's own 170 or the 200 this started at.
+   *
+   * The floor and the card's width are one sum: the row holds the card, the
+   * gap and two tiles, so raising the card by 80px is 80px the tiles no longer
+   * have. At 200 the pair stopped fitting just under 1024 and the tiles fell
+   * to one per row in the band above the compact layout — the only width where
+   * nobody would have looked. Measured at 1440, 1280, 1100, 1024 and 900
+   * rather than reasoned about.
+   */
+  min-width: var(--tile-floor);
+}
+
+/*
+ * The rounds and what the record holds, side by side.
+ *
+ * They are one reading: the rounds are today's doses and the bars are what the
+ * record holds across every module, so a reader comparing them was scrolling
+ * between two full-width cards to do it.
+ *
+ * `420px` is the basis each wants; below about 900 the row wraps and they
+ * stack, which is the compact layout doing it without a second breakpoint.
+ */
+.pair {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  align-items: stretch;
+}
+
+.pair > [data-card] {
+  display: flex;
+  flex: 1 1 420px;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .bannerDetail {
@@ -45,6 +149,14 @@
 
 /* -------------------------------------------------------------- the rounds */
 
+/*
+ * The round's footnotes, directly under the legend.
+ *
+ * They were pushed to the foot of the card with `margin-top: auto` while the
+ * chart was a fixed 220px, which moved the void rather than filling it. The
+ * chart grows into the card now, so the notes belong where they read: under
+ * what they annotate.
+ */
 .roundNotes {
   display: flex;
   flex-wrap: wrap;

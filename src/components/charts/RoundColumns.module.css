@@ -1,14 +1,27 @@
+/*
+ * The chart fills whatever height it is given, down to a floor.
+ *
+ * `.columns` held a fixed `height: 220px`, which is right where the chart sits
+ * in a column of its own and wrong beside a card that is taller: the columns
+ * stayed 220px at the top and the rest of the card was a void with the
+ * footnotes stranded under it. A floor rather than a fixed height keeps the
+ * specimens sheet, which has nothing stretching it, at exactly the 220 it
+ * always was — `flex: 1` with no free space to take resolves to the minimum.
+ */
 .chart {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: var(--space-16);
+  min-height: 0;
 }
 
 .columns {
   display: flex;
+  flex: 1;
   gap: var(--space-12);
   align-items: stretch;
-  height: 220px;
+  min-height: 220px;
   list-style: none;
 }
 

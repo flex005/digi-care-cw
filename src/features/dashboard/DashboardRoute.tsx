@@ -292,119 +292,122 @@ export function DashboardRoute() {
           />
         </div>
 
-        <MetricTiles label={`Today at ${activeSite.name}`}>
-          <MetricTile
-            label="Due now or in the next 2 hours"
-            icon={metricIcons.doses}
-            figure={<MetricValue>{formatCount(soon.doses)}</MetricValue>}
-            of={`doses, across ${pluralise(soon.residents, 'resident')} of ${residents.length}`}
-          />
-          <MetricTile
-            label="Not written up today"
-            icon={metricIcons.notesMissing}
-            figure={
-              quiet.length === 0 ? (
-                <MetricValue>{formatCount(0)}</MetricValue>
-              ) : (
-                <Unrecorded variant="chip" label={`${formatCount(quiet.length)}`} />
-              )
-            }
-            of={`of ${pluralise(residents.length, 'resident')}`}
-            note={
-              quiet.length === 0
-                ? 'Everybody counted here has a care note today.'
-                : 'Nobody has recorded a care note for them today.'
-            }
-          />
-          <MetricTile
-            label="Flagged for a senior carer"
-            icon={metricIcons.alert}
-            figure={<MetricValue>{formatCount(flagged)}</MetricValue>}
-            of={`of ${pluralise(notes.length, 'care note')} counted here`}
-          />
-          <MetricTile
-            label="Doses past their window"
-            icon={metricIcons.notesMissing}
-            figure={
-              pastWindow === 0 ? (
-                <MetricValue>{formatCount(0)}</MetricValue>
-              ) : (
-                <Unrecorded variant="chip" label={`${formatCount(pastWindow)}`} />
-              )
-            }
-            of={`of ${pluralise(todaysRecords.length, 'dose')} on today’s chart`}
-          />
-        </MetricTiles>
+        <div className={styles.tileGrid}>
+          <MetricTiles label={`Today at ${activeSite.name}`}>
+            <MetricTile
+              label="Due now or in the next 2 hours"
+              icon={metricIcons.doses}
+              figure={<MetricValue>{formatCount(soon.doses)}</MetricValue>}
+              of={`doses, across ${pluralise(soon.residents, 'resident')} of ${residents.length}`}
+            />
+            <MetricTile
+              label="Not written up today"
+              icon={metricIcons.notesMissing}
+              figure={
+                quiet.length === 0 ? (
+                  <MetricValue>{formatCount(0)}</MetricValue>
+                ) : (
+                  <Unrecorded variant="chip" label={`${formatCount(quiet.length)}`} />
+                )
+              }
+              of={`of ${pluralise(residents.length, 'resident')}`}
+              note={
+                quiet.length === 0
+                  ? 'Everybody counted here has a care note today.'
+                  : 'Nobody has recorded a care note for them today.'
+              }
+            />
+            <MetricTile
+              label="Flagged for a senior carer"
+              icon={metricIcons.alert}
+              figure={<MetricValue>{formatCount(flagged)}</MetricValue>}
+              of={`of ${pluralise(notes.length, 'care note')} counted here`}
+            />
+            <MetricTile
+              label="Doses past their window"
+              icon={metricIcons.notesMissing}
+              figure={
+                pastWindow === 0 ? (
+                  <MetricValue>{formatCount(0)}</MetricValue>
+                ) : (
+                  <Unrecorded variant="chip" label={`${formatCount(pastWindow)}`} />
+                )
+              }
+              of={`of ${pluralise(todaysRecords.length, 'dose')} on today’s chart`}
+            />
+          </MetricTiles>
+        </div>
       </div>
 
-      {/* ---- the rounds --------------------------------------------------- */}
-      <Card>
-        <CardHead
-          title="Rounds today"
-          subtitle="One column per round: filled is recorded, hatched is due with nothing recorded. The same records the MAR chart reads."
-          expand={{ kind: 'link', href: '/medications/round' }}
-        />
-        <RoundColumns columns={rounds} />
-        <ul className={styles.roundNotes}>
-          {rounds.map((round) => (
-            <li
-              key={round.round}
-              className={styles.roundNote}
-              data-round-note={round.round}
-            >
-              <span className={styles.roundTime} data-numeric>
-                {round.round}
-              </span>
-              <span>
-                {round.total === 0
-                  ? 'no doses on the chart'
-                  : round.dueNotRecorded > 0
-                    ? `${pluralise(round.dueNotRecorded, 'dose')} with no record`
-                    : round.recorded === round.total
-                      ? 'all recorded'
-                      : `${round.total - round.recorded} not yet due`}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </Card>
+      {/* ---- the rounds, beside what the record holds ---------------------- */}
+      <div className={styles.pair}>
+        <Card>
+          <CardHead
+            title="Rounds today"
+            subtitle="One column per round: filled is recorded, hatched is due with nothing recorded. The same records the MAR chart reads."
+            expand={{ kind: 'link', href: '/medications/round' }}
+          />
+          <RoundColumns columns={rounds} />
+          <ul className={styles.roundNotes}>
+            {rounds.map((round) => (
+              <li
+                key={round.round}
+                className={styles.roundNote}
+                data-round-note={round.round}
+              >
+                <span className={styles.roundTime} data-numeric>
+                  {round.round}
+                </span>
+                <span>
+                  {round.total === 0
+                    ? 'no doses on the chart'
+                    : round.dueNotRecorded > 0
+                      ? `${pluralise(round.dueNotRecorded, 'dose')} with no record`
+                      : round.recorded === round.total
+                        ? 'all recorded'
+                        : `${round.total - round.recorded} not yet due`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Card>
 
-      {/* ---- module completeness ----------------------------------------- */}
-      <Card>
-        <CardHead
-          title="What the record holds"
-          subtitle={scopeNote(viewer.scope, activeSite.name)}
-          expand={{ kind: 'whole' }}
-        />
-        <div className={styles.bars}>
-          <CompletionBar
-            label="Care notes today"
-            {...careNotesToday(residents, residents.length - quiet.length)}
-            of={`of ${pluralise(residents.length, 'resident')} counted here`}
+        <Card>
+          <CardHead
+            title="What the record holds"
+            subtitle={scopeNote(viewer.scope, activeSite.name)}
+            expand={{ kind: 'whole' }}
           />
-          <CompletionBar
-            label="Medication today"
-            {...medicationToday(todaysRecords)}
-            of="of the doses on today’s chart"
-          />
-          <CompletionBar
-            label="Risk assessments"
-            {...riskAssessments(residents)}
-            of={`of the assessments ${activeSite.name} carries out`}
-          />
-          <CompletionBar
-            label="Care plan domains"
-            {...carePlanDomains(residents)}
-            of={`of the domains ${activeSite.name} keeps`}
-          />
-          <CompletionBar
-            label="Consents"
-            {...consents(residents)}
-            of={`of the consent types ${activeSite.name} asks about`}
-          />
-          <IncidentsBar incidents={incidents} />
-        </div>
-      </Card>
+          <div className={styles.bars}>
+            <CompletionBar
+              label="Care notes today"
+              {...careNotesToday(residents, residents.length - quiet.length)}
+              of={`of ${pluralise(residents.length, 'resident')} counted here`}
+            />
+            <CompletionBar
+              label="Medication today"
+              {...medicationToday(todaysRecords)}
+              of="of the doses on today’s chart"
+            />
+            <CompletionBar
+              label="Risk assessments"
+              {...riskAssessments(residents)}
+              of={`of the assessments ${activeSite.name} carries out`}
+            />
+            <CompletionBar
+              label="Care plan domains"
+              {...carePlanDomains(residents)}
+              of={`of the domains ${activeSite.name} keeps`}
+            />
+            <CompletionBar
+              label="Consents"
+              {...consents(residents)}
+              of={`of the consent types ${activeSite.name} asks about`}
+            />
+            <IncidentsBar incidents={incidents} />
+          </div>
+        </Card>
+      </div>
 
       {/* ---- already late -------------------------------------------------- */}
       <Card>

@@ -645,3 +645,27 @@ Screenshots: both roles, 1440 and 390, colour and greyscale, at `/private/tmp/cl
 **Mutations run**, each confirmed landed in the code under test and reversed by hand: the consent list flattening who decided into what was decided; the risk list ranking an overdue assessment above one never assessed; the documents screen counting a missing expiry decision as one; and the two against the new guard.
 
 Screenshots of all three, both roles, 1440 and 390, colour and greyscale, at `/private/tmp/claude-501/-Users-frankyflex-Documents-digi-care-cw/440b06aa-1a63-4210-af3c-bb85b83e94d5/scratchpad/shots-p11-final2`. Two things came out of looking at them rather than out of a test: 78 uncapped rows made the risk screen 7,000px at 1440 and 16,000px on a phone, so both lists now page at 25 through the `Pager` the residents list already uses; and the dark card was offering a button to show the tab already on screen, which is the grey-link problem inverted — it is a statement while its own tab is the view, and a button once the reader is somewhere else.
+
+---
+
+## The dashboard's figures row, and a test that expired (19/09/2026)
+
+**The layout.** The dark "Already late" card no longer grows: it holds the left of the row at 380px, and the four metric tiles take the rest two up and two down. It was `flex: 1 1 320px`, which gave the card and the tile strip a share each and left the four tiles in a single line beside the thing they are context for. The card is the reading order's first stop; the tiles are its surroundings.
+
+Flex, never grid: two per row comes from a basis of `calc(50% - var(--space-16) / 2)`, so `2 × (50% − 8px) + 16px` is exactly the row. Measured at five widths rather than assumed — 1440, 1280, 1100 and 900 all give the 380px card and a 2×2 block whose bottom edge meets the card's, and 390 stacks the tiles one per row with no horizontal overflow anywhere.
+
+**Scoped to this screen, deliberately.** `MetricTile` owns its own class and four other modules draw the same card, so the two-up rule is reached through `[data-metric-tile]` from the dashboard's own stylesheet. Residents, Care notes, Handover and Medications keep the row of four they were built with.
+
+**Then the card went to 460px and the two cards below it paired up.** Rounds today on the left, what the record holds on the right, equal width and one height. They are one reading — the rounds are today's doses, the bars are what the record holds across every module — and comparing them meant scrolling between two full-width cards.
+
+**Widening the card is width the tiles lose, and the sum is what broke.** At a 420px basis for the tile block the row stopped fitting just above the compact breakpoint: around 1024 the block dropped below the card and left it alone on a line with 430px of nothing beside it — a band narrow enough that only a measurement finds it, and one nobody would have thought to screenshot. The basis is now the narrowest the block can honestly be, two tiles at their floor plus the gap, and the floor came down from 200 to 180. Measured at 1440, 1280, 1100, 1040, 1024, 980, 900 and 390: card at 460 with the 2×2 beside it and the two cards side by side at every one of them down to 900, everything stacked at 390, and no horizontal overflow anywhere.
+
+**Then the chart was made to grow, which is what the card actually needed.** The footnotes had been pushed to the foot with `margin-top: auto`, and that moved the void rather than filling it: `RoundColumns` held `height: 220px`, so the columns stayed at the top of a card sized by the bars beside them and the notes sat stranded at the bottom with nothing in between. It reads worst in the state a shift actually sees — one round with doses and three still to come — which is what the screenshot showed.
+
+The fixed height is a floor now. `.columns` takes `flex: 1` with `min-height: 220px`, so it fills whatever it is given and resolves to exactly 220 where nothing stretches it — checked on the specimens sheet, which draws the same chart in a column of its own and still measures 220. The notes went back under the legend, where they read.
+
+**The card is 480px and the tile floor is 176px, and both were solved rather than picked.** The floor has to clear two bounds at once: above 171, half a phone's content less the gap, or the tiles sit two across on a 390 screen at less than the strip's own floor; and at or below 180, because at 1024 the content is 892px and the card takes 480 of it. Outside that range something breaks at one end or the other, and both ends were measured.
+
+**The tile block grows at 999 to the card's 1.** So the spare width on a shared row goes to the tiles and the card holds the width it was sized to — but below about 850 the tiles wrap onto their own line, and a card that could not grow sat there at 480px with 300px of white beside it. Now it fills the line it is alone on. Measured at 1440, 1280, 1100, 1024, 980, 900, 820, 768 and 390.
+
+**And a test that was true for one day.** The full verify failed on two tests in `report.test.tsx` that nobody had touched: the date had rolled to the 19th, and the incident form's tests held `'2026-09-18T20:20'` as the expected default and `'2026-09-19T08:00'` as a time "in the future" — which had become the past. Both now derive from `now()`, the same clock the screen reads. A sweep of every test file that imports the fixture clock found no others of that shape: the rest supply their own `now` beside their own records, where the literals and the clock move together. New §8 entry.
