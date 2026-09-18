@@ -9,6 +9,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { IsoDateTime, ResidentId } from '@/data/types'
 import { now } from '@/data/fixtures/clock'
+import { zonedWallClockInput } from '@/lib/format'
 import { staffAkinyemi, staffEze, staffOsei } from '@/data/fixtures/organisation'
 import { endSession } from '@/data/access/session-losses'
 import {
@@ -88,11 +89,24 @@ describe('the form', () => {
     expect(screen.getByRole('button', { name: 'Report this incident' })).toBeEnabled()
   })
 
+  /*
+   * **Derived from the fixture clock, never written out.** Both of these held
+   * a literal date and both broke the morning the real date rolled past the
+   * one somebody typed: the first expected yesterday, and the second's "future"
+   * time became the past. The fixture clock is built against the instant the
+   * page loads, so a date written into a test is a date that is true for one
+   * day. `?at=20:20` fixes the time of day; the day itself is today's, and the
+   * expectation reads it from the same place the screen does.
+   */
+  const rosewoodNow = () =>
+    zonedWallClockInput(now().toISOString() as IsoDateTime, 'Europe/London')
+
   it('defaults the time to now in the home’s clock, and says so', async () => {
     await openForm()
     const field = document.querySelector<HTMLInputElement>('[data-occurred-at]')!
     // 20:20 at Rosewood, which is 19:20 UTC: the home's clock, not the machine's.
-    expect(field.value).toBe('2026-09-18T20:20')
+    expect(field.value).toBe(rosewoodNow())
+    expect(field.value).toMatch(/T20:20$/)
     expect(screen.getByText(/The clock is Rosewood Court’s\./)).toBeInTheDocument()
   })
 
@@ -140,7 +154,13 @@ describe('the form', () => {
     await fillIn(user, { name: /Emmanuel Okafor/ })
     const field = document.querySelector<HTMLInputElement>('[data-occurred-at]')!
     await user.clear(field)
-    await user.type(field, '2026-09-19T08:00')
+    // Tomorrow at the same hour, measured from the clock the form reads, so it
+    // is in the future on every day this runs rather than on one of them.
+    const tomorrow = zonedWallClockInput(
+      new Date(now().getTime() + 24 * 60 * 60 * 1000).toISOString() as IsoDateTime,
+      'Europe/London',
+    )
+    await user.type(field, tomorrow)
     await waitFor(() => expect(waiting()).toContain('a time that is not in the future'))
   })
 
