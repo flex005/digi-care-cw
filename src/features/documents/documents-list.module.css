@@ -1,0 +1,215 @@
+/* DOC-01, everything on file at the home. Flex throughout, never grid. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+.status {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.bannerDetail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.bannerQuiet {
+  color: var(--purple-200);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.acts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  margin-top: var(--space-12);
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: center;
+  margin-top: var(--space-12);
+}
+
+.pill {
+  display: inline-flex;
+  gap: var(--space-4);
+  align-items: center;
+  min-height: var(--space-40);
+  padding: var(--space-8) var(--space-16);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pill:hover {
+  background-color: var(--purple-50);
+}
+
+.pillChosen {
+  composes: pill;
+  border-color: var(--purple-900);
+  background-color: var(--purple-900);
+  color: var(--bg-surface);
+  font-weight: var(--weight-semibold);
+}
+
+.pillChosen:hover {
+  background-color: var(--purple-900);
+}
+
+.claim {
+  margin-top: var(--space-12);
+  padding-bottom: var(--space-12);
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.claim > [data-numeric] {
+  color: var(--ink-900);
+  font-weight: var(--weight-bold);
+}
+
+.empty {
+  padding-block: var(--space-16);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-24);
+  align-items: center;
+  padding-block: var(--space-16);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.rowWho {
+  display: flex;
+  flex: 0 0 220px;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.rowState {
+  display: flex;
+  flex: 1 1 320px;
+  align-items: center;
+  min-width: 0;
+}
+
+.rowAct {
+  display: flex;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.rowName {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-semibold);
+}
+
+.rowMeta {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.aside {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-12);
+  align-items: center;
+  margin-top: var(--space-16);
+}
+
+.rowWhat {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.rowTitle {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-semibold);
+}
+
+.rowCounts {
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.onFile {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.onFile > [data-numeric] {
+  color: var(--ink-900);
+  font-weight: var(--weight-bold);
+}
+
+/* The three findings side by side and never summed: two are about documents
+   somebody decided on, the third is the absence of that decision. */
+.findings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+/* Nothing is green for being unremarkable. */
+.settledLine {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.categoryLink {
+  color: var(--purple-600);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+  text-decoration: underline;
+}

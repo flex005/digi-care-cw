@@ -12,7 +12,7 @@
     "icons": "node scripts/icons/build-icons.mjs",
     "icons:check": "node scripts/icons/build-icons.mjs --check",
     "typecheck": "tsc --noEmit",
-    "lint": "npm run lint:es && npm run lint:css && npm run lint:classes && npm run lint:tokens && npm run lint:hatch && npm run lint:assignment && npm run lint:client-only && npm run lint:figma && npm run lint:caution && npm run lint:roles && npm run lint:losses",
+    "lint": "npm run lint:es && npm run lint:css && npm run lint:classes && npm run lint:tokens && npm run lint:hatch && npm run lint:assignment && npm run lint:client-only && npm run lint:figma && npm run lint:caution && npm run lint:roles && npm run lint:losses && npm run lint:nav",
     "lint:es": "eslint . --max-warnings 0",
     "lint:css": "stylelint \"src/**/*.css\"",
     "lint:classes": "node scripts/check-css-classes.mjs",
@@ -29,7 +29,8 @@
     "prepare": "husky",
     "lint:caution": "node scripts/check-caution-carriers.mjs",
     "lint:roles": "node scripts/check-role-names.mjs",
-    "lint:losses": "node scripts/check-session-losses.mjs"
+    "lint:losses": "node scripts/check-session-losses.mjs",
+    "lint:nav": "node scripts/check-nav-reach.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx}": "eslint --fix",

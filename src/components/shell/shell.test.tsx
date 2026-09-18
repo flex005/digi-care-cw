@@ -62,11 +62,17 @@ describe('the icon rail', () => {
       '/',
     )
 
-    // Documents has no home-wide screen: filing lives on a resident's record.
-    const documents = within(nav).getByRole('button', {
-      name: 'Documents, not built',
-    })
-    expect(documents.getAttribute('data-built')).toBe('false')
+    // Every module has a screen now, so nothing in the rail is a popover.
+    expect(
+      within(nav).getByRole('link', { name: 'Documents' }).getAttribute('href'),
+    ).toBe('/documents')
+    expect(
+      within(nav).getByRole('link', { name: 'Risk assessments' }).getAttribute('href'),
+    ).toBe('/risk-assessments')
+    expect(
+      within(nav).getByRole('link', { name: 'Consent' }).getAttribute('href'),
+    ).toBe('/consent')
+    expect(nav.querySelectorAll('[data-built="false"]')).toHaveLength(0)
   })
 
   it('holds the account and signing out in its second group', async () => {

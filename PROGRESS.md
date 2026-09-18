@@ -614,3 +614,34 @@ Each was confirmed landed in the code the tests read, then reversed by hand.
 **Mutations run**, each confirmed landed in the code under test and reversed by hand: the notification switch drawn on every row including the six the PRD fixes; the PIN change writing a new PIN over a wrong current one; the preference store accepting a notification Appendix D refuses to let anybody turn off; the PIN rule mark removed; and the two against the new guard.
 
 Screenshots: both roles, 1440 and 390, colour and greyscale, at `/private/tmp/claude-501/-Users-frankyflex-Documents-digi-care-cw/440b06aa-1a63-4210-af3c-bb85b83e94d5/scratchpad/shots-p10-final`.
+
+---
+
+## The three screens Phase 9 wrote off (18/09/2026)
+
+**What was built.** RA-01 at `/risk-assessments`, CON-01 at `/consent` and DOC-01 at `/documents` — the three home-wide list screens whose rail entries had pointed at nothing since Phase 0. Departures are in `docs/DEPARTURES.md` under *Risk assessments, consent and documents*.
+
+**The mistake, plainly.** Phase 9 recorded in DEPARTURES that these three had no home-wide screen because "a home-wide screen for each is not in the CW PRD". That is false, and it was false when it was written: RA-01, CON-01 and DOC-01 are full screen specifications in `docs/CW_PRD.md`, of the same shape as GOAL-01, ACT-01 and INC-01, which were built without anybody hesitating. The sentence was written from memory of what had been built rather than from the document, and then it stood as a reason — so the next phase read a decision where there had only ever been an omission. **A departure is a claim about the PRD, and a claim about a document is checked against the document.**
+
+**Why nine phases went by.** `isBuilt()` reads the route table, so a rail entry whose module has no route draws "not built yet" on a press rather than a dead link. That is the right behaviour and it is why nothing ever broke: the navigation never lied to a reader. What nothing checked was whether anybody intended it. `scripts/check-nav-reach.mjs` now fails the build for a rail entry with no screen unless somebody names it in `DELIBERATELY_UNBUILT` with a reason, and it also checks the thing `isBuilt` cannot — that a nav item's `path` is the path its route declares, since `isBuilt` matches on the module alone and a drifted path would pass it and 404 on click. Broken on purpose twice: once by removing a route's `module`, which reproduces the original defect exactly, and once by changing a nav path so it no longer matched its route.
+
+**Every figure the PRD quotes, the fixtures already produced.** 78 never assessed of 252, across 28 residents and 9 templates, 9 past their review date. 42 consents never sought of 224, across 28 residents and 8 types, 64 decisions made for somebody rather than by them. 237 of 306 documents carrying an expiry decision — 77% — and the three category rows DOC-01 illustrates, 109/10/5/21, 41/5/1/9 and 34/3/3/4, to the document. Nothing was tuned to match: the counting was written from the record and the numbers came out. They are asserted by number in the tests rather than as `greaterThan(0)`, so a change to either the counting or the fixtures fails by name.
+
+**Decisions this took beyond the brief.**
+
+- **An assessed risk with no review date is a fifth state.** RA-01's tabs are Never assessed, Review overdue and Review due, and a review nobody has scheduled has passed no date — filing it under "overdue" would claim a deadline that was never set. There are 17 at Rosewood. They sit in All and in no other tab, and are counted and named under the second card so they are not a state a reader can only find by scrolling.
+- **Who decided outranks what was decided, on the consent list.** An attorney's refusal is "Decided for them", not "Refused". The Refused tab is the resident saying no, and putting somebody else's decision under the resident's name is exactly what the record's decision authority exists to prevent.
+- **An expired document still carries an expiry decision.** Somebody decided and the decision ran out, which is a finding; folding it into the missing-decision count would hide the difference the lead figure exists to show.
+- **All seven document categories, where DOC-01 illustrates three.** A screen showing three headings tells a reader there are three kinds of document.
+- **A row a care worker's list does not reach stays on the list and says so.** The home's gap is the home's whether or not this person was given that resident; what their list decides is whether they can open the record behind the row.
+
+**The hatch gained an eighth form.** RA-01 and CON-01 both specify a dark summary card with a hatched *border*. Composing `.unrecorded` would bring the gradient and the ink with it, painting the tint over `--purple-900` and the unrecorded ink over white text. `.unrecordedEdge` is the dashed edge alone, in the hatch's own file because `check-hatch.mjs` allows that declaration there and nowhere else — which is the rule working rather than being worked around: no other dark card can quietly acquire an edge that says "nobody recorded this" about a figure somebody did record. `ActionCard` takes `gap` to ask for it, and its docblock says what it is not for.
+
+**Found on the way.**
+
+- **Two tests written with an escape hatch, caught before they shipped.** Both had the shape §8 named last phase — `if (shown.length < 2) return expect(true).toBe(true)` — and both were rewritten to assert the fixtures' real figures once those were known. The §8 entry was four hours old and the habit still produced them; what stopped them was reading the test back with its name covered up.
+- **A second false claim in the same file.** DEPARTURES said Reports "shows a no-access page". No such page was ever built. Corrected, with what is actually true: no route, no rail entry, no link.
+
+**Mutations run**, each confirmed landed in the code under test and reversed by hand: the consent list flattening who decided into what was decided; the risk list ranking an overdue assessment above one never assessed; the documents screen counting a missing expiry decision as one; and the two against the new guard.
+
+Screenshots of all three, both roles, 1440 and 390, colour and greyscale, at `/private/tmp/claude-501/-Users-frankyflex-Documents-digi-care-cw/440b06aa-1a63-4210-af3c-bb85b83e94d5/scratchpad/shots-p11-final2`. Two things came out of looking at them rather than out of a test: 78 uncapped rows made the risk screen 7,000px at 1440 and 16,000px on a phone, so both lists now page at 25 through the `Pager` the residents list already uses; and the dark card was offering a button to show the tab already on screen, which is the grey-link problem inverted — it is a statement while its own tab is the view, and a button once the reader is somewhere else.

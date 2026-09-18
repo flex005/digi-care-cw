@@ -397,6 +397,25 @@ const SCREENS = {
       ssr: false,
     },
   ),
+  riskAssessments: dynamic(
+    () =>
+      import('@/features/risk/RiskListRoute').then((module) => module.RiskListRoute),
+    { ssr: false },
+  ),
+  consentList: dynamic(
+    () =>
+      import('@/features/consent/ConsentListRoute').then(
+        (module) => module.ConsentListRoute,
+      ),
+    { ssr: false },
+  ),
+  documents: dynamic(
+    () =>
+      import('@/features/documents/DocumentsRoute').then(
+        (module) => module.DocumentsRoute,
+      ),
+    { ssr: false },
+  ),
   profile: dynamic(
     () =>
       import('@/features/profile/ProfileRoute').then((module) => module.ProfileRoute),

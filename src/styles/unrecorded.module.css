@@ -194,3 +194,23 @@
 .unrecordedMark {
   composes: unrecorded;
 }
+
+/**
+ * The dashed edge alone, with no fill, for a surface that already has one.
+ *
+ * **The one form that does not compose `.unrecorded`**, because composing it
+ * would bring the gradient and the ink with it — and on the dark card that
+ * means painting the tint over `--purple-900` and the unrecorded ink over
+ * white text. What the card needs is the edge: RA-01 and CON-01 both specify a
+ * dark summary card with a hatched border, and the figure on it is the count
+ * of things nobody has recorded, so it is the treatment used for exactly what
+ * it means rather than a decoration borrowed from it.
+ *
+ * It lives here because `check-hatch.mjs` allows `dashed var(--border-unrecorded)`
+ * in this file and nowhere else, which is the rule working: a dark card
+ * elsewhere cannot quietly acquire an edge that says "nobody recorded this"
+ * about a figure somebody did record.
+ */
+.unrecordedEdge {
+  border: 1.5px dashed var(--border-unrecorded);
+}

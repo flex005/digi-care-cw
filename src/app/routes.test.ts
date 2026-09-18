@@ -76,24 +76,16 @@ describe('routes', () => {
    * Activities, Phase 6 Incidents, Phase 5 Handover, Phase 4 Medications,
    * Phase 3 Care notes, Phase 2 Residents, Phase 0 Specimens.
    *
-   * Risk assessments, Consent and Documents stay as rail items with no screen
-   * of their own: Phase 8 built those acts on a resident's record, which is
-   * where they belong, and a home-wide screen for each is not in the CW PRD.
+   * **Every module, with nothing left pointing at nothing.** Risk assessments,
+   * Consent and Documents were rail items with no screen for nine phases, on a
+   * reading that called RA-01, CON-01 and DOC-01 out of scope. They are full
+   * screen specifications in the CW PRD, the reading was wrong, and
+   * `check-nav-reach.mjs` now fails the build rather than leaving the next one
+   * to notice.
    */
-  it('has every module but Risk assessments, Consent and Documents live after Phase 10', () => {
+  it('has every module live', () => {
     expect(
       NAV_ITEMS.filter((item) => isBuilt(item.module)).map((item) => item.label),
-    ).toEqual([
-      'Today',
-      'Residents',
-      'Care notes',
-      'Handover',
-      'Medications',
-      'Incidents',
-      'Goals',
-      'Activities',
-      'Specimens',
-      'Profile and settings',
-    ])
+    ).toEqual(NAV_ITEMS.map((item) => item.label))
   })
 })

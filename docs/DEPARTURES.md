@@ -6,7 +6,7 @@ Where this build does something other than `docs/CW_PRD.md` says, it is written 
 
 - **Care Home only.** The PRD's Hospital (Acute and Community), Domiciliary Care and Supported Living variations (rows 10b–10d, 13a, 15a–15b, 16a, 20a) are not built.
 - **Biometric sign-in, GPS check-in and shared-device mode are stated as unavailable, not drawn** (AUTH-06, PROF-01 device settings). They depend on a device and a service this build does not have, and a drawn toggle would imply a behaviour nothing performs.
-- **Reports (RPT-01) is not built.** Neither role has access. The navigation holds no Reports item, and its address shows a no-access page.
+- **Reports (RPT-01) is not built.** Neither role has access, so the navigation holds no Reports item and there is no address: RPT-01 is in the CW PRD as a design reference for a screen the Admin build owns, not as a screen this product builds. (This line said "its address shows a no-access page" until Phase 10 checked; no such page was ever built, and a restricted-access screen at an address nobody can reach would be a screen telling somebody about a module they were never shown.)
 
 ## Decisions carried from the Admin & Manager build
 
@@ -143,7 +143,7 @@ Four acts Table 3 gives a senior carer. RA-02 is the only one the CW PRD draws; 
 - **Already late shows the twenty longest waiting**, and says where the rest are. A dashboard that listed every late thing would be the modules' queues again, and each of those screens already holds its own in full.
 - **The quick action on a late row opens the record, never a new screen**: a late risk assessment opens the scoring form built in Phase 8, a late care plan review opens the review, a never-countersigned handover opens the handover, and a dose with no record opens the omissions list where a senior carer closes one.
 - **The navigation's Today entry points at the root**, where signing in lands and where the dashboard is. A separate `/dashboard` would be a second address for one screen.
-- **Risk assessments, Consent and Documents stay rail items with no screen of their own.** Phase 8 built those acts on a resident's record, which is where they belong; a home-wide screen for each is not in the CW PRD, and inventing three would be three more places for a figure to disagree with a record.
+- ~~**Risk assessments, Consent and Documents stay rail items with no screen of their own.**~~ **Withdrawn — this was wrong, and it was wrong on a fact.** It claimed "a home-wide screen for each is not in the CW PRD". All three are in it: RA-01, CON-01 and DOC-01 are full screen specifications of the same shape as GOAL-01, ACT-01 and INC-01, which were built without anybody questioning them. The three screens were built after Phase 10 and the account of what went wrong is under *Risk assessments, consent and documents* below.
 
 ## Profile and settings (Phase 10)
 
@@ -161,6 +161,40 @@ Four acts Table 3 gives a senior carer. RA-02 is the only one the CW PRD draws; 
 - **"Where you are signed in" lists this browser tab and nothing else, and refuses to claim that is all there is.** Nothing in this build holds a session, so a session on another device could not appear; the list says its own absence is not evidence. "End this session" is the real sign-out, which is the one thing on the list that can honestly be done.
 - **No hatch anywhere on this screen.** The hatch means nobody has recorded this, and a device list, a stored photograph and an unset preference are not care records somebody failed to write. Spending it here would blunt the one signal the product exists to carry — the same reasoning that keeps it off a resident's missing photograph.
 - **Reports and Compliance are confirmed absent rather than designed as a refusal.** Table 3 gives both roles no access; RPT-01 is in the CW PRD as a design reference for a screen the Admin build owns. There is no route, no rail entry and no link, and a test holds all three.
+
+## Risk assessments, consent and documents (after Phase 10)
+
+**The correction first.** Phase 9 recorded that these three had no home-wide screen because none was in the CW PRD. That was false. RA-01, CON-01 and DOC-01 are full screen specifications, of the same shape as the ones built without hesitation, and the sentence was written without going back to the document. The three rail entries sat pointing at nothing for nine phases, saying "not built yet" to anybody who pressed them, and nothing in the build disagreed — because `isBuilt()` makes an unbuilt module honest at the point of the click and silent everywhere else. `scripts/check-nav-reach.mjs` is the guard that would have caught it, and it now fails the build for a rail entry with no screen unless somebody names it and says why.
+
+- **Reach is the whole home on all three**, which is Table 3's rule for a list screen rather than the per-resident pattern. A care worker is meant to be aware of an unassessed risk at the home they are working in, and the PRD's own user stories say so.
+- **A row a care worker's list does not reach stays on the list, and says so.** The home's gap is the home's whether or not this person was given that resident; what their list decides is whether they can open the record behind the row. Scope, never blame, at the point it bites.
+- **The lists page at 25 rows**, using the `Pager` the residents list already uses. 78 rows uncapped made the risk screen 7,000px at 1440 and 16,000px on a phone, and the count above the list states the whole while the pager states the slice, so the two cannot disagree.
+- **The dark card's action is a statement while its own tab is the view.** Never assessed and Never sought are the default tabs, so a button offering to show them would look reachable and do nothing when pressed. It becomes a button once the reader is somewhere else.
+- **DOC-01's "Expiry tracking >" link is not drawn.** No such screen exists in this build, and a link to one would be the dead affordance the shape language rules out. The expiry facts it would lead to are on this screen already, per category.
+- **All three refuse a care worker once, at the head**, matching the treatment Phase 8 settled on: a refusal repeated down 252 rows is the same refusal 252 times, and it would bury what the rows are for. Care workers keep every row to read.
+- **The dark card takes a hatched edge, not a hatched fill** (RA-01, CON-01: "dark, hatched border"). Composing the hatch itself would paint the tint over `--purple-900` and the unrecorded ink over white text. `src/styles/unrecorded.module.css` gained an eighth form, the dashed edge alone, because `check-hatch.mjs` allows that declaration in the hatch's own file and nowhere else — which is the rule working: no other dark card can quietly acquire an edge that says "nobody recorded this" about a figure somebody did record.
+
+**RA-01.**
+
+- **A row is a template against a resident, not an assessment**, so the list cannot shrink to the work that has been done: 28 residents by 9 templates is 252 rows whether or not anybody has ever opened one.
+- **"Never assessed is not low risk" appears on the page**, as RA-01 requires.
+- **Never assessed outranks an assessment four hundred days overdue.** Both are in the reading order RA-01 asks for, and the first has nothing on the record at all while the second has a judgement somebody made.
+- **An assessed risk with nobody scheduling its review is a fifth state, in All and in no other tab.** RA-01's tabs are Never assessed, Review overdue and Review due; a review nobody has scheduled has passed no date, and filing it under "overdue" would claim a deadline that was never set. There are 17 at Rosewood, and they are counted and named under the second card so they are not a state a reader can only find by scrolling.
+- The placeholder banner about the instrument stays, on this screen as on the form.
+
+**CON-01.**
+
+- **"Never sought is not refusal and it is not permission" appears verbatim**, and a test holds the string as well as its presence.
+- **Who decided outranks what was decided.** An attorney's refusal is "Decided for them", not "Refused": the Refused tab is the resident saying no, and filing somebody else's decision under the resident's name is the failure the record's own decision authority exists to prevent. 64 of the 161 decisions made at Rosewood were made for somebody rather than by them, which CON-01 gives its own paragraph.
+- **Two states beyond CON-01's four**, because the record has them: the resident agreeing, and a consent given and taken back. They appear in All, and a withdrawal is drawn as the finding it is rather than folded into "Refused".
+- **Every row says what consenting to that type actually permits.** A consent nobody can explain is not informed, and the list is where most readers meet a type for the first time.
+
+**DOC-01.**
+
+- **All seven categories, where DOC-01 illustrates three.** The library holds seven and a screen showing three headings tells a reader there are three kinds of document; the empty headings are the finding. The three DOC-01 names carry exactly the counts it quotes.
+- **The lead figure is coverage, not a count of expired documents.** A home that knows ten have lapsed is in better shape than one that cannot say: the first has a finding and the second has no way to have one. 237 of 306 — 77% — as DOC-01 quotes.
+- **An expired document still counts as carrying an expiry decision.** Somebody decided about it and the decision has run out, which is a finding rather than a gap; folding it into the missing-decision count would hide the difference the figure exists to show.
+- **Filing goes to the resident the document is about**, into Phase 8's screen, because that is where the subject is asked first. There is no home-wide upload, and no second form.
 
 ## Questions for the PRD's author
 

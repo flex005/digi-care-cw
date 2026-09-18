@@ -125,6 +125,14 @@ export const ROUTES: RouteDeclaration[] = [
     screen: 'uploadDocument',
     inShell: true,
   },
+  {
+    path: '/risk-assessments',
+    screen: 'riskAssessments',
+    module: 'risk-assessments',
+    inShell: true,
+  },
+  { path: '/consent', screen: 'consentList', module: 'consent', inShell: true },
+  { path: '/documents', screen: 'documents', module: 'documents', inShell: true },
   { path: '/profile', screen: 'profile', module: 'profile', inShell: true },
   { path: '/specimens', screen: 'specimens', module: 'specimens', inShell: true },
 ]

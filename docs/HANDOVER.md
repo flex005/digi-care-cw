@@ -24,7 +24,7 @@ Two rules I have had to repeat:
 
 **1. Admin & Manager** — `~/Documents/digi-care`, `github.com/flex005/digi-care`, live at `digi-care-zeta.vercel.app`. Vite + React + React Router + CSS Modules. **Finished.** 1,404 tests. Sixteen original phases plus eight more built against the AM PRD, plus repairs. Do not start new work there.
 
-**2. Care Worker & Senior Carer** — `~/Documents/digi-care-cw`, `github.com/flex005/digi-care-cw`. Next.js App Router + React + TypeScript strict + CSS Modules. **All ten phases are done.** 71 test files, 958 tests, `npm run verify` clean at the committed tree.
+**2. Care Worker & Senior Carer** — `~/Documents/digi-care-cw`, `github.com/flex005/digi-care-cw`. Next.js App Router + React + TypeScript strict + CSS Modules. **All ten phases are done, plus a correction.** 77 test files, 1,008 tests, `npm run verify` clean at the committed tree.
 
 Care Worker PRD is at `docs/CW_PRD.md` in that repo. Marked "Draft — for design and engineering review", no approvers named. It is the authoritative source for what a care worker and a senior carer can do.
 
@@ -76,7 +76,9 @@ All ten phases are built, committed and pushed:
 - **9 Dashboard** — DASH-01 and the Care Home variant at `/`: what is already late on the dark card, four metric tiles, one column per round, six completion bars, and the Already late list where every row opens the record it is about. It adds no store: every figure is derived from a module that already holds the record.
 - **10 Profile and restricted access** — PROF-01 at `/profile`: who you are and who changes each part of it, the two credential forms, the PRD's Appendix D in full with its switches, device settings, where you are signed in, and signing out. Reports and Compliance confirmed absent — no route, no rail entry, no link — rather than designed as a refusal.
 
-**Nothing is outstanding on the build itself.** What remains is Frank's: the five open questions below, each of which is drawn on a screen as a question rather than guessed at.
+**After Phase 10**, three screens that should have been built earlier: **RA-01** (`/risk-assessments`), **CON-01** (`/consent`) and **DOC-01** (`/documents`). Their rail entries had pointed at nothing since Phase 0, on a note in DEPARTURES claiming the CW PRD had no home-wide screen for them. It has all three. The note was written from memory rather than from the document and then stood as a reason. It is corrected in place, the account is in `PROGRESS.md`, and `check-nav-reach.mjs` now fails the build for a rail entry with no screen.
+
+**Nothing is outstanding on the build itself.** What remains is Frank's: the open questions below, each of which is drawn on a screen as a question rather than guessed at.
 
 Mobile is not a phase. Every screen ships with both layouts and is checked at 1440 and 390.
 
@@ -181,7 +183,7 @@ Two things worth carrying into whatever comes next, both earned in the last two 
 - **A test's name can assert what its body never checks.** Three of Phase 9's tests passed under mutations they were named to catch — one called "is oldest first" never compared two rows. Read a test by its assertions with the name covered up.
 - **"The name is in the file" is not "the file uses it".** Phase 10's new guard passed a mutation because an import still mentioned the removed call. A reference count that includes imports counts intentions, not uses.
 
-And one fact about this repo that was true for ten phases and nobody knew: `session-losses.ts` claimed a guard that had never been ported from the Admin build. It exists now. **A docblock asserting a check is not a check**, and the only reason it surfaced is that Phase 10 was the first phase since Phase 0 to add a session store.
+Two facts about this repo that were true for ten phases and nobody knew. `session-losses.ts` claimed a guard that had never been ported from the Admin build. And three rail entries pointed at screens nobody had built, on a written reason that was false. Both exist as guards now — `check-session-losses.mjs` and `check-nav-reach.mjs`. **A docblock asserting a check is not a check, and a departure asserting what the PRD says is a claim to check against the PRD.** Neither surfaced on its own: the first needed somebody to add a session store, the second needed somebody to ask why three links went nowhere.
 
 ## Keeping this file current
 
