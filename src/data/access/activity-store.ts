@@ -5,7 +5,9 @@ import type {
   Activity,
   ActivityId,
   ActivityStanding,
+  AttendanceState,
   IsoDateTime,
+  ResidentId,
   SiteId,
   StaffRef,
 } from '../types'
@@ -35,6 +37,15 @@ interface Edit {
   startsAt?: IsoDateTime
   endsAt?: IsoDateTime
   standing?: ActivityStanding
+  /**
+   * Who came, recorded this session. CW PRD ACT-02.
+   *
+   * **Keyed by resident, never a replacement invitation list.** A session
+   * recorded by swapping the list would lose whoever was invited and never
+   * answered — the denominator every figure on these screens counts over, and
+   * the state the third member of `AttendanceState` exists to hold.
+   */
+  attendance?: Map<ResidentId, AttendanceState>
 }
 
 const edits = new Map<ActivityId, Edit>()
@@ -42,11 +53,13 @@ const added: Activity[] = []
 let planned = 0
 let changed = 0
 let cancelled = 0
+let recorded = 0
 
 /** The session as it stands: fixture, plus whatever this session wrote. */
 export function withActivityEdits(activity: Activity): Activity {
   const edit = edits.get(activity.id)
   if (edit === undefined) return activity
+  const attendance = edit.attendance
   return {
     ...activity,
     name: edit.name ?? activity.name,
@@ -54,6 +67,13 @@ export function withActivityEdits(activity: Activity): Activity {
     startsAt: edit.startsAt ?? activity.startsAt,
     endsAt: edit.endsAt ?? activity.endsAt,
     standing: edit.standing ?? activity.standing,
+    invited:
+      attendance === undefined
+        ? activity.invited
+        : activity.invited.map((entry) => {
+            const recorded = attendance.get(entry.residentId)
+            return recorded === undefined ? entry : { ...entry, attendance: recorded }
+          }),
   }
 }
 
@@ -147,11 +167,45 @@ export function cancelSession(
   return standing
 }
 
+/**
+ * Who came, for one session. CW PRD ACT-02.
+ *
+ * **Only the residents somebody answered for.** A resident left unanswered
+ * keeps `not_recorded`, which is the gap the calendar counts: recording six of
+ * fourteen writes six answers and leaves eight saying nobody wrote them down,
+ * rather than eight saying nobody came.
+ *
+ * Refused where a session names nobody, and where an answer names a resident
+ * the session never invited: an attendance record against somebody who was not
+ * on the list is the wrong-subject failure with a grid around it.
+ */
+export function recordAttendance(
+  activity: Activity,
+  answers: { residentId: ResidentId; attendance: AttendanceState }[],
+): number {
+  if (answers.length === 0) throw new Error('Nothing was recorded.')
+  const invited = new Set(activity.invited.map((entry) => entry.residentId))
+  for (const answer of answers) {
+    if (!invited.has(answer.residentId))
+      throw new Error(
+        `${answer.residentId} was not invited to ${activity.name}, so their attendance cannot be recorded here.`,
+      )
+  }
+
+  const edit = edits.get(activity.id)
+  const attendance = new Map(edit?.attendance ?? [])
+  for (const answer of answers) attendance.set(answer.residentId, answer.attendance)
+  edits.set(activity.id, { ...edit, attendance })
+  recorded += answers.length
+  return answers.length
+}
+
 export function activityHoldings(): SessionHolding[] {
   return [
     ...held('sessions you planned', planned),
     ...held('sessions you changed', changed),
     ...held('sessions you cancelled', cancelled),
+    ...held('attendance answers you recorded', recorded),
   ]
 }
 
@@ -162,4 +216,5 @@ export function resetSessionActivities(): void {
   planned = 0
   changed = 0
   cancelled = 0
+  recorded = 0
 }

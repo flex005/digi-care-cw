@@ -502,3 +502,33 @@ Screenshots: both roles, 1440 and 390, colour and greyscale, list and form, with
 
 - **`agentRules: false` in `next.config.ts`.** `next dev` appended a Next.js block to `CLAUDE.md` on every start, which put an uncommitted change into a file whose wording is a stop-and-ask and which nobody here wrote. Confirmed by restarting the dev server and watching the file stay clean.
 - **`docs/HANDOVER.md` brought up to date** through Phases 4, 5 and 6, and committed rather than left untracked.
+
+---
+
+## Phase 7: goals and activities (18/09/2026)
+
+**What was built.** The goals queue (GOAL-01) at `/goals`, one goal with its progress and the note form (GOAL-02) at `/goals/[goalId]`, the resident record's Goals tab, the activities calendar (ACT-01) at `/activities`, and one session's attendance (ACT-02) at `/activities/[activityId]`. Departures are in `docs/DEPARTURES.md` under Goals and activities.
+
+**Two writes were missing from the ported data layer**, as in Phase 6: it could read goals and activities and record neither a progress note nor who came. `goal-store.ts` is new (session-held, immutable, no edit and no delete, listed among what signing out would lose), `activity-store.ts` gained attendance keyed by resident rather than a replacement invitation list, and `client.ts` gained `addGoalProgressNote` and `recordActivityAttendance`. Both reads now go through the overlay, so a note written on a goal's detail is in the queue it was reached from.
+
+- **`goal-timing.ts` is ported from the Admin build unchanged**, because the module's central judgement is already made there and is the same here: a goal past its date with a trail of notes that stops short of an outcome is still nobody saying what happened. That is why GOAL-01's lead figure is 5 rather than the 4 a stricter reading gives, and the fixtures produce exactly the figures the PRD quotes — 40 goals, 32 dated, 8 undated.
+- **A progress note cannot change a goal's outcome.** The write has no path to it, which is stronger than remembering not to: open, closed and achieved are a manager's decisions.
+- **Attendance writes only the residents somebody answered for.** The store refuses an answer naming somebody the session never invited — an attendance record against a resident who was not on the list is the wrong-subject failure with a grid around it.
+
+**The first `SegmentedControl`.** The shape language has described it since Phase 0 — a grey track with a raised white thumb, for one of a small set of presentations of the same data — and nothing had needed it until the week and the list. It is a primitive, with radio semantics, and its docblock says what it is not: never navigation, never a filter.
+
+**Decisions this phase had to take, beyond the brief.**
+
+- **The engagement level has nowhere to live.** ACT-02 asks for one; `AttendanceState` has no field for it and adding one changes data both products share, so the control is drawn disabled with a line saying nothing is kept and why. It is a §9 ask, not a decision taken here.
+- **No month view.** ACT-01 asks for Week and Month. A month of sessions is a planning view, and this product is what a shift works from.
+- **A part-recorded session is not amber**, because amber is for findings and the unanswered residents are a gap. Both facts are stated instead.
+
+**Found on the way.**
+
+- **A const that reached forward at module load, again.** Caught this time before it shipped: `HARM_SCALE` in Phase 6 taught the shape, so the goal parts were checked by loading the module in a test first.
+- **`LaterPhaseTab` had no reason to exist any more.** Goals was the last tab built in a later phase; with `builtIn` gone from `ProfileTab` the component would have thrown for every input. Deleted, and the test that asserted "This tab is built in Phase 7" now asserts the record it opens to.
+- **"2 persons joined without being invited."** `pluralise` takes an explicit plural and was not given one.
+
+**Mutations run**, each confirmed landed and reversed: "the resident was not asked" drawn as positive rather than caution (the amber-not-hatched test fails), and the attendance write marking every invited resident rather than only those answered for (the leaves-the-rest-as-gaps test fails).
+
+Screenshots: both roles, 1440 and 390, colour and greyscale, all four screens.

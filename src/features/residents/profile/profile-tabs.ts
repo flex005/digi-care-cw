@@ -11,15 +11,14 @@ import {
  *
  * **All eleven are drawn for both roles, and none is hidden.** What a role can
  * do differs inside a tab, not in whether the tab exists. One is built in a
- * later phase and says so when opened, rather than being disabled: the tab
- * strip is the same shape it will have when they land.
+ * Every tab is built as of Phase 7. Until then the ones that were not said so
+ * when opened rather than being disabled, so the strip always had the shape it
+ * would have when they landed.
  */
 export interface ProfileTab {
   label: string
   /** The segment after /residents/[residentId]. Empty for the first tab. */
   segment: string
-  /** Built, or the phase that builds it. */
-  builtIn: 'built' | 'phase_7'
   notes: (resident: Resident) => TabNote[]
 }
 
@@ -29,24 +28,22 @@ export const PROFILE_TABS: ProfileTab[] = [
   {
     label: 'General Information',
     segment: '',
-    builtIn: 'built',
     notes: generalInformationNotes,
   },
-  { label: 'Needs', segment: 'needs', builtIn: 'built', notes: none },
-  { label: 'Important People', segment: 'people', builtIn: 'built', notes: none },
-  { label: 'Future Plans', segment: 'future-plans', builtIn: 'built', notes: none },
-  { label: 'Care Notes', segment: 'notes', builtIn: 'built', notes: none },
-  { label: 'Medications', segment: 'medications', builtIn: 'built', notes: none },
+  { label: 'Needs', segment: 'needs', notes: none },
+  { label: 'Important People', segment: 'people', notes: none },
+  { label: 'Future Plans', segment: 'future-plans', notes: none },
+  { label: 'Care Notes', segment: 'notes', notes: none },
+  { label: 'Medications', segment: 'medications', notes: none },
   {
     label: 'Risk Assessments',
     segment: 'risk-assessments',
-    builtIn: 'built',
     notes: riskAssessmentNotes,
   },
-  { label: 'Care Plan', segment: 'care-plan', builtIn: 'built', notes: none },
-  { label: 'Goals', segment: 'goals', builtIn: 'phase_7', notes: none },
-  { label: 'Consent', segment: 'consent', builtIn: 'built', notes: consentNotes },
-  { label: 'Documents', segment: 'documents', builtIn: 'built', notes: none },
+  { label: 'Care Plan', segment: 'care-plan', notes: none },
+  { label: 'Goals', segment: 'goals', notes: none },
+  { label: 'Consent', segment: 'consent', notes: consentNotes },
+  { label: 'Documents', segment: 'documents', notes: none },
 ]
 
 export const tabHref = (residentId: string, tab: ProfileTab): string =>

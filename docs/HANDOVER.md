@@ -24,7 +24,7 @@ Two rules I have had to repeat:
 
 **1. Admin & Manager** — `~/Documents/digi-care`, `github.com/flex005/digi-care`, live at `digi-care-zeta.vercel.app`. Vite + React + React Router + CSS Modules. **Finished.** 1,404 tests. Sixteen original phases plus eight more built against the AM PRD, plus repairs. Do not start new work there.
 
-**2. Care Worker & Senior Carer** — `~/Documents/digi-care-cw`, `github.com/flex005/digi-care-cw`. Next.js App Router + React + TypeScript strict + CSS Modules. **This is the active build.** Phase 6 of 10 is done. 801 tests.
+**2. Care Worker & Senior Carer** — `~/Documents/digi-care-cw`, `github.com/flex005/digi-care-cw`. Next.js App Router + React + TypeScript strict + CSS Modules. **This is the active build.** Phase 7 of 10 is done. 830 tests.
 
 Care Worker PRD is at `docs/CW_PRD.md` in that repo. Marked "Draft — for design and engineering review", no approvers named. It is the authoritative source for what a care worker and a senior carer can do.
 
@@ -71,8 +71,9 @@ Phases 0–6 are built, committed and pushed:
 - **4 Medications** — omissions, round with PIN, controlled drug register, MAR chart. Then a second pass: a dose cannot be recorded before its window opens, and the controlled drug register quotes MED-03's silence about how old a dose may be and still take a second signature.
 - **5 Handover** — the shift board for every resident at the home, four status groups, recording a status, the dual signature under the medication PIN, and earlier handovers still missing one.
 - **6 Incidents** — the log with its two findings, and the report form (INC-02 and INC-03 on one screen) with the body map, the three injury states and the harm scale.
+- **7 Goals and Activities** — the goals queue and one goal's progress, the resident's Goals tab, the week calendar and one session's attendance. Every tab on a resident's record is now built.
 
-Remaining: **7 Goals and Activities · 8 Senior carer records · 9 Dashboard · 10 Profile and restricted access.**
+Remaining: **8 Senior carer records · 9 Dashboard · 10 Profile and restricted access.**
 
 The dashboard is last because every figure on it points into an earlier module.
 
@@ -151,19 +152,21 @@ My part: I approve or refuse, and I decide the product questions. Push back on m
 
 ## Exactly where we stopped
 
-**Phase 6 is built, committed and pushed** in the Care Worker repo. The Admin repo is untouched since its own last commit: nothing in Phases 5 or 6 changed shared data, and the one fixture change that did — see below — was deliberately not synced.
+**Phase 7 is built, committed and pushed** in the Care Worker repo. The Admin repo is untouched: nothing since Phase 4 has changed shared data in a way that needs syncing, and the one fixture change that did was deliberately left here.
 
-What the last three prompts settled, so nobody reopens them:
+What is settled, so nobody reopens it:
 
-1. **A dose cannot be recorded before its window opens.** Neither Given nor Not given; the line names the state, the hour and the reason. Recording *late* stays open. The hatch begins where the window opens: a dose that is not due yet is not a dose nobody has recorded.
-2. **Countersigning is not bounded by a window.** MED-03's silence is quoted at the act instead, and every dose stays countersignable whatever its age. Still my decision to make; the measurements are in `PROGRESS.md`.
-3. **One fixture moved, in the Care Worker repo only.** The controlled drug the register has never counted is no longer among the doses a round in progress has already signed for — without that, the opening-balance flow could not be reached at any hour on any day. Not synced to the Admin build, whose round does not ask for an opening count.
-4. **Phase 5, Handover.** The board is the home's, not the viewer's list; what is asked per resident is the act, so a care worker updating somebody off their list draws the PRD's question at the control.
-5. **Phase 6, Incidents.** The log's two findings carry their own denominators and are never summed. Acknowledge, close and the CQC decision are drawn once at the head with the role table's words; acknowledging is live per row for a senior carer. The report form asks one question the CW PRD does not — whether emergency services were called — because that record has two members and neither is an absence.
+1. **A dose cannot be recorded before its window opens**, and countersigning is not bounded by a window — MED-03's silence is quoted at the act instead. Still Frank's decision to make; the measurements are in `PROGRESS.md`.
+2. **Phase 5, Handover.** The board is the home's; what is asked per resident is the act.
+3. **Phase 6, Incidents.** Two findings with their own denominators, never summed. The report form asks one question the CW PRD does not — whether emergency services were called — because that record has two members and neither is an absence.
+4. **Phase 7, Goals and Activities.** The goals queue is the home's and the act is asked per resident. A goal past its date is hatched, "the resident was not asked" is amber. Attendance writes only the people somebody answered for.
 
-Also done in the same pass: `agentRules: false` in `next.config.ts`, because `next dev` was appending a Next.js block to `CLAUDE.md` on every start.
+**Two things waiting on Frank:**
 
-**The next phase is 7, Goals and Activities.** Nothing is pending from me, so the next prompt is a phase brief rather than an answer.
+- **The engagement level on ACT-02 has nowhere to live.** `AttendanceState` has no field for it and adding one changes data both products share. It is drawn disabled with a line saying nothing is kept. Answer needed before Phase 9 counts anything about engagement.
+- **The countersign window**, as above.
+
+**The next phase is 8, Senior carer records.**
 
 ## Keeping this file current
 

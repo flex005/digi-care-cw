@@ -24,7 +24,9 @@ import type {
   DocumentRecord,
   ExpiryDecision,
   FileFacts,
+  AttendanceState,
   Goal,
+  GoalId,
   GoalProgressNote,
   CarePlanText,
   CompletedAgainst,
@@ -72,7 +74,8 @@ import { viewerHolds, viewerHomes } from './viewer-scope'
 import { RecordNotYours } from './record-not-yours'
 import { goalProgressNotes, goals, goalsFor } from '../fixtures/goals'
 import { activityById } from '../fixtures/activities'
-import { activitiesAt, withActivityEdits } from './activity-store'
+import { activitiesAt, recordAttendance, withActivityEdits } from './activity-store'
+import { keepProgressNote, progressNotesThisSession } from './goal-store'
 import { residentById as fixtureResidentById } from '../fixtures/residents'
 import {
   discardDraft,
@@ -1115,7 +1118,7 @@ export function getResidentGoals(
   const ids = new Set(forResident.map((goal) => goal.id))
   return resolve({
     goals: forResident,
-    progress: goalProgressNotes.filter((note) => ids.has(note.goalId)),
+    progress: progressFor(ids),
   })
 }
 
@@ -1173,8 +1176,97 @@ export function getGoalsBySite(siteId: SiteId): Promise<{
   return resolve({
     residents: atSite,
     goals: inScope,
-    progress: goalProgressNotes.filter((note) => goalIds.has(note.goalId)),
+    progress: progressFor(goalIds),
   })
+}
+
+/**
+ * Every progress note for these goals, the fixtures' and this session's,
+ * oldest first.
+ *
+ * **One reader, used by both screens.** A note written on a goal's detail and
+ * absent from the queue it was reached from is the overlay defect the MAR
+ * chart had in Phase 4: two screens disagreeing about one record.
+ */
+function progressFor(goalIds: Set<GoalId>): GoalProgressNote[] {
+  return [...goalProgressNotes, ...progressNotesThisSession()]
+    .filter((note) => goalIds.has(note.goalId))
+    .sort((a, b) => a.recordedAt.localeCompare(b.recordedAt))
+}
+
+/**
+ * Adds a progress note to a goal. CW PRD GOAL-02.
+ *
+ * **Immutable, like a care note**, and refused empty: a note nobody wrote
+ * anything in is not a record that somebody looked, and the screen gates on it
+ * too. The author and the moment come from the session, never from the form.
+ *
+ * **It does not change the goal's outcome.** Open, closed and achieved are a
+ * manager's decisions (Table 3), and a note that quietly reopened or closed a
+ * goal would be this screen making one of them.
+ */
+export function addGoalProgressNote(input: {
+  goalId: GoalId
+  body: string
+  by: StaffRef
+  at: IsoDateTime
+}): Promise<GoalProgressNote> {
+  const goal = goals.find((entry) => entry.id === input.goalId)
+  if (!goal) return reject(`No goal with id ${input.goalId}`)
+  const resident = fixtureResidentById(goal.residentId)
+  if (!resident) return reject(`No resident with id ${goal.residentId}`)
+  const refused = notYoursResident(resident)
+  if (refused) return refused
+  if (input.body.trim() === '') return reject('Say what happened.')
+
+  const note = keepProgressNote({
+    goalId: input.goalId,
+    body: input.body.trim(),
+    recordedBy: input.by,
+    recordedAt: input.at,
+  })
+  return logged(note, {
+    module: 'Goals',
+    what: `Added a progress note to ${resident.fullLegalName}’s goal`,
+    to: `/goals/${input.goalId}`,
+    by: input.by,
+  })
+}
+
+/**
+ * Records who came to a session. CW PRD ACT-02.
+ *
+ * **Only the residents somebody answered for**, so a resident left unanswered
+ * keeps the gap rather than being recorded as absent. The store refuses an
+ * answer naming somebody the session never invited.
+ */
+export function recordActivityAttendance(input: {
+  activityId: ActivityId
+  answers: { residentId: ResidentId; attendance: AttendanceState }[]
+  by: StaffRef
+}): Promise<number> {
+  const found = activityById(input.activityId)
+  const activity =
+    found === undefined
+      ? activitiesAt('site-rosewood-court')
+          .concat(activitiesAt('site-ashgrove-lodge'))
+          .find((entry) => entry.id === input.activityId)
+      : withActivityEdits(found)
+  if (!activity) return reject(`No activity with id ${input.activityId}`)
+  const refused = notYours(activity.siteId, 'That home’s activities')
+  if (refused) return refused
+
+  try {
+    const count = recordAttendance(activity, input.answers)
+    return logged(count, {
+      module: 'Activities',
+      what: `Recorded ${count} attendance ${count === 1 ? 'answer' : 'answers'} for ${activity.name}`,
+      to: `/activities/${activity.id}`,
+      by: input.by,
+    })
+  } catch (cause) {
+    return reject(cause instanceof Error ? cause.message : 'Nothing was recorded.')
+  }
 }
 
 /**

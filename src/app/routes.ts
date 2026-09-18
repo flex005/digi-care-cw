@@ -38,6 +38,15 @@ export const ROUTES: RouteDeclaration[] = [
   { path: '/care-notes', screen: 'careNotes', module: 'care-notes', inShell: true },
   { path: '/care-notes/new', screen: 'careNotePicker', inShell: true },
   { path: '/handover', screen: 'handover', module: 'handover', inShell: true },
+  { path: '/goals', screen: 'goals', module: 'goals', inShell: true },
+  { path: '/goals/[goalId]', screen: 'goalDetail', inShell: true },
+  {
+    path: '/activities',
+    screen: 'activities',
+    module: 'activities',
+    inShell: true,
+  },
+  { path: '/activities/[activityId]', screen: 'activityAttendance', inShell: true },
   { path: '/incidents', screen: 'incidents', module: 'incidents', inShell: true },
   { path: '/incidents/new', screen: 'reportIncident', inShell: true },
   {

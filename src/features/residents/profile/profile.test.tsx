@@ -4,7 +4,7 @@ import type { ResidentId } from '@/data/types'
 import { residentById } from '@/data/fixtures/residents'
 import { staffAkinyemi, staffEze, staffOsei } from '@/data/fixtures/organisation'
 import { renderProfileTab } from '@/test/render-signed-in'
-import { GoalsTab } from './LaterPhaseTab'
+import { GoalsTab } from '@/features/goals/GoalsTab'
 import { PROFILE_TABS } from './profile-tabs'
 import { consentGaps, riskAssessmentGaps } from './record-gaps'
 import { hiddenTabs } from './hidden-tabs'
@@ -156,12 +156,15 @@ describe('the tab strip', () => {
     for (const mark of marks) expect(mark.textContent?.trim()).not.toBe('')
   })
 
-  it('opens a later tab to say which phase builds it', async () => {
+  /*
+   * Every tab is built as of Phase 7. Goals was the last one that was not, and
+   * it said which phase would build it rather than sitting disabled; this now
+   * holds the record it opens to instead.
+   */
+  it('opens the goals tab onto that resident’s own goals', async () => {
     open('res-okafor')
     renderProfileTab(staffEze.id, <GoalsTab />)
-    expect(
-      await screen.findByText('This tab is built in Phase 7, goals and activities.'),
-    ).toBeTruthy()
+    expect(await screen.findByText(/’s goals$/)).toBeTruthy()
   })
 })
 

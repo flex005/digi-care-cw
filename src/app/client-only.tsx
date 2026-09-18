@@ -212,6 +212,31 @@ const SCREENS = {
       ),
     { ssr: false },
   ),
+  goals: dynamic(
+    () => import('@/features/goals/GoalsRoute').then((module) => module.GoalsRoute),
+    { ssr: false },
+  ),
+  goalDetail: dynamic(
+    () =>
+      import('@/features/goals/GoalDetailRoute').then(
+        (module) => module.GoalDetailRoute,
+      ),
+    { ssr: false },
+  ),
+  activities: dynamic(
+    () =>
+      import('@/features/activities/ActivitiesRoute').then(
+        (module) => module.ActivitiesRoute,
+      ),
+    { ssr: false },
+  ),
+  activityAttendance: dynamic(
+    () =>
+      import('@/features/activities/AttendanceRoute').then(
+        (module) => module.AttendanceRoute,
+      ),
+    { ssr: false },
+  ),
   incidents: dynamic(
     () =>
       import('@/features/incidents/IncidentsRoute').then(
@@ -313,13 +338,8 @@ const SCREENS = {
     },
   ),
   residentGoals: dynamic(
-    () =>
-      import('@/features/residents/profile/LaterPhaseTab').then(
-        (module) => module.GoalsTab,
-      ),
-    {
-      ssr: false,
-    },
+    () => import('@/features/goals/GoalsTab').then((module) => module.GoalsTab),
+    { ssr: false },
   ),
   residentConsent: dynamic(
     () =>

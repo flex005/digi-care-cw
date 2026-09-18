@@ -11,7 +11,13 @@ import { assertNever } from '@/lib/assert-never'
 import { wholeDaysBetween } from '@/lib/review-interval'
 
 /**
- * Where a goal has got to, derived. , Phase 8.
+ * Where a goal has got to, derived. CW PRD GOAL-01 and GOAL-02.
+ *
+ * **Ported from the Admin build unchanged**, because the module's central
+ * judgement is already made there and is the same judgement here: a goal past
+ * its date with a trail of notes that stops short of an outcome is still
+ * nobody saying what happened. That is why GOAL-01's lead figure counts every
+ * open past-date goal rather than only the silent ones.
  *
  * **Nothing here is stored**, and that is the point: `in_progress` was removed
  * from `GoalOutcome` because as a recorded status it is the stalest claim in
@@ -29,7 +35,7 @@ import { wholeDaysBetween } from '@/lib/review-interval'
  * the same number is how two meanings end up moving together when only one of
  * them should.
  *
- * Invented, and named as invented.
+ * Invented, named, and folded under open item §9.2b with the other three.
  */
 export const NO_GOALS_ALERT_DAYS = 30
 

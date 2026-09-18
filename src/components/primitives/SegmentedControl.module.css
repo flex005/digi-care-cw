@@ -1,0 +1,55 @@
+/*
+ * The grey track and its raised white thumb. One shape, one meaning: the same
+ * records, arranged another way.
+ */
+
+.track {
+  display: inline-flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface-sunken);
+}
+
+.segment {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--space-32);
+  padding: var(--space-4) var(--space-16);
+  border-radius: var(--radius-pill);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.segment:hover {
+  color: var(--ink-900);
+}
+
+/* Raised, not merely filled: the shadow is what makes it a thumb rather than a
+   chosen pill, and the weight carries it in greyscale. */
+.thumb {
+  composes: segment;
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--ink-900);
+  font-weight: var(--weight-semibold);
+}
+
+/* The radio itself is the control; the label is its face. Kept in the layout
+   rather than display:none so focus lands somewhere visible. */
+.input {
+  width: 0;
+  height: 0;
+  margin: 0;
+  opacity: 0;
+}
+
+.segment:focus-within {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}

@@ -77,5 +77,8 @@ export type { Paged } from './Pager'
 export { DigitField } from './DigitField'
 export type { DigitFieldProps } from './DigitField'
 
+export { SegmentedControl } from './SegmentedControl'
+export type { SegmentedOption } from './SegmentedControl'
+
 export { ActLine } from './ActLine'
 export type { ActLineKind } from './ActLine'
