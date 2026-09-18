@@ -24,7 +24,7 @@ Two rules I have had to repeat:
 
 **1. Admin & Manager** — `~/Documents/digi-care`, `github.com/flex005/digi-care`, live at `digi-care-zeta.vercel.app`. Vite + React + React Router + CSS Modules. **Finished.** 1,404 tests. Sixteen original phases plus eight more built against the AM PRD, plus repairs. Do not start new work there.
 
-**2. Care Worker & Senior Carer** — `~/Documents/digi-care-cw`, `github.com/flex005/digi-care-cw`. Next.js App Router + React + TypeScript strict + CSS Modules. **This is the active build.** Phase 8 of 10 is done. 879 tests.
+**2. Care Worker & Senior Carer** — `~/Documents/digi-care-cw`, `github.com/flex005/digi-care-cw`. Next.js App Router + React + TypeScript strict + CSS Modules. **This is the active build.** Phase 9 of 10 is done. 907 tests.
 
 Care Worker PRD is at `docs/CW_PRD.md` in that repo. Marked "Draft — for design and engineering review", no approvers named. It is the authoritative source for what a care worker and a senior carer can do.
 
@@ -62,7 +62,7 @@ Both repos have a `CLAUDE.md` whose **§8 is a list of standing checks** — aro
 
 ## Where the Care Worker build is
 
-Phases 0–6 are built, committed and pushed:
+Phases 0–9 are built, committed and pushed:
 
 - **0 Foundation** — Next.js, tokens, primitives, app shell, icon pipeline, specimens page.
 - **1 Authentication** — sign-in, email code, home selector, invitation and account setup, forgot password, expiry and sign-out. Nothing authenticates anybody; every screen says so in one line.
@@ -73,10 +73,9 @@ Phases 0–6 are built, committed and pushed:
 - **6 Incidents** — the log with its two findings, and the report form (INC-02 and INC-03 on one screen) with the body map, the three injury states and the harm scale.
 - **7 Goals and Activities** — the goals queue and one goal's progress, the resident's Goals tab, the week calendar and one session's attendance. Every tab on a resident's record is now built.
 - **8 Senior carer records** — the four write-acts Table 3 gives a senior carer that were still read-only: scoring a risk assessment (RA-02), recording a consent decision, filing a document, and conducting a whole care plan review.
+- **9 Dashboard** — DASH-01 and the Care Home variant at `/`: what is already late on the dark card, four metric tiles, one column per round, six completion bars, and the Already late list where every row opens the record it is about. It adds no store: every figure is derived from a module that already holds the record.
 
-Remaining: **9 Dashboard · 10 Profile and restricted access.**
-
-The dashboard is last because every figure on it points into an earlier module.
+Remaining: **10 Profile and restricted access.**
 
 Mobile is not a phase. Every screen ships with both layouts and is checked at 1440 and 390.
 
@@ -153,7 +152,7 @@ My part: I approve or refuse, and I decide the product questions. Push back on m
 
 ## Exactly where we stopped
 
-**Phase 8 is built, committed and pushed** in the Care Worker repo. The Admin repo is untouched.
+**Phase 9 is built, committed and pushed** in the Care Worker repo. The Admin repo is untouched.
 
 What is settled, so nobody reopens it:
 
@@ -162,6 +161,7 @@ What is settled, so nobody reopens it:
 3. **Phase 6, Incidents.** Two findings with their own denominators, never summed. The report form asks whether emergency services were called, because that record has two members and neither is an absence.
 4. **Phase 7, Goals and Activities.** A goal past its date is hatched; "the resident was not asked" is amber. Attendance writes only the people somebody answered for.
 5. **Phase 8, Senior carer records.** Four acts, each refusing a care worker in the role table's words, drawn once rather than per row. Scoring and consent sit on the row they act on; filing and reviewing sit at the head.
+6. **Phase 9, Dashboard.** The whole screen is scoped once, in Table 3's own words — "9 of 28 residents assigned to you" — rather than each figure carrying its own filter, and a care worker nobody has given a list is told so and shown no figures at all. Rounds are columns rather than rings, because the hatch is a gradient and a gradient cannot follow a curve. The unacknowledged-incidents segment is red rather than hatched: somebody wrote the incident down, so what is absent is a person picking it up. The combined "Overdue now" figure stays refused; the three late kinds are counted apart and listed together.
 
 **Three things waiting on Frank**, each a change to data both products share, each drawn today with a line saying nothing is kept:
 
@@ -171,7 +171,9 @@ What is settled, so nobody reopens it:
 
 And two smaller ones: **the countersign window** (measurements in `PROGRESS.md`), and **whether the navigation should carry a Reviews entry** — the CW PRD names no such module, so `/reviews` is reached from a resident's care plan rather than from the rail.
 
-**The next phase is 9, the Dashboard.** It is last but one because every figure on it points into a module that now exists.
+**The next phase is 10, Profile and restricted access** — the last one.
+
+One thing worth knowing before it starts: three of Phase 9's tests passed under mutations they were named to catch, and the pattern earned a new §8 entry. A test called "is oldest first" that never compares two rows is coverage of its own name. Expect Claude Code to mutation-test Phase 10 as it goes.
 
 ## Keeping this file current
 

@@ -113,6 +113,32 @@ export function scopeLine(
 }
 
 /**
+ * The dashboard's own header line: "9 of 28 residents assigned to you".
+ *
+ * **Its own wording because DASH-01 asks for its own.** Table 3 filters a care
+ * worker's dashboard to their assigned residents and states the count that way;
+ * `scopeLine` says "9 residents on your list", which is the same fact in the
+ * words every other screen uses. Both live here, so a change to either is one
+ * edit.
+ */
+export function scopeAssigned(
+  scope: ResidentScope,
+  residentIds: ResidentId[],
+  homeName: string,
+): string {
+  switch (scope.kind) {
+    case 'every_resident':
+      return `${pluralise(residentIds.length, 'resident')} at ${homeName}`
+    case 'named_residents':
+      return `${residentsInScope(scope, residentIds)} of ${pluralise(residentIds.length, 'resident')} assigned to you`
+    case 'not_decided':
+      return noListYetLine
+    default:
+      return assertNever(scope)
+  }
+}
+
+/**
  * The line under a figure counted over the viewer's residents, so the reader
  * knows what population it covers: "Counted over your list, not the home's."
  */

@@ -73,7 +73,12 @@ export const NAV_ITEMS: NavItem[] = [
   {
     module: 'dashboard',
     label: 'Today',
-    path: '/dashboard',
+    /*
+     * The root, because that is where signing in lands and where the dashboard
+     * is. A separate `/dashboard` would be a second address for one screen, and
+     * the two would drift the first time one of them was linked to.
+     */
+    path: '/',
     icon: 'dashboard/dashboard-square-01',
     section: 'overview',
     rail: 'modules',

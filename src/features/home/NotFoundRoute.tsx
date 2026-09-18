@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { EmptyState, buttonClassName } from '@/components/primitives'
-import styles from './home.module.css'
+import styles from './not-found.module.css'
 
 /** A URL that names no screen. Said plainly, with the way back. */
 export function NotFoundRoute() {

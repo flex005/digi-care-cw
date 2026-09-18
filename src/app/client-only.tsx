@@ -139,7 +139,10 @@ const SCREENS = {
     },
   ),
   home: dynamic(
-    () => import('@/features/home/HomeRoute').then((module) => module.HomeRoute),
+    () =>
+      import('@/features/dashboard/DashboardRoute').then(
+        (module) => module.DashboardRoute,
+      ),
     { ssr: false },
   ),
   residents: dynamic(

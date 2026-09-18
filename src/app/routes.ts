@@ -33,7 +33,7 @@ export const ROUTES: RouteDeclaration[] = [
   { path: '/invitation/[staffId]/email', screen: 'invitationEmail', inShell: false },
   { path: '/invitation/[staffId]/verify', screen: 'invitationVerify', inShell: false },
   { path: '/sign-out', screen: 'signOut', inShell: true },
-  { path: '/', screen: 'home', inShell: true },
+  { path: '/', screen: 'home', module: 'dashboard', inShell: true },
   { path: '/residents', screen: 'residents', module: 'residents', inShell: true },
   { path: '/care-notes', screen: 'careNotes', module: 'care-notes', inShell: true },
   { path: '/care-notes/new', screen: 'careNotePicker', inShell: true },

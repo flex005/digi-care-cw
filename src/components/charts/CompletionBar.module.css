@@ -1,0 +1,68 @@
+/*
+ * A module's completeness, as one straight bar.
+ *
+ * Straight rather than a ring: the hatch is a repeating linear gradient and a
+ * gradient cannot follow a curve, so a ring would have to carry the gap in
+ * colour alone — which is the one thing the unrecorded treatment may never do.
+ */
+
+.bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.head {
+  display: flex;
+  gap: var(--space-12);
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.label {
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.count {
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
+}
+
+/* No fill of its own: the hatch sits on the card's white, where its bands can
+   be seen. */
+.track {
+  display: flex;
+  overflow: hidden;
+  height: var(--space-12);
+  border-radius: var(--radius-pill);
+}
+
+/* Nobody has recorded these. The one treatment for that, and nothing else on
+   the screen takes it. */
+.gap {
+  composes: unrecordedMark from '../../styles/unrecorded.module.css';
+  height: 100%;
+}
+
+.done {
+  height: 100%;
+  background-color: var(--purple-600);
+}
+
+/* Recorded, and something is owed on it. A finding, never the hatch. */
+.finding {
+  height: 100%;
+  background-color: var(--status-critical);
+}
+
+.of {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}

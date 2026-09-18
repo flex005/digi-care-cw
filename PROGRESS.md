@@ -558,3 +558,34 @@ Screenshots: both roles, 1440 and 390, colour and greyscale, all four screens.
 - **A class that was never added, and nothing said so.** The consent row's act carried `className={styles.rowAct}` and the class was not in the sheet: CSS Modules resolves an undeclared name to `undefined`, React drops the attribute, and the row renders unstyled with no error anywhere. The cause was a shell line — `grep … | head || python3 …` — where the `||` tested `head`'s exit status rather than `grep`'s, so the fallback that would have added the class never ran, and the command reported success. Found by sweeping every `styles.x` in the build against its stylesheet, which is now `scripts/check-css-classes.mjs` and a stage of `npm run lint`. Broken on purpose by removing the class again: it names the file, the class and the sheet. Three apparent misses in the first sweep were false positives — `.table .num`, `.cards > .wide` and `.boxes:focus-within .current` are declared as descendants, and the guard reads whole selectors rather than line starts.
 
 **Mutations run**, each confirmed landed and reversed: the running score reported complete before every factor was answered; the LPA holder offered without a health and welfare LPA on record; a resident with no review date dropped from the queue; the expiry question made skippable; and the CSS class removed from its sheet again.
+
+---
+
+## Phase 9: the dashboard (18/09/2026)
+
+**What was built.** DASH-01 and the Care Home variant DASH-01a at `/`: the head with the scope stated in Table 3's own words, the dark card counting what is already late, four metric tiles, one column per round, six completion bars, and the Already late list with its filter pills and a link on every row into the record it is about. Departures are in `docs/DEPARTURES.md` under Dashboard.
+
+**It adds no store and no record.** `dashboard-figures.ts` is pure arithmetic over what the modules already hold — the round, the care notes, the omissions, the incident log, the handover board, and the three gap counters a resident's tab strip already uses — and `late-items.ts` turns three of those into rows with a route each. Every number on this screen exists somewhere else, and the pair must agree; that is why the phase is second to last.
+
+- **The whole screen is scoped once**, not each figure. Table 3 filters a care worker's dashboard rather than the individual acts, so the residents are narrowed at the top and everything counts over what is left. A care worker nobody has given a list sees the hatched panel and no figures at all: the numbers would be the home's, and this screen is meant to be theirs.
+- **The bars are straight and the rounds are columns.** The hatch is a `repeating-linear-gradient`, a gradient cannot follow a curve, and a ring would have to carry the gap in colour alone. DASH-01a asks for rings; it is recorded as a departure rather than solved with an SVG pattern the Figma importer drops.
+- **The Incidents bar is the only one with three segments.** Unacknowledged is a finding in `--status-critical`, apart from the hatch, because somebody wrote the incident down: what is absent is a person picking it up, not a record. DASH-01 says this itself, and `CompletionBar` takes the finding as a separate argument so a two-segment bar cannot be handed a third number by accident.
+- **The combined "Overdue now" figure stays refused**, as recorded in Phase 4. The dark card carries the count of late things and names the three kinds beneath it, with one line saying why they are not added.
+
+**Three mutations passed, and all three were the test's fault rather than the code's.**
+
+- **Zeroing `dueSoon` changed nothing**, because no screen test read that tile — only the arithmetic had one. Writing the screen test then showed something worse: at the default clock the strict reading of "due in the next 2 hours" returns 0, because a round's window opens on the hour and the fixture clock sits inside one. The tile had been showing a zero that read as a home with nothing coming. `dueSoon` now counts a dose whose window is open or opens within two hours, the tile says "Due now or in the next 2 hours", and the departure from DASH-01's wording is recorded with that reason.
+- **Drawing the finding segment with the hatch class passed**, because the test asserted `data-segment` and never the class — exactly the shape §8 already warns about, a guard reporting what it asked rather than what it saw. `completion-bar.test.tsx` now asserts the three segments carry three distinct class names, and the mutation fails.
+
+- **Reversing the Already late sort passed**, and the test that should have caught it is called "is oldest first" and never looked at the order: it checked that each row had a link and a chip. The name asserted what the body did not, which is the §8 shape about a guard reporting what it asked rather than what it saw, wearing a test's clothes. `byOldest` now has a unit test over three known dates, and the screen test asserts the rendered rows are non-decreasing by due date. The same pass fixed a neighbouring test that returned early when it found no rows, so it could pass by testing nothing.
+
+Each was confirmed landed in the code the tests read, then reversed by hand.
+
+**Found on the way.**
+
+- **`check-css-classes` caught a stylesheet deleted out from under a live import.** `HomeRoute` and `home.module.css` went when the dashboard took `/`, and `NotFoundRoute` had been sharing that sheet; the guard named the file, the class and the missing sheet on the next run. It now has `not-found.module.css` of its own. The guard written in Phase 8 found its first real defect eight hours later.
+- **One screen, one address.** The navigation's Today entry pointed at `/dashboard` while signing in landed on `/`; the dashboard is at `/` and the rail says so.
+
+**Mutations run**, each confirmed landed and reversed: `dueSoon` zeroed, the finding segment drawn with the hatch, the scope filter removed so a care worker's figures counted the home, and the Already late list sorted newest first.
+
+`npm run verify` passes at the committed tree: 67 test files, 907 tests, icons, typecheck, ten lint stages, format and build.

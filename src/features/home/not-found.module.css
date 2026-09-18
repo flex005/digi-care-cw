@@ -1,0 +1,6 @@
+/* The address that names no screen. One column, and nothing else to say. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+}

@@ -72,14 +72,19 @@ describe('routes', () => {
 
   /*
    * Named, so a nav item cannot go live by accident in the phase that did not
-   * build it. Phase 7 builds Goals and Activities, Phase 6 Incidents, Phase 5
-   * Handover, Phase 4 Medications, Phase 3 Care notes, Phase 2 Residents,
-   * Phase 0 Specimens.
+   * build it. Phase 9 builds the dashboard at the root, Phase 7 Goals and
+   * Activities, Phase 6 Incidents, Phase 5 Handover, Phase 4 Medications,
+   * Phase 3 Care notes, Phase 2 Residents, Phase 0 Specimens.
+   *
+   * Risk assessments, Consent and Documents stay as rail items with no screen
+   * of their own: Phase 8 built those acts on a resident's record, which is
+   * where they belong, and a home-wide screen for each is not in the CW PRD.
    */
-  it('has everything but the dashboard live after Phase 7', () => {
+  it('has every module but Risk assessments, Consent and Documents live after Phase 9', () => {
     expect(
       NAV_ITEMS.filter((item) => isBuilt(item.module)).map((item) => item.label),
     ).toEqual([
+      'Today',
       'Residents',
       'Care notes',
       'Handover',

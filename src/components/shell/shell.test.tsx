@@ -57,10 +57,16 @@ describe('the icon rail', () => {
       within(nav).getByRole('link', { name: 'Medications' }).getAttribute('href'),
     ).toBe('/medications')
 
-    for (const label of ['Today', 'Documents']) {
-      const entry = within(nav).getByRole('button', { name: `${label}, not built` })
-      expect(entry.getAttribute('data-built')).toBe('false')
-    }
+    // Phase 9 put the dashboard at the root, so Today is a link like the rest.
+    expect(within(nav).getByRole('link', { name: 'Today' }).getAttribute('href')).toBe(
+      '/',
+    )
+
+    // Documents has no home-wide screen: filing lives on a resident's record.
+    const documents = within(nav).getByRole('button', {
+      name: 'Documents, not built',
+    })
+    expect(documents.getAttribute('data-built')).toBe('false')
   })
 
   it('holds the account and signing out in its second group', async () => {
