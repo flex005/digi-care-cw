@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, waitFor, within } from '@testing-library/react'
+import { waitFor, within } from '@testing-library/react'
 import { axe } from 'vitest-axe'
 import type { Resident } from '@/data/types'
 import { RISK_ASSESSMENT_TEMPLATES } from '@/data/types'
@@ -214,20 +214,46 @@ describe('the placeholder says so where it appears', () => {
   })
 })
 
-describe('scoring is asked of the role table, once, at the head', () => {
-  const scoreButton = (tab: HTMLElement) =>
-    within(tab).getByRole('button', { name: 'Score an assessment' })
-
-  it('gives the senior carer the live act and says it is built in Phase 8', async () => {
+describe('scoring is asked of the role table', () => {
+  /*
+   * Phase 8 makes the act live. Where the reader may score, the control is on
+   * each template, because scoring acts on one; where they may not, the
+   * refusal is drawn once at the head rather than nine times down the list.
+   */
+  it('gives a senior carer the act on every template the home carries out', async () => {
     const tab = await openTab(staffAkinyemi.id, NEVER_ASSESSED_FALLS)
-    expect(scoreButton(tab)).toBeEnabled()
-    const line = tab.querySelector('[data-act-line="not_built"]')
-    expect(line?.textContent).toBe('Scoring is built in Phase 8, senior carer records.')
+    expect(tab.querySelector('[data-scoring-live]')?.textContent).toBe(
+      'Scoring is on each template below.',
+    )
+    expect(tab.querySelector('[data-act-line]')).toBeNull()
+
+    const rows = [...tab.querySelectorAll('[data-template]')]
+    const carriedOut = rows.filter(
+      (row) => row.getAttribute('data-configured') !== 'retired_unanswered',
+    )
+    expect(carriedOut.length).toBeGreaterThan(0)
+    for (const row of carriedOut) {
+      const act = row.querySelector('[data-score]')
+      expect(act?.getAttribute('href')).toBe(
+        `/residents/${NEVER_ASSESSED_FALLS.id}/risk-assessments/${row.getAttribute('data-template')}`,
+      )
+      expect(act?.textContent).toBe(
+        row.getAttribute('data-assessed') === 'assessed' ? 'Re-score' : 'Score',
+      )
+    }
+    // A template this home does not carry out has no act: it is a question
+    // nobody here asks, not a gap somebody can close.
+    for (const row of rows.filter(
+      (entry) => entry.getAttribute('data-configured') === 'retired_unanswered',
+    ))
+      expect(row.querySelector('[data-score]')).toBeNull()
   })
 
-  it('gives the care worker the disabled act with the role table’s reason', async () => {
+  it('gives the care worker the disabled act with the role table’s reason, once', async () => {
     const tab = await openTab(staffEze.id, NEVER_ASSESSED_FALLS)
-    expect(scoreButton(tab)).toBeDisabled()
+    expect(
+      within(tab).getByRole('button', { name: 'Score an assessment' }),
+    ).toBeDisabled()
 
     // Asked of the table by person, never by naming a role.
     const grant = CARE_ACTS.score_risk_assessment[signInRoleOf(memberOf(staffEze.id))]
@@ -236,17 +262,9 @@ describe('scoring is asked of the role table, once, at the head', () => {
     expect(tab.querySelector('[data-act-line="refused"]')?.textContent).toBe(
       grant.reason,
     )
-    expect(tab.querySelector('[data-act-line="not_built"]')).toBeNull()
-  })
-
-  it('draws no act on any row, for either role', async () => {
-    for (const staffId of [staffEze.id, staffAkinyemi.id]) {
-      const tab = await openTab(staffId, NEVER_ASSESSED_FALLS)
-      for (const row of tab.querySelectorAll('[data-template]')) {
-        expect(row.querySelectorAll('a, button, input, textarea')).toHaveLength(0)
-      }
-      cleanup()
-    }
+    expect(tab.querySelectorAll('[data-act-line]')).toHaveLength(1)
+    for (const row of tab.querySelectorAll('[data-template]'))
+      expect(row.querySelectorAll('a, button, input, textarea')).toHaveLength(0)
   })
 })
 

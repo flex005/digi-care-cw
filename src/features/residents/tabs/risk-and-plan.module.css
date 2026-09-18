@@ -111,12 +111,28 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* The act on a row, where the reader may perform it. */
+.rowAct {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  margin-left: auto;
+}
+
 .note {
   max-width: 72ch;
   margin-bottom: var(--space-16);
   color: var(--ink-500);
   font-size: var(--text-body-sm-size);
   line-height: var(--text-body-sm-line);
+}
+
+/* Two acts side by side: writing the plan, and the meeting over it. */
+.acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-24);
+  align-items: center;
 }
 
 .act {

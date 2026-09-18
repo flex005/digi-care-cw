@@ -294,18 +294,19 @@ describe('uploading is the senior carer’s act', () => {
     )
   }
 
-  it('is live for Akinyemi, and says it is not built', async () => {
+  /*
+   * Phase 8: filing is live, and it is about the file rather than any one row,
+   * so it stays at the head where the refusal was.
+   */
+  it('takes Akinyemi to the form, from the head of the tab', async () => {
     expect(answerOf(staffAkinyemi, okafor).kind).toBe('yes')
 
     const { container } = openAs(staffAkinyemi, okafor)
     const panel = await panelOf(container)
 
-    expect(
-      within(panel).getByRole('button', { name: 'Upload a document' }),
-    ).toBeEnabled()
-    expect(panel.querySelector('[data-act-line="not_built"]')?.textContent).toBe(
-      'Uploading is built in Phase 8, senior carer records.',
-    )
+    const act = within(panel).getByRole('link', { name: 'File a document' })
+    expect(act.getAttribute('href')).toBe(`/residents/${okafor.id}/documents/new`)
+    expect(panel.querySelector('[data-act-line]')).toBeNull()
   })
 
   it('is unavailable to Eze, with the role table’s reason', async () => {
@@ -316,11 +317,12 @@ describe('uploading is the senior carer’s act', () => {
     const panel = await panelOf(container)
 
     expect(
-      within(panel).getByRole('button', { name: 'Upload a document' }),
+      within(panel).getByRole('button', { name: 'File a document' }),
     ).toBeDisabled()
     expect(panel.querySelector('[data-act-line="refused"]')?.textContent).toBe(
       answer.reason,
     )
+    expect(within(panel).queryByRole('link', { name: 'File a document' })).toBeNull()
   })
 })
 

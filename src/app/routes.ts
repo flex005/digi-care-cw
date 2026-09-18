@@ -93,15 +93,36 @@ export const ROUTES: RouteDeclaration[] = [
     inShell: true,
   },
   {
+    path: '/residents/[residentId]/risk-assessments/[templateId]',
+    screen: 'assessmentForm',
+    inShell: true,
+  },
+  { path: '/reviews', screen: 'reviewQueue', inShell: true },
+  {
     path: '/residents/[residentId]/care-plan',
     screen: 'residentCarePlan',
+    inShell: true,
+  },
+  {
+    path: '/residents/[residentId]/care-plan/review',
+    screen: 'wholePlanReview',
     inShell: true,
   },
   { path: '/residents/[residentId]/goals', screen: 'residentGoals', inShell: true },
   { path: '/residents/[residentId]/consent', screen: 'residentConsent', inShell: true },
   {
+    path: '/residents/[residentId]/consent/[consentType]',
+    screen: 'consentDecision',
+    inShell: true,
+  },
+  {
     path: '/residents/[residentId]/documents',
     screen: 'residentDocuments',
+    inShell: true,
+  },
+  {
+    path: '/residents/[residentId]/documents/new',
+    screen: 'uploadDocument',
     inShell: true,
   },
   { path: '/specimens', screen: 'specimens', module: 'specimens', inShell: true },

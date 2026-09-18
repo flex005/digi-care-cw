@@ -2,7 +2,8 @@ import type { RiskStatus } from '@/data/types'
 import { RISK_ASSESSMENT_TEMPLATES } from '@/data/types'
 import { type ConfiguredState, configuredState } from '@/data/access/site-config-store'
 import { staffLabel } from '@/data/access/team-store'
-import { Card, CardHead } from '@/components/primitives'
+import Link from 'next/link'
+import { Card, CardHead, buttonClassName } from '@/components/primitives'
 import { Settled, StatusPill, Unrecorded } from '@/components/status'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { useSiteFormat } from '@/app/session/use-session'
@@ -30,13 +31,16 @@ import styles from './risk-and-plan.module.css'
  * "low" by default: a risk nobody has looked at is not a low risk, and the
  * cheapest way to make a home look safe is to default the unknown to fine.
  *
- * **Nobody scores from here.** Scoring is one act drawn at the head of the tab,
- * asked of the role table, rather than a button on every row: a care worker
- * sees why they cannot, and a senior carer sees that the form is not built yet.
+ * **Where the reader may score, every row carries the act**; where they may
+ * not, the refusal is drawn once at the head rather than nine times down a
+ * list. Scoring acts on one template, so for a senior carer the control belongs
+ * on the template — and a retired one carries none, because it is a question
+ * this home does not ask.
  */
 export function RiskAssessmentsTab() {
   const { resident, site } = useOpenRecord()
   const viewer = useViewer()
+  const scoreAnswer = viewer.ask('score_risk_assessment', resident.id)
 
   /*
    * **Every template, and what the home decided about it.** The two together
@@ -112,12 +116,23 @@ export function RiskAssessmentsTab() {
           </p>
         ) : null}
         <div className={styles.act}>
-          <ActPoint
-            answer={viewer.ask('score_risk_assessment', resident.id)}
-            label="Score an assessment"
-            notBuilt="Scoring is built in Phase 8, senior carer records."
-            residentName={resident.preferredName}
-          />
+          {/*
+           * Live from Phase 8. A care worker still meets the act and the
+           * table's reason for it: hiding it would say the assessment cannot
+           * be scored rather than that it is not theirs to score.
+           */}
+          {scoreAnswer.kind === 'yes' ? (
+            <p className={styles.note} data-scoring-live>
+              Scoring is on each template below.
+            </p>
+          ) : (
+            <ActPoint
+              answer={scoreAnswer}
+              label="Score an assessment"
+              notBuilt="Scoring is not built."
+              residentName={resident.preferredName}
+            />
+          )}
         </div>
       </Card>
 
@@ -149,6 +164,17 @@ export function RiskAssessmentsTab() {
               </div>
               <StateCell status={status} state={state} />
               <LevelCell status={status} state={state} />
+              {scoreAnswer.kind !== 'yes' || state === 'retired_unanswered' ? null : (
+                <div className={styles.rowAct}>
+                  <Link
+                    href={`/residents/${resident.id}/risk-assessments/${template.id}`}
+                    className={buttonClassName({ variant: 'secondary' })}
+                    data-score={template.id}
+                  >
+                    {status.kind === 'assessed' ? 'Re-score' : 'Score'}
+                  </Link>
+                </div>
+              )}
             </li>
           ))}
         </ul>

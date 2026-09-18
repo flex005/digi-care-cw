@@ -1,0 +1,270 @@
+/* Scoring a risk assessment. Flex throughout, never grid. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+.status {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.banner {
+  margin-top: var(--space-16);
+}
+
+.previous {
+  margin-top: var(--space-16);
+}
+
+.done {
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface-sunken);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* ---------------------------------------------------------- running score */
+
+.running {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: flex-start;
+}
+
+.runningLabel {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* The figure with its denominator beneath it, as every figure in this build. */
+.runningFigure {
+  color: var(--ink-900);
+  font-size: var(--text-figure-size);
+  line-height: var(--text-figure-line);
+  font-weight: var(--weight-bold);
+}
+
+.runningOf {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.runningBand {
+  margin-top: var(--space-4);
+}
+
+/* ---------------------------------------------------------------- factors */
+
+.items {
+  display: flex;
+  flex-direction: column;
+  margin: var(--space-12) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-24);
+  align-items: flex-start;
+  padding-block: var(--space-16);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.itemAbout {
+  display: flex;
+  flex: 1 1 280px;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.itemQuestion {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-semibold);
+}
+
+.itemGuidance {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.choices {
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* The weighting is always beside the choice: a scorer who cannot see it
+   cannot tell whether the instrument is behaving. */
+.choice {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--space-48);
+  padding: var(--space-8) var(--space-16);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+  text-align: left;
+  cursor: pointer;
+}
+
+.choice:hover {
+  background-color: var(--purple-50);
+}
+
+.choiceChosen {
+  composes: choice;
+  border-color: var(--purple-900);
+  background-color: var(--purple-900);
+  color: var(--bg-surface);
+  font-weight: var(--weight-semibold);
+}
+
+.choicePoints {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.levelChoice {
+  margin-top: var(--space-16);
+}
+
+/* ---------------------------------------------------------- interventions */
+
+.interventions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin: var(--space-16) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.intervention {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: var(--space-16);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-surface-sunken);
+}
+
+.interventionActs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: flex-start;
+  margin-top: var(--space-16);
+}
+
+.twoUp {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+}
+
+.twoUp > * {
+  flex: 1 1 200px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.fieldLabel {
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.input,
+.textarea {
+  padding: var(--space-12);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface);
+  color: var(--ink-900);
+  font: inherit;
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+}
+
+.input {
+  min-height: var(--space-48);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.input:focus-visible,
+.textarea:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ------------------------------------------------------------------- foot */
+
+.foot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  align-items: flex-start;
+}
+
+.footState {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.signing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.signingFacts {
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+}
+
+.formError {
+  color: var(--status-critical-ink);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}

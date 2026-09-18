@@ -3,7 +3,14 @@ import type { CategoryState, DocumentRecord, IsoDate, LibraryRow } from '@/data/
 import { getResidentDocuments } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import { dueSoonDays } from '@/data/access/settings-store'
-import { Button, Card, CardHead, EmptyState } from '@/components/primitives'
+import Link from 'next/link'
+import {
+  Button,
+  Card,
+  CardHead,
+  EmptyState,
+  buttonClassName,
+} from '@/components/primitives'
 import { NotYourHome, Unrecorded } from '@/components/status'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { useViewer } from '@/app/session/use-viewer'
@@ -28,8 +35,10 @@ import styles from './consent-and-documents.module.css'
  *
  * **Nothing opens.** There is no document viewer in this build, so a row
  * states its facts (what it is, when it expires, who filed it) and offers no
- * link that would lead nowhere. Uploading is the senior carer's act and is
- * drawn at the head.
+ * link that would lead nowhere. **Filing one is the senior carer's act**, drawn
+ * once at the head from Phase 8 — it is about the file rather than about any
+ * row, so it does not belong on one — and a care worker meets the role table's
+ * refusal in the same place.
  */
 export function DocumentsTab() {
   const { resident, medications } = useOpenRecord()
@@ -39,14 +48,24 @@ export function DocumentsTab() {
   const load = useCallback(() => getResidentDocuments(resident.id), [resident.id])
   const resource = useResource(load, [resident.id])
 
-  const act = (
-    <ActPoint
-      answer={viewer.ask('upload_document', resident.id)}
-      label="Upload a document"
-      notBuilt="Uploading is built in Phase 8, senior carer records."
-      residentName={resident.preferredName}
-    />
-  )
+  const uploadAnswer = viewer.ask('upload_document', resident.id)
+  const act =
+    uploadAnswer.kind === 'yes' ? (
+      <Link
+        href={`/residents/${resident.id}/documents/new`}
+        className={buttonClassName({ variant: 'secondary' })}
+        data-file-document
+      >
+        File a document
+      </Link>
+    ) : (
+      <ActPoint
+        answer={uploadAnswer}
+        label="File a document"
+        notBuilt="Filing a document is not built."
+        residentName={resident.preferredName}
+      />
+    )
   const head = (
     <CardHead
       title={`${resident.preferredName}’s documents`}

@@ -3,8 +3,15 @@ import type { CarePlanDomainRecord, CarePlanText, IsoDateTime } from '@/data/typ
 import { CARE_PLAN_DOMAINS } from '@/data/types'
 import { now as appNow } from '@/data/fixtures/clock'
 import { staffLabel } from '@/data/access/team-store'
-import { Accordion, AccordionSection, Card, CardHead } from '@/components/primitives'
+import {
+  Accordion,
+  AccordionSection,
+  Card,
+  CardHead,
+  buttonClassName,
+} from '@/components/primitives'
 import { Settled, StatusPill, SupportLevelBadge, Unrecorded } from '@/components/status'
+import Link from 'next/link'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
@@ -37,6 +44,7 @@ import styles from './risk-and-plan.module.css'
 export function CarePlanTab() {
   const { resident, site } = useOpenRecord()
   const viewer = useViewer()
+  const reviewAnswer = viewer.ask('conduct_review', resident.id)
   // One instant for the whole tab, so the owed block and a row cannot disagree
   // about whether a date has passed.
   const [now] = useState<IsoDateTime>(() => appNow().toISOString() as IsoDateTime)
@@ -117,12 +125,34 @@ export function CarePlanTab() {
               for them is still below.
             </p>
           ) : null}
-          <ActPoint
-            answer={viewer.ask('write_care_plan', resident.id)}
-            label="Edit care plan"
-            notBuilt="Editing a care plan is not built."
-            residentName={resident.preferredName}
-          />
+          <div className={styles.acts}>
+            <ActPoint
+              answer={viewer.ask('write_care_plan', resident.id)}
+              label="Edit care plan"
+              notBuilt="Editing a care plan is not built."
+              residentName={resident.preferredName}
+            />
+            {/*
+             * Conducting a review is a different act from writing the plan:
+             * it is the meeting, and it records which parts were still gaps.
+             */}
+            {reviewAnswer.kind === 'yes' ? (
+              <Link
+                href={`/residents/${resident.id}/care-plan/review`}
+                className={buttonClassName({ variant: 'secondary' })}
+                data-open-review
+              >
+                Conduct a whole care plan review
+              </Link>
+            ) : (
+              <ActPoint
+                answer={reviewAnswer}
+                label="Conduct a whole care plan review"
+                notBuilt="Conducting a review is not built."
+                residentName={resident.preferredName}
+              />
+            )}
+          </div>
         </div>
       </Card>
 

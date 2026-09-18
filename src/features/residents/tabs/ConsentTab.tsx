@@ -1,7 +1,8 @@
 import type { AnyConsent } from '@/data/types'
 import { CONSENT_TYPES } from '@/data/types'
 import { configuredState, type ConfiguredState } from '@/data/access/site-config-store'
-import { Card, CardHead } from '@/components/primitives'
+import Link from 'next/link'
+import { Card, CardHead, buttonClassName } from '@/components/primitives'
 import { ConsentBadge, GapCount } from '@/components/status'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { useViewer } from '@/app/session/use-viewer'
@@ -28,12 +29,16 @@ import styles from './consent-and-documents.module.css'
  *
  * **The lead figure is `consentGaps`**, the function the tab's name reads, so
  * "Consent · 3 of 8 never sought" above and the figure below are one fact
- * computed once. Recording a decision is the senior carer's act and is drawn
- * at the head; nothing on this tab writes.
+ * computed once. **Recording a decision is on each type from Phase 8**, where
+ * the role table allows it, because a decision is about one thing somebody is
+ * being asked; a reader who may not record one meets the refusal once, at the
+ * head. A type that already has a decision carries no act: changing it means
+ * withdrawing what is there, which is a different act.
  */
 export function ConsentTab() {
   const { resident } = useOpenRecord()
   const viewer = useViewer()
+  const recordAnswer = viewer.ask('record_consent', resident.id)
 
   const gaps = consentGaps(resident)
   const notAsked = CONSENT_TYPES.length - gaps.asked
@@ -91,12 +96,23 @@ export function ConsentTab() {
               </p>
             ) : null}
           </div>
-          <ActPoint
-            answer={viewer.ask('record_consent', resident.id)}
-            label="Record a consent decision"
-            notBuilt="Recording consent is built in Phase 8, senior carer records."
-            residentName={resident.preferredName}
-          />
+          {/*
+           * Live from Phase 8, and on each type rather than at the head: a
+           * consent decision is about one thing somebody is being asked. The
+           * refusal stays at the head, once.
+           */}
+          {recordAnswer.kind === 'yes' ? (
+            <p className={styles.note} data-consent-live>
+              Recording a decision is on each consent type below.
+            </p>
+          ) : (
+            <ActPoint
+              answer={recordAnswer}
+              label="Record a consent decision"
+              notBuilt="Recording consent is not built."
+              residentName={resident.preferredName}
+            />
+          )}
         </div>
       </Card>
 
@@ -113,6 +129,7 @@ export function ConsentTab() {
               className={styles.consentRow}
               data-consent={type.id}
               data-configured={state}
+              data-decision={status.kind}
             >
               <div className={styles.about}>
                 <p className={styles.rowTitle}>{type.name}</p>
@@ -125,6 +142,20 @@ export function ConsentTab() {
                 ) : null}
               </div>
               <Decision status={status} state={state} />
+              {recordAnswer.kind !== 'yes' ||
+              state === 'retired_unanswered' ||
+              status.kind === 'given' ||
+              status.kind === 'refused' ? null : (
+                <div className={styles.rowAct}>
+                  <Link
+                    href={`/residents/${resident.id}/consent/${type.id}`}
+                    className={buttonClassName({ variant: 'secondary' })}
+                    data-record-consent={type.id}
+                  >
+                    Record a decision
+                  </Link>
+                </div>
+              )}
             </li>
           ))}
         </ul>

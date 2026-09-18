@@ -532,3 +532,29 @@ Screenshots: both roles, 1440 and 390, colour and greyscale, list and form, with
 **Mutations run**, each confirmed landed and reversed: "the resident was not asked" drawn as positive rather than caution (the amber-not-hatched test fails), and the attendance write marking every invited resident rather than only those answered for (the leaves-the-rest-as-gaps test fails).
 
 Screenshots: both roles, 1440 and 390, colour and greyscale, all four screens.
+
+---
+
+## Phase 8: senior carer records (18/09/2026)
+
+**What was built.** The four write-acts Table 3 gives a senior carer and this build could not perform: scoring a risk assessment (RA-02), recording a consent decision, filing a document, and conducting a whole care plan review. Departures are in `docs/DEPARTURES.md` under Senior carer records.
+
+**The data layer already held all four writes.** `recordAssessment`, `recordConsent`, `fileDocument` and `recordWholePlanReview` came across with `src/data` in Phase 0 and had never been called. This phase is screens, the role table's answers, and the rules each act refuses on — which is why it added no store and changed no shared type.
+
+- **RA-02, the one screen the CW PRD draws.** Placeholder banner on the form as well as the list, a running score that says what it is out of, factor cards carrying each choice's weighting, every factor required before sign-off, interventions, and the medication PIN. The band change is stated before the PIN goes in, because RA-02's push to the assigned care workers does not happen and the person signing is the one who has to say it out loud.
+- **Consent is the Admin build's capacity gate, narrowed.** Capacity first and alone; both Mental Capacity Act stages where somebody lacks it; a best-interests decision needing somebody consulted and a reason; the LPA holder offered only where a health and welfare LPA is on record. The assessment it writes names the one decision it was made about.
+- **Filing a document stores no file**, and the expiry question cannot be skipped: "nobody knows" is one of its three answers rather than what a blank produces.
+- **A review can be completed over gaps and the record carries which ones**, the handover signature's shape, with the outstanding domains named rather than counted.
+
+**Where each act is drawn.** Scoring and recording consent went onto the row they act on, because they act on one template and one consent type; filing a document and conducting a review stayed at the head, because the first is about the file and the second about the whole plan. A care worker meets the role table's reason once in each place, never per row.
+
+**Three fields drawn and not kept**, each with a line at the act and each a change to shared data if it were to be kept: RA-02's interventions, the review's account of what was discussed, and — from Phase 7 — the engagement level. They are the same shape as the photo upload and the PDF export: the control is real, nothing is stored, and the screen says so where it is used.
+
+**Found on the way.**
+
+- **A confirmation owned by the component the write remounts.** The assessment form's "recorded" line lived in the form, and recording reloads the resident, which remounts it — the message was destroyed by the act it was reporting. Hoisted to the route. It is the third time this shape has appeared (the handover's status control, the note review), and the first time it was caught by a test rather than by looking.
+- **A test that read the fixtures instead of the overlay.** The first version asserted on `residentById` from the fixtures, which never sees a session write, so a passing write looked like a failing one. Read through `withResidentEdits`, as every screen does.
+- **`LaterPhaseTab` had already gone in Phase 7**, so nothing on a resident's record now says a tab is built later.
+- **A class that was never added, and nothing said so.** The consent row's act carried `className={styles.rowAct}` and the class was not in the sheet: CSS Modules resolves an undeclared name to `undefined`, React drops the attribute, and the row renders unstyled with no error anywhere. The cause was a shell line — `grep … | head || python3 …` — where the `||` tested `head`'s exit status rather than `grep`'s, so the fallback that would have added the class never ran, and the command reported success. Found by sweeping every `styles.x` in the build against its stylesheet, which is now `scripts/check-css-classes.mjs` and a stage of `npm run lint`. Broken on purpose by removing the class again: it names the file, the class and the sheet. Three apparent misses in the first sweep were false positives — `.table .num`, `.cards > .wide` and `.boxes:focus-within .current` are declared as descendants, and the guard reads whole selectors rather than line starts.
+
+**Mutations run**, each confirmed landed and reversed: the running score reported complete before every factor was answered; the LPA holder offered without a health and welfare LPA on record; a resident with no review date dropped from the queue; the expiry question made skippable; and the CSS class removed from its sheet again.

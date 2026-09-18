@@ -78,10 +78,30 @@ describe('every consent type is listed', () => {
     }
   })
 
-  it('offers no per-row control: nothing on this tab records', async () => {
+  /*
+   * Phase 8: a senior carer records a decision, and it is on the type rather
+   * than at the head, because a decision is about one thing somebody is asked.
+   * A type that already has one carries no act — changing it means withdrawing
+   * what is there, which is a different act.
+   */
+  it('puts the act on the types nobody has decided, and nowhere else', async () => {
     const { container } = openAs(staffAkinyemi, withNeverSought)
     const panel = await panelOf(container)
 
+    const rows = [...panel.querySelectorAll<HTMLElement>('[data-consent]')]
+    expect(rows.length).toBeGreaterThan(0)
+    for (const row of rows) {
+      const decided = row.getAttribute('data-decision')
+      const retired = row.getAttribute('data-configured') === 'retired_unanswered'
+      const act = row.querySelector('[data-record-consent]')
+      const expected = !retired && decided !== 'given' && decided !== 'refused'
+      expect(act === null).toBe(!expected)
+    }
+  })
+
+  it('offers a care worker no control on any row', async () => {
+    const { container } = openAs(staffEze, withNeverSought)
+    const panel = await panelOf(container)
     for (const row of panel.querySelectorAll<HTMLElement>('[data-consent]')) {
       expect(within(row).queryByRole('link')).toBeNull()
       expect(within(row).queryByRole('button')).toBeNull()
@@ -236,13 +256,11 @@ describe('recording a decision is the senior carer’s act', () => {
     const { container } = openAs(staffAkinyemi, okafor)
     const panel = await panelOf(container)
 
-    const button = within(panel).getByRole('button', {
-      name: 'Record a consent decision',
-    })
-    expect(button).toBeEnabled()
-    expect(panel.querySelector('[data-act-line="not_built"]')?.textContent).toBe(
-      'Recording consent is built in Phase 8, senior carer records.',
+    expect(panel.querySelector('[data-consent-live]')?.textContent).toBe(
+      'Recording a decision is on each consent type below.',
     )
+    expect(panel.querySelector('[data-act-line]')).toBeNull()
+    expect(panel.querySelectorAll('[data-record-consent]').length).toBeGreaterThan(0)
   })
 
   it('is unavailable to Eze, with the role table’s reason', async () => {

@@ -212,6 +212,41 @@ const SCREENS = {
       ),
     { ssr: false },
   ),
+  reviewQueue: dynamic(
+    () =>
+      import('@/features/reviews/ReviewQueueRoute').then(
+        (module) => module.ReviewQueueRoute,
+      ),
+    { ssr: false },
+  ),
+  wholePlanReview: dynamic(
+    () =>
+      import('@/features/reviews/WholePlanReviewRoute').then(
+        (module) => module.WholePlanReviewRoute,
+      ),
+    { ssr: false },
+  ),
+  uploadDocument: dynamic(
+    () =>
+      import('@/features/documents/UploadDocumentRoute').then(
+        (module) => module.UploadDocumentRoute,
+      ),
+    { ssr: false },
+  ),
+  consentDecision: dynamic(
+    () =>
+      import('@/features/consent/ConsentDecisionRoute').then(
+        (module) => module.ConsentDecisionRoute,
+      ),
+    { ssr: false },
+  ),
+  assessmentForm: dynamic(
+    () =>
+      import('@/features/risk/AssessmentFormRoute').then(
+        (module) => module.AssessmentFormRoute,
+      ),
+    { ssr: false },
+  ),
   goals: dynamic(
     () => import('@/features/goals/GoalsRoute').then((module) => module.GoalsRoute),
     { ssr: false },
