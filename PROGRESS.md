@@ -714,3 +714,80 @@ Built to the reference: the photograph, then the preferred name over the full le
 **And one the linter caught.** The chip's prop was `role`, which on a JSX element is the ARIA attribute as far as `jsx-a11y` and a reader are concerned. It is `heading` now.
 
 **Then the row was centred.** It was top-aligned, which hung the photograph and the two chips off the top of a block whose height the name and the three facts set: the chips ended level with "Ada" and the lower half of the avatar sat against nothing. Measured after: the avatar, the name block and the contacts all centre on the same line, and the row fills the card's content box exactly.
+
+---
+
+## Reading a care note: the row, the five facts, and the correction panel (19/09/2026)
+
+**"Open this note" moved to the right of the row.** Under the body it read as another line of the record rather than as the thing to do with it.
+
+**The five facts became five shapes.** Category, author, time, shift and mood were one size, one colour and one weight in a row — "Social and Emotional D. Morrison 19/09/2026 19:22 BST Late shift mood good" read as a single grey string, and a reader scanning a page of notes for *when* had to parse *what about* first. The category is a filled chip because it is what the eye sorts by, the author is the darkest because a record's author is the fact this product exists to keep visible, the time is quiet and tabular, the shift is outlined so it qualifies the time beside it rather than competing with it, and the mood is a neutral chip.
+
+**None of them carries a status colour**, and that was the constraint worth holding. A category tinted amber or green would say something about the note nobody recorded. The mood especially: `MoodBadge`'s docblock already argued it stays quiet at every score, and it was right — "mood low" in amber makes how somebody seemed one afternoon look like something to action, and "mood good" in green is the product calling an ordinary day good news. It is a chip on neutral ground, which is quiet without being indistinguishable from the timestamp it sat beside.
+
+**The correction panel stopped naming whose note it is.** It drew a disabled "Add a correction" with the role table's reason and a line reading "Only C. Nwosu, who wrote it, can correct it", plus "speak to C. Nwosu". The author is already on the note a line above. The refusal was telling a reader about somebody else's job — the third time today that shape has come up, after the resident record's edit controls and the head's call button. What is theirs is writing their own note, so that is the only thing there now, as a button that opens the composer over the note rather than a link to a second address.
+
+**The immutability line lost its second sentence**: "A care note is never changed once saved. A correction is kept with it."
+
+---
+
+## A resident's medications tab and the MAR chart (19/09/2026)
+
+**Open MAR moved to the right of the head and is the only act there.** "Add interim medication" was beside it, disabled, carrying the role table's reason — a clinician or a manager adds one, and neither role that signs in here is either. Fourth time today for that shape, after the record's edit controls, the head's call button and the note's correction panel: a control nobody reading this product can use, whose only content is whose job it is. The rule is untouched in `capabilities.ts`, and the Medications *module* still has its Add interim tab, which is where a statement about the act belongs.
+
+**On the MAR**, the way back out is above the card now, in every state the screen can be in rather than only where the chart loads — inside the card it was the last thing under the legend, which is the bottom of a chart people scroll. The month nav, the export and the bounds of the record are one right-aligned group beside the heading; they were three stacked blocks under it, so finding out which month was on screen meant descending the card. The export's "no file is produced" line is gone: a sentence about what this build cannot do, on a screen whose subject is the record.
+
+**The layout took three attempts and a measurement to get right**, which is the part worth writing down. The group kept dropping onto its own full-width line below the heading. The cause was `flex-basis: auto` on it: an auto basis is the group's *max-content* width — the nav, the export and the whole bounds sentence side by side, about 1060px — so with the heading's own 260 the row overflowed and both items wrapped to full-width lines. Two screenshots read as "nearly right, nudge it"; the measurement said head and group were each 1264px wide at different tops, which named the cause immediately. A basis of zero lets the row divide what it has, and the sentence wraps inside the group where it belongs.
+
+---
+
+## The MAR chart, brought in line with the Admin build's (19/09/2026)
+
+Read the Admin build's chart rather than guessing at it. Four things it had that this one did not: a sticky header, a bounded scroll box for the header to stick within, a per-row total at the right, and a sticky totals column. All four are in now, and all four were confirmed by measuring the scrolled chart rather than by looking at a screenshot: after scrolling 200px down and 600px across, the first header row sits exactly at the box's top, the second exactly 32px below it, the medication column holds at left 108 and the totals column at right 1416.
+
+**The row total is where the care went.** It is Rule 4 on every row — "33 given of 38 due", with "1 with no record" above it in the unrecorded ink — and the two are never summed, because a dose nobody recorded and the row's coverage are different facts. The denominator is what the record covers *for that medicine*, never the row's cells: most cells on a row are another medicine's round, and counting them would put a denominator on the row that nothing was ever expected against, growing whenever somebody else's medicine gained a round time.
+
+**Two mutations, and the second one taught something.** Zeroing the scheduled count failed the new test at once. Counting a medicine's *unscheduled* rounds — exactly the defect the comment warns about — **passed**, because the assertion was only `denominator <= cells.length`. Tightening it to count the cells' looks then came out off by one, which was the real find: **a recorded "nothing was due" draws exactly as a round the medicine is not on.** To a reader those are the same thing and should look the same; to the row's denominator they are not, and nothing in the DOM could tell them apart. The cell now carries `data-recorded`, the test asserts the denominator exactly, and the mutation fails.
+
+That is the third time this week a test has been tightened twice before it held. The shape each time: the first assertion was a bound rather than an equality, and a bound is satisfied by a great many wrong answers.
+
+---
+
+## The MAR chart, the rest of the way to the Admin build's (19/09/2026)
+
+Five things the reference had that this one did not, read out of the Admin build rather than guessed at: the week/month range, the omissions banner with its filter, the legend above the grid, glyph-only cells, and the range's own heading.
+
+**The week and month were already written down as owed.** CLAUDE.md §6 names this exact case when it explains what a segmented control is for — "the MAR's week and month" — and only the month had been built. The grid model moved from "a month and a history" to "the days you hand it", which is a smaller thing to reason about: `daysIn(anchor, range, history)` clips to the record at both ends, as the month view always did, so no column stands for a day the record does not reach.
+
+**The words came out of the cells and stayed on the page.** They were added when this was ported, with a docblock arguing every state should carry a shape, a word and a sentence. A week of them is a wall of text in which the one hatched cell is harder to find than it is among shapes — which is the opposite of what the screen is for. The shapes and the sentences remain, and the legend sits above the grid where it is read before the grid rather than after it.
+
+**Two rules had to hold while that happened**, and both cost more than the change itself:
+
+- A dose given without its second signature is two facts, and §1 forbids putting the second "in small print". At glyph density there is no room for the words, so it takes the unrecorded dashed edge — an eighth form in the hatch's own file — over the settled fill it keeps. Never a third fill: averaging a record and a gap gives a state that is neither.
+- A closed omission keeps its hatch and gains a glyph, because closing is a decision about the gap rather than a filling of it.
+
+**The test that nearly went wrong.** `isHatched` was `/unrecorded/.test(className)`, and `composes:` puts both class names on the element — so the new underline matched it, and "nothing else in the grid is hatched" started failing on a cell that is not hatched at all. The fix is a boundary in the pattern, but the lesson is the one §8 keeps repeating: a check written against a class *name* is a check against a naming convention, and the convention had one more member than it did yesterday.
+
+**And a bug the screenshot caught rather than a test.** The totals column header read "This month" while the range was a week — a denominator naming a span the chart was not showing. It follows the range now, with a test.
+
+**Three more the eye caught and the measurement named.**
+
+- **Every dose sat 7 to 9px left of its own round time.** The `<td>` carried `text-align: center` and the cell is a flex box, which that does not move: the square sat at the left of a 51px column while 08:00 was centred over it. Header centres were 374, 425, 476 and the cells' were 367, 416, 468. `margin-inline: auto`, and they are 375, 425, 476.
+- **The legend's swatch was 72 by 48 beside a 34px cell** — two and a half times the area of the thing it explains, so the legend was showing a reader something they would not meet in the grid. Two causes: `--mar-cell` was declared on `.grid`, and the legend draws the same cell from outside the table, so the variable resolved to nothing there; and a rule forced the swatch to 4.5rem by 3rem on top of that. The variable belongs to the screen, and the override is gone.
+- **Two legend entries explained a cell by showing nothing at all.** "Not started" and "Not held" are the near-white empty cell, which reads in the grid against the rules between columns and vanishes on the legend's white card. A faint edge makes the empty box an empty box wherever it is drawn — not the info outline, which is heavier and coloured and means the opposite.
+
+The legend's notes are a phrase each now rather than a sentence: "recorded, with who and when", "window closed, nobody wrote". Ten of them in sentences was a paragraph above a chart nobody had read yet.
+
+**Then two legend entries still had no swatch, and the cause was worth the afternoon.** "Not started" and "Not held" were not missing their swatch: it was **2 pixels square**. `.cellQuiet { composes: cellNotDue }`, and `.cellNotDue { composes: cell }` — **`composes:` does not chain.** The element came out with `cellQuiet cellNotDue` and no `cell`, so the width, the height and the `display: flex` were simply absent and a 1px border round a zero box was the whole of it.
+
+Nothing in the build said so. Both classes exist, `check-css-classes` was happy, the typechecker has no opinion, the screen rendered. The CSS reads correctly — you have to know the rule to see it. It was found by somebody looking at the legend and saying two entries had no box, and named by measuring the elements rather than by reading the file.
+
+`check-css-classes.mjs` fails on a composition whose target is itself a composition now, and says which base to name directly. Broken on purpose by putting the original line back: it names the file, the class, the chain and the fix. No other sheet in the build has one. New §8 entry.
+
+The swatch is also aligned to the first line of its words rather than centred on all of them, so an entry whose note runs to three lines no longer drops its swatch a line and a half below the title it belongs to.
+
+**And the fix for the grid's alignment was itself the cause of the legend's.** Centring the dose under its round time was done with `margin-inline: auto` on the cell — which is right in a table cell and wrong in the legend, where the same cell is a flex item and an auto inline margin absorbs the row's free space. Each swatch was pushed right by a different amount depending on how long its words were: 25px on "Given", less on "No record, closed", which is exactly the ragged spacing that got reported. One rule, correct where it was written and wrong everywhere else the same cell is drawn.
+
+The cell is `inline-flex` now, so the `<td>`'s own `text-align: center` centres it and nothing has to reach into the box from outside. Measured after: every legend entry has its swatch flush at the item's left edge with the same 8px gap to the words, and the grid's cells centre on 375, 425, 476 under headers at 374, 425, 476.
+
+**The doses were also pinned to the top of their rows.** A row is as tall as the medication beside it — name, dose, tags — and the square sat at the top of that, level with nothing. `vertical-align: middle`: 23px above and 24px below in an 81px row.

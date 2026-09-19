@@ -58,6 +58,56 @@ function declaredIn(sheet) {
   return names
 }
 
+/**
+ * A class that composes a class that itself composes another.
+ *
+ * **`composes:` does not chain**, and the failure is silent. `.cellQuiet
+ * { composes: cellNotDue }` where `.cellNotDue { composes: cell }` puts
+ * `cellQuiet cellNotDue` on the element and *not* `cell`: the grandparent's
+ * declarations are simply absent. The MAR legend drew two 2px squares where
+ * 34px ones belonged, and nothing anywhere said so — the classes exist, the
+ * references resolve, the typechecker has no opinion, and the only symptom is
+ * an element that renders to almost nothing.
+ *
+ * So a composition whose target is itself a composition fails here, and the
+ * fix is to compose the base directly alongside it.
+ */
+function chainedComposes(sheet) {
+  const withoutComments = sheet.replace(/\/\*[\s\S]*?\*\//g, '')
+  /** Which local classes each rule composes, by the class it declares. */
+  const composedBy = new Map()
+  for (const block of withoutComments.split('}')) {
+    const open = block.indexOf('{')
+    if (open === -1) continue
+    const selector = block.slice(0, open)
+    const body = block.slice(open + 1)
+    const names = [...selector.matchAll(DECLARED)].map((match) => match[1])
+    const composes = []
+    for (const match of body.matchAll(/composes:\s*([^;]+);/g)) {
+      for (const name of match[1].trim().split(/\s+/)) {
+        /* `from './other.css'` is another sheet's class and cannot chain here. */
+        if (name === 'from' || name.startsWith("'") || name.startsWith('"')) break
+        composes.push(name)
+      }
+    }
+    if (composes.length > 0) for (const name of names) composedBy.set(name, composes)
+  }
+
+  const chained = []
+  for (const [name, composes] of composedBy) {
+    for (const target of composes) {
+      const theirs = composedBy.get(target)
+      if (theirs === undefined) continue
+      const absent = theirs.filter((base) => !composes.includes(base))
+      if (absent.length > 0)
+        chained.push(
+          `.${name} composes .${target}, which composes .${absent.join(', .')} — composes does not chain, so name the base here too`,
+        )
+    }
+  }
+  return chained
+}
+
 const missing = []
 let files = 0
 let references = 0
@@ -88,6 +138,13 @@ for await (const file of walk(SRC)) {
         `${path.relative(ROOT, file)} — styles.${name} is not in ${path.basename(sheetPath)}`,
       )
   }
+}
+
+/* Every stylesheet, not only the ones a component imports by name. */
+for await (const sheet of walk(SRC)) {
+  if (!/\.css$/.test(sheet)) continue
+  for (const finding of chainedComposes(await readFile(sheet, 'utf8')))
+    missing.push(`${path.relative(ROOT, sheet)} — ${finding}`)
 }
 
 if (missing.length > 0) {
