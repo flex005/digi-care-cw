@@ -44,7 +44,7 @@ describe('one care note', () => {
     await detail()
     expect(
       screen.getByText(
-        'A care note is never changed once saved. A mistake is fixed with a correction, which keeps both.',
+        'A care note is never changed once saved. A correction is kept with it.',
       ),
     ).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Edit|Delete/ })).toBeNull()

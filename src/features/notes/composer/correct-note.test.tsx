@@ -82,7 +82,15 @@ describe('correcting a care note', () => {
     expect(note(original.id).body).toBe('Ate all of the lunch.')
   })
 
-  it('tells somebody else who wrote the note, and what they can do instead', async () => {
+  /*
+   * **Somebody else's note offers the act that is theirs, and says nothing
+   * about whose note it is.** It used to draw a disabled "Add a correction"
+   * with the role table's reason and a line naming the author — but the author
+   * is already on the note a line above, so the refusal told a reader about
+   * somebody else's job rather than about their own.
+   */
+  it('offers somebody else a note of their own, and no correction', async () => {
+    const user = userEvent.setup()
     const flagged = note(GAP_NOTE_IDS.flaggedNotReviewed)
     renderProfileTab(
       staffAkinyemi.id,
@@ -90,20 +98,19 @@ describe('correcting a care note', () => {
       'site-rosewood-court',
     )
 
-    expect(
-      await screen.findByText('Only C. Nwosu, who wrote it, can correct it.'),
-    ).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Add a correction' })).toBeDisabled()
-    const instead = screen
-      .getByText(
-        'If you believe it is wrong, speak to C. Nwosu, or write your own note saying what you found.',
-      )
-      .closest('[data-act-line]')
-    expect(instead?.getAttribute('data-act-line')).toBe('refused')
-    expect(
-      screen.getByRole('link', { name: 'Write your own note about Emmanuel' }),
-    ).toHaveAttribute('href', '/residents/res-okafor/notes/new')
-    expect(screen.queryByRole('form')).toBeNull()
+    const own = await screen.findByRole('button', {
+      name: 'Write your own note about Emmanuel',
+    })
+    expect(screen.queryByRole('button', { name: 'Add a correction' })).toBeNull()
+    expect(screen.queryByText(/who wrote it, can correct it/)).toBeNull()
+    expect(screen.queryByText(/speak to C. Nwosu/)).toBeNull()
+    expect(document.querySelector('[data-act-line]')).toBeNull()
+    // A button, not a link away: it opens over the note.
+    expect(screen.queryByRole('link', { name: /Write your own note/ })).toBeNull()
+
+    await user.click(own)
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog.textContent).toMatch(/Write a care note for Emmanuel Okafor/)
   })
 
   it('offers no correction on a note already corrected, and links to the correction', async () => {

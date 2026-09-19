@@ -2,6 +2,7 @@ import type { MoodRecord } from '@/data/types'
 import { MOOD_LABELS } from '@/data/types'
 import { assertNever } from '@/lib/assert-never'
 import { Unrecorded } from './Unrecorded'
+import styles from './MoodBadge.module.css'
 
 /**
  * The five-point mood scale from a care note.
@@ -26,6 +27,12 @@ import { Unrecorded } from './Unrecorded'
  * move. Quieting a **gap** is, which is why `not_recorded` keeps the hatch: a
  * care worker who did not record how someone seemed has not recorded that
  * they seemed fine.
+ *
+ * **Quiet, and still its own object.** It was bare words inheriting whatever
+ * line it sat on, which on a note's meta line put it in the same grey at the
+ * same size as the timestamp beside it: five facts read as one string. The
+ * chip is neutral ground rather than a status hue, so it is told apart from
+ * its neighbours without being told apart from an ordinary day.
  */
 export function MoodBadge({ mood }: { mood: MoodRecord }) {
   switch (mood.kind) {
@@ -33,7 +40,11 @@ export function MoodBadge({ mood }: { mood: MoodRecord }) {
       return <Unrecorded label="Mood not recorded" />
 
     case 'recorded':
-      return <span>mood {MOOD_LABELS[mood.score].toLowerCase()}</span>
+      return (
+        <span className={styles.mood} data-mood={mood.score}>
+          mood {MOOD_LABELS[mood.score].toLowerCase()}
+        </span>
+      )
 
     default:
       return assertNever(mood)

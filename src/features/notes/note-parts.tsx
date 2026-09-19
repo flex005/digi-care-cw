@@ -100,10 +100,26 @@ export function NoteMeta({
   const format = useSiteFormat()
   return (
     <p className={styles.meta} data-note-meta>
-      <span className={styles.category}>{CATEGORY_NAME(note.category)}</span>
-      <span className={styles.author}>{staffLabel(note.recordedBy)}</span>
-      <span data-numeric>{format.dateTime(note.recordedAt)}</span>
-      <span>{SHIFT_NAMES[note.shift.value]} shift</span>
+      {/*
+       * Five facts of four different kinds, told apart by shape rather than by
+       * the order somebody remembers them in. They were one weight and one
+       * colour in a row, which read as a single grey string: what the note is
+       * about, who wrote it, when, on which shift and how the resident seemed
+       * are answers to five questions, and a reader scanning a page of notes
+       * is looking for one of them at a time.
+       */}
+      <span className={styles.category} data-meta="category">
+        {CATEGORY_NAME(note.category)}
+      </span>
+      <span className={styles.author} data-meta="author">
+        {staffLabel(note.recordedBy)}
+      </span>
+      <span className={styles.when} data-meta="when" data-numeric>
+        {format.dateTime(note.recordedAt)}
+      </span>
+      <span className={styles.shift} data-meta="shift">
+        {SHIFT_NAMES[note.shift.value]} shift
+      </span>
       {showMood ? <MoodBadge mood={note.mood} /> : null}
     </p>
   )

@@ -2,15 +2,15 @@ import { useState } from 'react'
 import Link from 'next/link'
 import type { CareNote, IsoDateTime, Resident, Shift } from '@/data/types'
 import { submitCorrectionNote } from '@/data/access/client'
-import { staffLabel } from '@/data/access/team-store'
 import { now } from '@/data/fixtures/clock'
-import { ActLine, Button } from '@/components/primitives'
+import { Button, Dialog } from '@/components/primitives'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { useSignedIn } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
 import { listName } from '@/features/residents/list-name'
 import { shiftAt } from '@/lib/shift'
+import { NoteComposer } from './composer/NoteComposerRoute'
 import { NoteForm, NO_REFUSAL, refusalOf, type Refusal } from './composer/NoteForm'
 import { EMPTY_FIELDS, toSubmission, type NoteFields } from './composer/note-fields'
 import { announceNoteSaved } from './composer/SavedNoteToast'
@@ -24,10 +24,12 @@ import styles from './composer/composer.module.css'
  * as it was written and is marked superseded; the correction says what was
  * actually the case, with its own author and time.
  *
- * **Only the note's author corrects it**, in both roles. Anybody else is told
- * who wrote it, and what to do instead: speak to them, or write their own note
- * saying what they found. Flagging somebody else's note is not open to them,
- * because a flag is placed by the note's author.
+ * **Only the note's author corrects it**, in both roles. Anybody else is
+ * offered the thing that *is* theirs — writing their own note saying what they
+ * found — and nothing about whose note this is: the author is already on the
+ * note a line above, and repeating it as a refusal told a reader about somebody
+ * else's job rather than about their own. Flagging somebody else's note is not
+ * open to them either, because a flag is placed by the note's author.
  *
  * The form is the composer's, with the subject strip, opened in place and
  * starting from nothing but the original's category. It keeps no draft: it is
@@ -49,6 +51,7 @@ export function CorrectNoteAct({
   const [open, setOpen] = useState<
     { kind: 'closed' } | { kind: 'open'; clockShift: Shift }
   >({ kind: 'closed' })
+  const [writing, setWriting] = useState(false)
   const [fields, setFields] = useState<NoteFields>(EMPTY_FIELDS)
   const [refusal, setRefusal] = useState<Refusal>(NO_REFUSAL)
   const [saving, setSaving] = useState(false)
@@ -82,25 +85,37 @@ export function CorrectNoteAct({
   switch (answer.kind) {
     case 'yes':
       break
+    /*
+     * **Somebody else wrote it, so there is no correction to offer and nothing
+     * said about whose note it is.** The panel used to draw a disabled "Add a
+     * correction" with the role table's reason and a line naming the author.
+     * The author is already on the note, a line above; repeating it as a
+     * refusal told a reader about somebody else's job rather than about theirs.
+     *
+     * What is theirs is writing their own note saying what they found, so that
+     * is the only thing here — and it opens over the note rather than at a
+     * second address, as it does on the Care Notes tab.
+     */
     case 'not_the_author': {
-      const mayWrite = viewer.ask('write_care_note', resident.id).kind === 'yes'
+      if (viewer.ask('write_care_note', resident.id).kind !== 'yes') return null
       return (
         <div className={styles.correction} data-correct-note="not_the_author">
-          <ActPoint answer={answer} label="Add a correction" notBuilt="" />
-          <ActLine kind="refused">
-            {mayWrite
-              ? `If you believe it is wrong, speak to ${staffLabel(answer.author)}, or write your own note saying what you found.`
-              : `If you believe it is wrong, speak to ${staffLabel(answer.author)}.`}
-          </ActLine>
-          {mayWrite ? (
-            <Link
-              href={`/residents/${resident.id}/notes/new`}
-              className={styles.link}
-              data-write-own-note
-            >
-              Write your own note about {resident.preferredName}
-            </Link>
-          ) : null}
+          <Button variant="secondary" size="large" onClick={() => setWriting(true)}>
+            Write your own note about {resident.preferredName}
+          </Button>
+          <Dialog
+            open={writing}
+            onOpenChange={setWriting}
+            title={`Write a care note for ${resident.fullLegalName}`}
+            size="form"
+          >
+            <NoteComposer
+              onSaved={() => {
+                setWriting(false)
+                onWritten(note)
+              }}
+            />
+          </Dialog>
         </div>
       )
     }

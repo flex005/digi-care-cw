@@ -172,11 +172,15 @@ function TabNote({ note }: { note: CareNote }) {
       data-note={note.id}
       data-superseded={superseded}
     >
-      <p className={styles.body}>{note.body}</p>
-      <NoteMeta note={note} />
-      <ShiftOverride note={note} />
-      <FlagRecord review={note.review} />
-      <CorrectionLinks note={note} />
+      <div className={styles.tabNoteText}>
+        <p className={styles.body}>{note.body}</p>
+        <NoteMeta note={note} />
+        <ShiftOverride note={note} />
+        <FlagRecord review={note.review} />
+        <CorrectionLinks note={note} />
+      </div>
+      {/* At the right of the row, not under the note: it is what to do with
+          this note, not another fact about it. */}
       <Link className={styles.openLink} href={noteHref(note.residentId, note.id)}>
         Open this note
         <Icon name={notesIcons.open} size={16} />

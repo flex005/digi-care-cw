@@ -285,10 +285,28 @@
 
 /* ---------------------------------------------------------------- note parts */
 
+/*
+ * A note's five facts, each shaped so it can be found without reading the
+ * others.
+ *
+ * They were one size, one colour and one weight in a row — "Social and
+ * Emotional D. Morrison 19/09/2026 19:22 BST Late shift mood good" read as a
+ * single grey string, and a reader scanning a page for *when* had to parse
+ * *what about* first. The category is filled, because it is what the note is
+ * about and it is what the eye sorts by; the author is the darkest, because a
+ * record's author is the fact the whole product is built to keep visible; the
+ * time is quiet and tabular; the shift is outlined rather than filled, so it
+ * reads as a qualifier on the time beside it rather than as a second subject;
+ * and the mood is already a badge of its own.
+ *
+ * No status colour on any of them. None of these is a finding, and a category
+ * tinted amber or green would say something about the note that nobody
+ * recorded.
+ */
 .meta {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-4) var(--space-12);
+  gap: var(--space-8);
   align-items: center;
   color: var(--ink-500);
   font-size: var(--text-caption-size);
@@ -296,11 +314,32 @@
 }
 
 .category {
-  color: var(--ink-700);
-  font-weight: var(--weight-semibold);
+  padding: 2px var(--space-8);
+  border-radius: var(--radius-pill);
+  background-color: var(--purple-50);
+  color: var(--purple-900);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .author {
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.when {
+  color: var(--ink-500);
+}
+
+.shift {
+  padding: 2px var(--space-8);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
   color: var(--ink-700);
   font-weight: var(--weight-medium);
 }
@@ -376,13 +415,28 @@
   margin-top: var(--space-12);
 }
 
+/* The note on the left, what to do with it on the right. */
 .tabNote {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-24);
   align-items: flex-start;
   padding-block: var(--space-16);
   border-bottom: 1px solid var(--border-subtle);
+}
+
+.tabNoteText {
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.tabNote > .openLink {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .tabNote:last-child {

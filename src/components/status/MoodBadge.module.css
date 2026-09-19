@@ -1,0 +1,23 @@
+/*
+ * A recorded mood, on a note's meta line.
+ *
+ * **Neutral ground, never a status hue.** A mood is an observation attached to
+ * a note, not a finding: tinting "mood low" amber would make how somebody
+ * seemed one afternoon look like something to action, and tinting "mood good"
+ * green would be the product calling an ordinary day good news. The chip says
+ * *this is the mood* and nothing about whether it is welcome.
+ *
+ * It is a chip rather than bare words because it sat in a row beside the
+ * timestamp in the same grey at the same size, and the two read as one string.
+ * Quiet is not the same as indistinguishable.
+ */
+.mood {
+  padding: 2px var(--space-8);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface-sunken);
+  color: var(--ink-700);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+}

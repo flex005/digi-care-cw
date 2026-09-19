@@ -167,8 +167,7 @@ export function NoteDetailRoute() {
             <NoteFacts note={note} />
             <ShiftOverride note={note} />
             <p className={styles.immutability} data-immutability>
-              A care note is never changed once saved. A mistake is fixed with a
-              correction, which keeps both.
+              A care note is never changed once saved. A correction is kept with it.
             </p>
             {note.supersededBy === 'none' ? (
               <div className={styles.detailAct}>
