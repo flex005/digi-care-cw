@@ -214,3 +214,21 @@
 .unrecordedEdge {
   border: 1.5px dashed var(--border-unrecorded);
 }
+
+/*
+ * The dashed edge as an underline, for a cell that is settled *and* missing
+ * something.
+ *
+ * **Two facts, two marks, and neither in small print.** A controlled drug
+ * given without its second signature keeps the settled green fill — it was
+ * given, and that is a complete record — and takes this edge for the
+ * signature nobody recorded. Never a third fill blending the two, which would
+ * average a record and a gap into one state that is neither (CLAUDE.md §1).
+ *
+ * At grid density the words do not fit, and putting them in a smaller
+ * typeface is exactly what §1 forbids. An edge is the same carrier the hatch
+ * already uses, at the one size the cell has room for.
+ */
+.unrecordedUnderline {
+  border-bottom: 3px dashed var(--border-unrecorded);
+}

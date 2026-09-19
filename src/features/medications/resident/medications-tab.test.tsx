@@ -239,26 +239,32 @@ describe('the acts at the head of the tab', () => {
     )
   })
 
+  /*
+   * **The interim act is gone from the head.** A clinician or a manager adds an
+   * interim medication, and neither role that signs in here is either — so the
+   * disabled control and its reason were telling a reader whose job it is
+   * rather than offering them anything. The rule stays in the role table and is
+   * still tested there.
+   */
   it.each([
     ['Eze', staffEze.id],
     ['Akinyemi', staffAkinyemi.id],
   ] as const)(
-    'refuses Add interim medication to %s, in the role table’s words',
+    'offers %s no interim act, and says nothing about who adds one',
     async (_who, staffId) => {
       const tab = await openTab(staffId, 'res-okafor')
-      const point = tab.querySelector('[data-answer]') as HTMLElement
-      expect(point.getAttribute('data-answer')).toBe('not_your_role')
+      expect(tab.querySelector('[data-answer]')).toBeNull()
       expect(
-        within(point).getByRole('button', { name: 'Add interim medication' }),
-      ).toBeDisabled()
+        within(tab).queryByRole('button', { name: 'Add interim medication' }),
+      ).toBeNull()
+
       const reasons = Object.values(CARE_ACTS.add_interim_medication).flatMap((cell) =>
         typeof cell === 'object' && 'kind' in cell && cell.kind === 'may_not'
           ? [cell.reason]
           : [],
       )
-      expect(reasons).toContain(
-        point.querySelector('[data-act-line="refused"]')?.textContent?.trim(),
-      )
+      expect(reasons.length).toBeGreaterThan(0)
+      for (const reason of reasons) expect(tab.textContent).not.toContain(reason)
     },
   )
 })

@@ -8,28 +8,38 @@ import styles from './mar.module.css'
  * One cell of the MAR grid. Ported from the Admin build's `MarGridCell`, with
  * the word added to every state.
  *
- * **Each state is carried three ways: a shape, a word and a full sentence**, so
- * any one can go and the state survives. Colour reinforces and never carries:
+ * **Every distinction is a shape, and colour only reinforces it.** At grid
+ * density, on a mediocre monitor, in greyscale, hue is the first thing to go —
+ * and the pair most at risk is the one that matters most:
  *
- *   Given        a tick and "Given", positive ink on its tint
- *   PRN          a pill and "PRN", plain: a recorded dose, never amber
+ *   Given        a tick, on the settled tint
+ *   PRN          a pill glyph, plain: a recorded dose, never amber
  *                (docs/DEPARTURES.md)
- *   Not given    a cross and "Not given", critical ink: a decision somebody
- *                signed, with a reason behind the tap
- *   No record    the hatch and "No record": the window closed and nobody wrote
- *                anything. The only patterned state in the grid
- *   Due          an open ring and "Due" inside an info outline: the window is
- *                still open
- *   Not due      "Not due", quiet: nothing was expected
+ *   Not given    a bar: ALSO recorded and complete, a decision somebody signed
+ *                with a reason. It must read as settled, because it is not a
+ *                gap
+ *   No record    the hatch and no glyph: the window closed and nobody wrote
+ *                anything. The only patterned cell in the grid, and the only
+ *                one with nothing in it
+ *   Due          an open ring inside an info outline: the window is still open
+ *   Not due      empty, and empty because nothing was scheduled — not because
+ *                nobody recorded
  *
- * **Two facts stay two marks.** A controlled drug given without its second
- * signature keeps "Given" and takes a hatched "No 2nd signature" beneath it. A
- * closed omission keeps its hatch and "No record", and takes a small plain
- * "Closed": closing records a decision about the gap and does not fill it.
+ * **The words were here and are now in the legend, which is on the page above
+ * the grid and never a tooltip.** They were added when this was ported, and a
+ * week of them is a wall of text in which the one hatched cell is harder to
+ * find than it is among glyphs. Every cell is still a button carrying the full
+ * sentence as its accessible name, and the detail panel states everything.
  *
- * The button is the cell: a real control inside a real table cell, with the
- * sentence as its accessible name, so the grid is reachable by keyboard and
- * every cell is announced whole.
+ * **Two facts stay two marks, and neither is small print.** A controlled drug
+ * given without its second signature keeps the settled fill and takes the
+ * unrecorded dashed underline — never a third fill averaging a record and a
+ * gap into a state that is neither (CLAUDE.md §1). A closed omission keeps its
+ * hatch and takes a glyph: closing records a decision about the gap and does
+ * not fill it.
+ *
+ * The button is the cell: a real control inside a real table cell, so the grid
+ * is reachable by keyboard and every cell is announced whole.
  */
 export function MarCellFace({ look }: { look: MarCellLook }) {
   return (
@@ -65,57 +75,37 @@ export function MarGridCell({
   )
 }
 
+/**
+ * The glyph, written at the call site rather than looked up in a table.
+ *
+ * The icon usage scanner only finds names statically visible on the element
+ * itself; a name assembled elsewhere typechecks and then fails at runtime
+ * (CLAUDE.md §3).
+ */
 function Face({ look }: { look: MarCellLook }) {
   switch (look.kind) {
     case 'given':
-      return (
-        <>
-          <span className={styles.cellWord}>
-            {look.prn ? (
-              <Icon name={marIcons.prn} size={12} />
-            ) : (
-              <Icon name={marIcons.given} size={12} />
-            )}
-            {look.prn ? 'PRN' : 'Given'}
-          </span>
-          {look.secondSignature === 'missing' ? (
-            <span className={styles.cellSignatureGap} data-state="unrecorded">
-              No 2nd signature
-            </span>
-          ) : null}
-        </>
+      return look.prn ? (
+        <Icon name={marIcons.prn} size={16} />
+      ) : (
+        <Icon name={marIcons.given} size={16} />
       )
     case 'not_given':
-      return (
-        <span className={styles.cellWord}>
-          <Icon name={marIcons.notGiven} size={12} />
-          Not given
-        </span>
-      )
+      return <Icon name={marIcons.notGiven} size={16} />
     case 'omitted':
-      return (
-        <>
-          <span className={styles.cellWord}>No record</span>
-          {look.closure === 'closed' ? (
-            <span className={styles.cellClosed} data-closed-mark>
-              Closed
-            </span>
-          ) : null}
-        </>
-      )
+      /* No glyph unless somebody closed it: every mark in this grid means
+         somebody acted, and an unmarked hatched cell means nobody has. */
+      return look.closure === 'closed' ? (
+        <Icon name={marIcons.closed} size={16} />
+      ) : null
     case 'due':
-      return (
-        <span className={styles.cellWord}>
-          <Icon name={marIcons.due} size={12} />
-          Due
-        </span>
-      )
+      return <Icon name={marIcons.due} size={16} />
     case 'not_due':
-      return <span className={styles.cellWord}>Not due</span>
     case 'not_prescribed_yet':
-      return <span className={styles.cellWord}>Not started</span>
     case 'not_held':
-      return <span className={styles.cellWord}>Not held</span>
+      /* Nothing was expected here, and the cell is empty because of that
+         rather than because nobody wrote anything. The sentence says which. */
+      return null
     default:
       return assertNever(look)
   }
@@ -123,8 +113,14 @@ function Face({ look }: { look: MarCellLook }) {
 
 function classFor(look: MarCellLook): string {
   switch (look.kind) {
-    case 'given':
-      return look.prn ? styles.cellPrn : styles.cellGiven
+    case 'given': {
+      /* Two facts, two marks: the settled fill for the dose, the unrecorded
+         edge for the signature nobody recorded. Never a third fill. */
+      const base = look.prn ? styles.cellPrn : styles.cellGiven
+      return look.secondSignature === 'missing'
+        ? `${base} ${styles.cellNoWitness}`
+        : base
+    }
     case 'not_given':
       return styles.cellNotGiven
     case 'omitted':

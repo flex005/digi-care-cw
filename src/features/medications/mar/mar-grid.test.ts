@@ -6,7 +6,14 @@ import {
   type MarRecord,
 } from '@/data/fixtures/medications'
 import { staffEze } from '@/data/fixtures/organisation'
-import { buildMarGrid, daysShown, historyOf, lookOf, monthLabel } from './mar-grid'
+import {
+  buildMarGrid,
+  daysIn,
+  daysShown,
+  historyOf,
+  lookOf,
+  monthLabel,
+} from './mar-grid'
 import { marCellSentence, type SentenceWords } from './mar-sentence'
 
 /**
@@ -67,8 +74,11 @@ describe('the months the record reaches', () => {
 describe('every intersection is a cell', () => {
   it('gives every medication a cell for every day and every round', () => {
     const history = held()
-    const month = history.months[history.months.length - 2] ?? history.months[0]!
-    const grid = buildMarGrid(medications, records, month, history)
+    const grid = buildMarGrid(
+      medications,
+      records,
+      daysIn(history.lastDate, 'month', history),
+    )
     for (const row of grid.rows) {
       expect(row.cells).toHaveLength(grid.days.length * grid.rounds.length)
     }
@@ -76,10 +86,13 @@ describe('every intersection is a cell', () => {
 
   it('says why a cell holds no record, and never calls it an omission', () => {
     const history = held()
-    const month = history.months[history.months.length - 1]!
     const oneRound = medications.find((m) => m.roundTimes.length === 1)!
     const threeRounds = medications.find((m) => m.roundTimes.length === 3)!
-    const grid = buildMarGrid([oneRound, threeRounds], [], month, history)
+    const grid = buildMarGrid(
+      [oneRound, threeRounds],
+      [],
+      daysIn(history.lastDate, 'month', history),
+    )
     const kinds = new Set(
       grid.rows.flatMap((row) => row.cells.map((at) => at.cell.kind)),
     )
@@ -93,7 +106,7 @@ describe('every intersection is a cell', () => {
   it('marks a day before the prescription started as not started', () => {
     const later: Medication = { ...medications[0]!, startedOn: '2099-01-01' as IsoDate }
     const history = held()
-    const grid = buildMarGrid([later], [], history.months[0]!, history)
+    const grid = buildMarGrid([later], [], daysIn(history.firstDate, 'month', history))
     expect(
       grid.rows[0]!.cells.every((at) => at.cell.kind === 'not_prescribed_yet'),
     ).toBe(true)

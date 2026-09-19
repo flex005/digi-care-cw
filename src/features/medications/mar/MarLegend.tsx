@@ -17,52 +17,52 @@ const ENTRIES: { look: MarCellLook; title: string; note: string }[] = [
   {
     look: { kind: 'given', prn: false, secondSignature: 'not_missing' },
     title: 'Given',
-    note: 'Recorded as given, with who and when.',
+    note: 'recorded, with who and when',
   },
   {
     look: { kind: 'given', prn: true, secondSignature: 'not_missing' },
     title: 'PRN',
-    note: 'An as-required dose, recorded as given.',
+    note: 'an as-required dose, recorded',
   },
   {
     look: { kind: 'given', prn: false, secondSignature: 'missing' },
     title: 'Given, no second signature',
-    note: 'A controlled drug given, and its second signature not recorded.',
+    note: 'given; its second signature not recorded',
   },
   {
     look: { kind: 'not_given' },
     title: 'Not given',
-    note: 'Recorded as not given, with a reason. Tap for the reason.',
+    note: 'also complete: a signed decision, with a reason',
   },
   {
     look: { kind: 'omitted', closure: 'open' },
     title: 'No record',
-    note: 'The window closed and nothing was recorded.',
+    note: 'window closed, nobody wrote',
   },
   {
     look: { kind: 'omitted', closure: 'closed' },
     title: 'No record, closed',
-    note: 'Still no record. Somebody closed the omission, and says why.',
+    note: 'still no record; somebody closed it, and says why',
   },
   {
     look: { kind: 'due' },
     title: 'Due',
-    note: 'The window is still open and nothing is recorded yet.',
+    note: 'window open, nobody has acted yet',
   },
   {
     look: { kind: 'not_due' },
     title: 'Not due',
-    note: 'No dose was expected at this round.',
+    note: 'nothing is scheduled: the only empty cell',
   },
   {
     look: { kind: 'not_prescribed_yet' },
     title: 'Not started',
-    note: 'Before the prescription started.',
+    note: 'before the prescription started',
   },
   {
     look: { kind: 'not_held' },
     title: 'Not held',
-    note: 'No record of this round is held here. Not a missed dose.',
+    note: 'no record held here; not a missed dose',
   },
 ]
 

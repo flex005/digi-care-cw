@@ -6,7 +6,6 @@ import { staffLabel } from '@/data/access/team-store'
 import { Card, CardHead, buttonClassName } from '@/components/primitives'
 import { Unrecorded } from '@/components/status'
 import { Icon } from '@/components/icon/Icon'
-import { ActPoint } from '@/components/layout/ActPoint'
 import { useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
@@ -53,26 +52,31 @@ export function MedicationsTab() {
   return (
     <div className={styles.tabPanel} data-tab-body="medications">
       <Card>
-        <CardHead
-          title={`${resident.preferredName}’s medications`}
-          subtitle={`${pluralise(medications.length, 'medicine')} prescribed: ${pluralise(controlled.length, 'controlled drug')} and ${asRequired.length} as required.`}
-          expand={{ kind: 'whole' }}
-        />
-        <div className={styles.acts}>
+        {/*
+         * The act at the right of the head, and only the one act.
+         *
+         * "Add interim medication" was drawn beside it, disabled, with the role
+         * table's reason: a clinician or a manager adds one, and neither role
+         * that signs in here is either. It was an act no reader of this product
+         * can perform, telling them whose job it is instead. The rule stays in
+         * `capabilities.ts` and is still tested there.
+         */}
+        <div className={styles.tabHead}>
+          <div className={styles.tabHeading}>
+            <CardHead
+              title={`${resident.preferredName}’s medications`}
+              subtitle={`${pluralise(medications.length, 'medicine')} prescribed: ${pluralise(controlled.length, 'controlled drug')} and ${asRequired.length} as required.`}
+              expand={{ kind: 'whole' }}
+            />
+          </div>
           <Link
             href={`/residents/${resident.id}/medications/mar`}
-            className={buttonClassName({ variant: 'primary' })}
+            className={buttonClassName({ variant: 'primary', size: 'large' })}
             data-open-mar
           >
             Open MAR
             <Icon name={residentMedicationsIcons.open} size={16} />
           </Link>
-          <ActPoint
-            answer={viewer.ask('add_interim_medication', resident.id)}
-            label="Add interim medication"
-            notBuilt=""
-            residentName={resident.preferredName}
-          />
         </div>
       </Card>
 

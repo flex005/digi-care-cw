@@ -1,19 +1,31 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import Link from 'next/link'
 import type { Medication } from '@/data/types'
 import type { MarRecord } from '@/data/fixtures/medications'
+import type { IsoDate } from '@/data/types'
 import { getMarRecords } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import { staffLabel } from '@/data/access/team-store'
-import { ActLine, Button, Card, CardHead, EmptyState } from '@/components/primitives'
-import { NotYourHome, Unrecorded } from '@/components/status'
+import {
+  Button,
+  Card,
+  CardHead,
+  EmptyState,
+  SegmentedControl,
+} from '@/components/primitives'
+import { AggregateFigure, NotYourHome, Unrecorded } from '@/components/status'
 import { Icon } from '@/components/icon/Icon'
 import { useSiteFormat } from '@/app/session/use-session'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
 import { assertNever } from '@/lib/assert-never'
+import { formatCount, pluralise } from '@/lib/format'
 import {
   buildMarGrid,
+  daysIn,
   historyOf,
+  monthOf,
+  shiftAnchor,
+  type MarRange,
   keyOf,
   lookOf,
   monthLabel,
@@ -64,10 +76,20 @@ export function MarChartRoute() {
     />
   )
 
+  /* Above the card, not inside it: the way back out is not part of the chart,
+     and it is drawn in every state rather than only where the chart loads. */
+  const back = (
+    <Link href={`/residents/${resident.id}/medications`} className={styles.back}>
+      <Icon name={marIcons.back} size={16} />
+      Back to {resident.preferredName}’s medications
+    </Link>
+  )
+
   switch (resource.kind) {
     case 'loading':
       return (
         <div className={styles.page} data-mar-chart>
+          {back}
           <Card>
             {head}
             <p className={styles.status} role="status">
@@ -85,6 +107,7 @@ export function MarChartRoute() {
     case 'error':
       return (
         <div className={styles.page} data-mar-chart>
+          {back}
           <Card>
             {head}
             <EmptyState
@@ -103,6 +126,7 @@ export function MarChartRoute() {
       if (history === undefined) return null
       return (
         <div className={styles.page} data-mar-chart>
+          {back}
           {history.kind === 'none_held' ? (
             <Card>
               {head}
@@ -114,7 +138,6 @@ export function MarChartRoute() {
             </Card>
           ) : (
             <MarChart
-              head={head}
               history={history}
               medications={resource.data.medications}
               records={resource.data.records}
@@ -129,27 +152,61 @@ export function MarChartRoute() {
 }
 
 function MarChart({
-  head,
   history,
   medications,
   records,
 }: {
-  head: ReactNode
   history: Extract<MarHistory, { kind: 'held' }>
   medications: Medication[]
   records: MarRecord[]
 }) {
   const { resident, site } = useOpenRecord()
   const format = useSiteFormat()
-  const lastIndex = history.months.length - 1
-  const [index, setIndex] = useState(lastIndex)
+
+  /*
+   * A week to start, because a week is what a shift reads; the month is a
+   * step away for whoever is reviewing. Anchored on the last day the record
+   * holds rather than on today, so the chart opens on records rather than on
+   * an empty week beyond the end of them.
+   */
+  const [range, setRange] = useState<MarRange>('week')
+  const [anchor, setAnchor] = useState<IsoDate>(history.lastDate)
   const [open, setOpen] = useState<MarCellAt | 'none'>('none')
 
-  const month = history.months[Math.min(index, lastIndex)]!
+  /**
+   * Narrows the grid to the rows carrying an omission.
+   *
+   * **It hides rows, never cells, and the figure above it does not move.** The
+   * count is over the whole range either way, so the claim can never become an
+   * artefact of the view (CLAUDE.md §1).
+   */
+  const [onlyOmissions, setOnlyOmissions] = useState(false)
+
+  const days = useMemo(() => daysIn(anchor, range, history), [anchor, range, history])
   const grid = useMemo(
-    () => buildMarGrid(medications, records, month, history),
-    [medications, records, month, history],
+    () => buildMarGrid(medications, records, days),
+    [medications, records, days],
   )
+
+  const step = (by: -1 | 1) => {
+    setAnchor(shiftAnchor(anchor, range, by))
+    setOpen('none')
+  }
+
+  /* The range's own words, from the days actually drawn — which are clipped to
+     the record, so the label never claims a span the chart does not show. */
+  const first = days[0]
+  const last = days[days.length - 1]
+  const rangeLabel =
+    first === undefined || last === undefined
+      ? 'No days in this range'
+      : range === 'week'
+        ? `Week of ${first.label} to ${last.label}`
+        : `Month of ${monthLabel(monthOf(first.date))}`
+
+  const shownRows = onlyOmissions
+    ? grid.rows.filter((row) => row.omitted > 0)
+    : grid.rows
 
   const words: SentenceWords = {
     time: format.time,
@@ -158,73 +215,105 @@ function MarChart({
     staff: staffLabel,
   }
 
-  const label = monthLabel(month)
-  const atFirst = index <= 0
-  const atLast = index >= lastIndex
-  const previous = history.months[index - 1]
-  const next = history.months[index + 1]
+  const atFirst = first !== undefined && first.date <= history.firstDate
+  const atLast = last !== undefined && last.date >= history.lastDate
 
   return (
     <>
+      {/* The fact the screen exists for, before a single cell is scanned. A
+          week is a wall of cells and all but a handful say "given"; a chart
+          that makes somebody hunt for the holes has buried its own finding. */}
+      <div className={styles.omissions} data-omissions>
+        <AggregateFigure
+          emphasis="banner"
+          caption="doses with no record"
+          denominatorNoun={`doses due this ${range}`}
+          relation="of"
+          note="Every other dose in this range has a record against it: given, or not given with a reason."
+          action={
+            grid.omissions.count > 0 ? (
+              <Button
+                variant="secondary"
+                onClick={() => setOnlyOmissions((only) => !only)}
+                aria-pressed={onlyOmissions}
+                data-only-omissions
+              >
+                {onlyOmissions ? 'Show every medicine' : 'Show only these'}
+              </Button>
+            ) : undefined
+          }
+          aggregate={{
+            kind: 'measured',
+            unit: 'count',
+            value: grid.omissions.count,
+            coverage: { covered: grid.omissions.count, total: grid.omissions.ofDue },
+          }}
+        />
+      </div>
+
       <Card>
-        {head}
         <div className={styles.controls}>
-          <nav className={styles.monthNav} aria-label="Month">
+          <div className={styles.controlsHead}>
+            <h2 className={styles.rangeLabel} aria-live="polite" data-range-label>
+              {rangeLabel}
+            </h2>
+            <p className={styles.chartFacts}>
+              {pluralise(grid.rows.length, 'medicine')} ·{' '}
+              {pluralise(grid.rounds.length, 'round')} a day · times in {site.name}’s
+              zone
+            </p>
+          </div>
+          <div className={styles.controlsSide}>
+            {/* Icon-only, so each carries a name saying which way and by how
+                much: "Earlier" does not tell a keyboard user whether they are
+                moving a week or a month (§7). */}
             <Button
               variant="secondary"
               size="small"
               disabled={atFirst}
-              aria-label={
-                previous === undefined
-                  ? 'Previous month: none held'
-                  : `Previous month, ${monthLabel(previous)}`
-              }
-              onClick={() => setIndex(index - 1)}
+              aria-label={`Previous ${range}`}
+              onClick={() => step(-1)}
+              data-step="previous"
             >
               <Icon name={marIcons.previous} size={16} />
-              Previous
             </Button>
-            <h3 className={styles.monthLabel} aria-live="polite" data-month>
-              {label}
-            </h3>
+            <SegmentedControl
+              label="How much of the record"
+              value={range}
+              onValueChange={(next) => {
+                setRange(next as MarRange)
+                setOpen('none')
+              }}
+              options={[
+                { value: 'week', label: 'Week' },
+                { value: 'month', label: 'Month' },
+              ]}
+            />
             <Button
               variant="secondary"
               size="small"
               disabled={atLast}
-              aria-label={
-                next === undefined
-                  ? 'Next month: none held'
-                  : `Next month, ${monthLabel(next)}`
-              }
-              onClick={() => setIndex(index + 1)}
+              aria-label={`Next ${range}`}
+              onClick={() => step(1)}
+              data-step="next"
             >
-              Next
               <Icon name={marIcons.next} size={16} />
             </Button>
-          </nav>
-          <div className={styles.export}>
             <Button variant="secondary" size="small">
               <Icon name={marIcons.export} size={16} />
-              Export as PDF
+              Export PDF
             </Button>
-            <ActLine kind="not_built">
-              Export is not built: no file is produced.
-            </ActLine>
+            <p className={styles.held} data-record-bounds>
+              The record held here starts on {format.date(history.firstDate)} and runs
+              to {format.date(history.lastDate)}. Times are {site.name}’s.
+            </p>
           </div>
         </div>
-        <p className={styles.held} data-record-bounds>
-          The record held here starts on {format.date(history.firstDate)} and runs to{' '}
-          {format.date(history.lastDate)}. Times are {site.name}’s.
-        </p>
-        <Link href={`/residents/${resident.id}/medications`} className={styles.back}>
-          <Icon name={marIcons.back} size={16} />
-          Back to {resident.preferredName}’s medications
-        </Link>
         <MarLegend />
       </Card>
 
       <Card padded={false}>
-        {grid.rows.length === 0 ? (
+        {shownRows.length === 0 ? (
           <p className={styles.noRows}>
             Nothing is prescribed for {resident.preferredName}, so the chart has no
             rows.
@@ -233,8 +322,8 @@ function MarChart({
           <div className={styles.scroll} data-mar-scroll>
             <table className={styles.grid}>
               <caption className={styles.caption}>
-                Medication administration record for {resident.fullLegalName}, {label}.
-                One column for each round, under its day.
+                Medication administration record for {resident.fullLegalName},{' '}
+                {rangeLabel}. One column for each round, under its day.
               </caption>
               <colgroup>
                 <col className={styles.medicationColumn} />
@@ -242,6 +331,9 @@ function MarChart({
               {grid.days.map((day) => (
                 <colgroup key={day.date} span={grid.rounds.length} />
               ))}
+              <colgroup>
+                <col className={styles.totalColumn} />
+              </colgroup>
               <thead>
                 <tr>
                   <th className={styles.medicationHead} rowSpan={2} scope="col">
@@ -260,6 +352,14 @@ function MarChart({
                       </span>
                     </th>
                   ))}
+                  {/* Rule 4 on every row, at the end of it, where the row's
+                      own count belongs. Sticky like the medication column: a
+                      total that scrolls away is a total nobody reads. */}
+                  <th className={styles.totalHead} rowSpan={2} scope="col">
+                    {/* Follows the range: "This month" over a week's columns
+                        is a denominator naming a span the chart is not showing. */}
+                    This {range}
+                  </th>
                 </tr>
                 <tr>
                   {grid.days.flatMap((day) =>
@@ -278,7 +378,7 @@ function MarChart({
                 </tr>
               </thead>
               <tbody>
-                {grid.rows.map((row) => (
+                {shownRows.map((row) => (
                   <tr key={row.medication.id} data-row={row.medication.id}>
                     <th className={styles.medicationCell} scope="row">
                       <span className={styles.medicationName}>
@@ -300,6 +400,15 @@ function MarChart({
                       <td
                         key={keyOf(at.medication.id, at.date, at.roundTime)}
                         data-cell={keyOf(at.medication.id, at.date, at.roundTime)}
+                        /*
+                         * Whether the record reaches this slot, which the look
+                         * alone cannot say: a recorded "nothing was due" and a
+                         * round this medicine is not on both draw as not due,
+                         * and they are the same thing to a reader. They are
+                         * not the same thing to the row's denominator, which
+                         * counts only what the record covers.
+                         */
+                        data-recorded={at.cell.kind === 'recorded'}
                         className={
                           position % grid.rounds.length === 0
                             ? styles.slotFirst
@@ -313,6 +422,24 @@ function MarChart({
                         />
                       </td>
                     ))}
+                    {/*
+                     * Counted out of the rounds this medicine was scheduled
+                     * for, never out of the row's cells — most of which are
+                     * another medicine's round. The doses with no record are
+                     * stated first and in the unrecorded ink, because they are
+                     * the finding; the rest is the row's coverage.
+                     */}
+                    <td className={styles.totalCell} data-row-total={row.medication.id}>
+                      {row.omitted > 0 ? (
+                        <span className={styles.totalOmitted} data-numeric>
+                          {formatCount(row.omitted)} with no record
+                        </span>
+                      ) : null}
+                      <span className={styles.totalGiven} data-numeric>
+                        {formatCount(row.given)} given of {formatCount(row.scheduled)}{' '}
+                        due
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>

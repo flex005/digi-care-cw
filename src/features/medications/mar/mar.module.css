@@ -1,6 +1,16 @@
 /* The MAR chart. Flex throughout for layout; the grid itself is a <table>. */
 
+/*
+ * One square per dose, declared on the screen rather than on the table.
+ *
+ * It was on `.grid`, and the legend draws the same `.cell` from outside the
+ * table — so `var(--mar-cell)` resolved to nothing there and the swatch sized
+ * itself to its content: 72×48 beside a 34px cell, which is the "boxes are
+ * still big" a screenshot showed and no test could.
+ */
 .page {
+  --mar-cell: 2.125rem;
+
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
@@ -20,12 +30,86 @@
 
 /* ---------------------------------------------------------------- the head */
 
+/*
+ * The chart's name on the left; what the chart covers and what to do with it
+ * on the right.
+ *
+ * The month nav, the export and the bounds of the record were three stacked
+ * blocks under the heading, each on its own line, and the reader had to
+ * descend the card to find out which month they were looking at. They are one
+ * group now, right-aligned, because they answer one question between them:
+ * which stretch of the record is on the screen.
+ */
 .controls {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-12) var(--space-24);
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+}
+
+/* The banner above the chart: the finding, before a cell is scanned. */
+.omissions {
+  display: flex;
+  flex-direction: column;
+}
+
+.controlsHead {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.rangeLabel {
+  color: var(--ink-900);
+  font-size: var(--text-h2-size);
+  line-height: var(--text-h2-line);
+  font-weight: var(--weight-bold);
+}
+
+.chartFacts {
+  margin-top: var(--space-4);
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* The head's own bottom margin is its gap to a card body; here the group
+   beside it sets the spacing. */
+.controlsHead > header {
+  margin-bottom: 0;
+}
+
+/*
+ * Which month, how to leave with it, and what the record covers — one group,
+ * right-aligned, wrapping as a group rather than each part finding its own
+ * line.
+ *
+ * The month nav and the export are the first row; the bounds of the record sit
+ * under them, because they are the sentence the nav is moving through rather
+ * than a control of their own.
+ *
+ * **It shares the heading's line, and a basis of `auto` is what stopped it.**
+ * An `auto` basis is the group's max-content width — the nav, the export and
+ * the whole bounds sentence side by side, about 1060px — so with the heading's
+ * own 260 the row overflowed and both wrapped to full-width lines of their
+ * own. Measured, not guessed: the head and the group each came back 1264px
+ * wide at different tops. A basis of zero lets the row divide what it has, and
+ * the sentence wraps inside the group where it belongs.
+ */
+.controlsSide {
+  display: flex;
+  flex: 2 1 0;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-12);
+  align-items: center;
+  justify-content: flex-end;
+
+  /* Enough for the month nav and the export together; below it the group
+     drops under the heading, which is the compact arrangement. */
+  min-width: 420px;
+  max-width: 100%;
+  margin-left: auto;
+  text-align: right;
 }
 
 .monthNav {
@@ -43,29 +127,37 @@
   text-align: center;
 }
 
-.export {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8) var(--space-12);
-  align-items: center;
-}
-
 .held {
-  margin-top: var(--space-12);
   color: var(--ink-700);
   font-size: var(--text-body-sm-size);
   line-height: var(--text-body-sm-line);
 }
 
+/* The bounds take the whole of their own line under the controls. */
+.controlsSide > .held {
+  flex-basis: 100%;
+}
+
+/* Above the card, on the page: the way out of the chart is not part of it. */
 .back {
   display: inline-flex;
-  gap: var(--space-4);
+  align-self: flex-start;
+  gap: var(--space-8);
   align-items: center;
-  margin-top: var(--space-8);
-  color: var(--purple-600);
+  min-height: var(--space-40);
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--ink-900);
   font-size: var(--text-body-sm-size);
   line-height: var(--text-body-sm-line);
   font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.back:hover {
+  background-color: var(--purple-50);
 }
 
 /* -------------------------------------------------------------- the legend */
@@ -81,6 +173,13 @@
   border-top: 1px solid var(--border-subtle);
 }
 
+/*
+ * The swatch beside the words, aligned to the first line of them.
+ *
+ * Centred, an entry whose note ran to three lines put its swatch a line and a
+ * half below the title, and the titles across a row no longer sat on one
+ * line. The swatch belongs to the title.
+ */
 .legendItem {
   display: flex;
   flex: 0 1 15rem;
@@ -88,11 +187,16 @@
   align-items: flex-start;
 }
 
+/*
+ * The swatch is the cell, at the cell's size.
+ *
+ * It was forced to 4.5rem by 3rem — a swatch two and a half times the area of
+ * the thing it explains, which is a legend showing a reader something they
+ * will not meet in the grid. Only `cursor` is overridden now: the grid's cell
+ * is a button and this one is not.
+ */
 .legendItem > span:first-child {
   flex: 0 0 auto;
-  width: 4.5rem;
-  height: auto;
-  min-height: 3rem;
   cursor: default;
 }
 
@@ -111,8 +215,8 @@
 
 .legendNote {
   color: var(--ink-500);
-  font-size: var(--text-caption-size);
-  line-height: var(--text-caption-line);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
 }
 
 /* ---------------------------------------------------------------- the grid */
@@ -121,13 +225,43 @@
  * The grid scrolls inside its own box, so the page never scrolls sideways and
  * the medication column has something to stick to.
  */
+
+/*
+ * The chart scrolls both ways inside the card, as the Admin build's does.
+ *
+ * **It needs a height for the header to stick within.** With only `overflow-x`
+ * the page scrolled vertically, so the days and round times left the screen
+ * the moment a reader went down a long list of medicines — on a chart whose
+ * every cell is meaningless without the column it is under. A bounded box
+ * gives `position: sticky` something to stick to.
+ */
 .scroll {
   max-width: 100%;
-  overflow-x: auto;
+  max-height: 40rem;
+  overflow: auto;
   border-radius: var(--radius-xl);
 }
 
+/*
+ * The two header rows stay put while the chart scrolls under them.
+ *
+ * The second row sits directly beneath the first, so the round times never
+ * cover the day they belong to. The medication and totals columns are a step
+ * above both, because they are sticky on the other axis and cross them.
+ */
+.grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background-color: var(--bg-surface);
+}
+
+.grid thead tr:nth-child(2) th {
+  top: var(--space-32);
+}
+
 .grid {
+  width: 100%;
   border-collapse: separate;
   border-spacing: 0;
 }
@@ -162,6 +296,7 @@
 }
 
 .roundHead {
+  min-width: calc(var(--mar-cell) + var(--space-8));
   padding: var(--space-4);
   border-bottom: 1px solid var(--border-strong);
   color: var(--ink-500);
@@ -204,6 +339,66 @@
   border-bottom: 1px solid var(--border-subtle);
 }
 
+/*
+ * The row's own count, at the end of the row and sticky like the medication
+ * column: a total that scrolls off the right is a total nobody reads.
+ *
+ * Doses with no record are stated first, in the unrecorded ink, because they
+ * are the finding; the coverage follows. They are never summed into one
+ * number — "3 of 28" and "1 with no record" are different facts.
+ */
+.totalColumn {
+  width: 9rem;
+}
+
+.totalHead,
+.totalCell {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  width: 9rem;
+  min-width: 9rem;
+  padding: var(--space-8) var(--card-padding) var(--space-8) var(--space-12);
+  border-left: 2px solid var(--border-strong);
+  background-color: var(--bg-surface);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.totalHead {
+  border-bottom: 1px solid var(--border-strong);
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-bold);
+}
+
+.totalCell {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.totalOmitted {
+  display: block;
+  color: var(--status-unrecorded-ink);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-bold);
+}
+
+.totalGiven {
+  display: block;
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+}
+
+/* Declared after both, so the cascade reads top to bottom: the two sticky
+   columns cross the sticky header and have to sit above it. */
+.grid thead .medicationHead,
+.grid thead .totalHead {
+  z-index: 4;
+}
+
 .medicationName {
   display: block;
   color: var(--ink-900);
@@ -241,9 +436,14 @@
    cell with a second mark does not leave its neighbours short. */
 .slot {
   height: 1px;
-  padding: var(--space-4);
+  padding: var(--space-4) 0;
+  text-align: center;
   border-bottom: 1px solid var(--border-subtle);
-  vertical-align: top;
+
+  /* The square sits in the middle of its row. A row is as tall as the
+     medication beside it — name, dose and tags — and the dose was pinned to
+     the top of that, level with nothing. */
+  vertical-align: middle;
 }
 
 .slotFirst {
@@ -257,17 +457,28 @@
  * Every cell's shape. No background or border here: each state declares its
  * own, so the hatch composed into an omission is never overridden by a base.
  */
+
+/*
+ * **Inline-level, so the `<td>`'s `text-align: center` can centre it.**
+ *
+ * It was `flex` — block-level — which `text-align` does not move, so every
+ * dose sat 9px left of its own round time. The first fix was
+ * `margin-inline: auto`, and that was worse in a way only the legend showed:
+ * an auto inline margin on a *flex item* absorbs the free space in its row, so
+ * each legend swatch was pushed right by a different amount depending on how
+ * long its words were. One rule, correct in the table, wrong everywhere the
+ * same cell is drawn.
+ */
 .cell {
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   gap: var(--space-4);
   align-items: center;
   justify-content: center;
-  width: 100%;
-  min-width: 4.5rem;
-  height: 100%;
-  min-height: 3rem;
-  padding: var(--space-4);
+  width: var(--mar-cell);
+  min-width: var(--mar-cell);
+  height: var(--mar-cell);
+  padding: 0;
   border-radius: var(--radius-sm);
   font-size: var(--text-micro-size);
   line-height: var(--text-micro-line);
@@ -275,16 +486,19 @@
   text-align: center;
 }
 
-.cellWord {
-  display: inline-flex;
-  gap: var(--space-4);
-  align-items: center;
-}
-
 .cellGiven {
   composes: cell;
   background-color: var(--status-positive-tint);
   color: var(--status-positive-ink);
+}
+
+/*
+ * Given, and its required second signature not recorded: two facts, two
+ * marks. The settled fill stays — it was given — and the gap takes the
+ * unrecorded edge from the hatch's own file. Never a third fill.
+ */
+.cellNoWitness {
+  composes: unrecordedUnderline from '../../../styles/unrecorded.module.css';
 }
 
 /* A recorded dose, given as required. Plain: never amber. */
@@ -315,32 +529,39 @@
   color: var(--status-info-ink);
 }
 
+/*
+ * Nothing was expected here, and the cell is empty because of that.
+ *
+ * **Empty, and still a square somebody can see.** The fill alone is a hair off
+ * white: in the grid it reads against the rules between columns, but on the
+ * legend's white card a 34px swatch of it was invisible, so two entries
+ * explained a cell by showing nothing at all. A faint edge makes the empty box
+ * an empty box wherever it is drawn. Not the info outline, which is heavier
+ * and coloured, and means the opposite: a window still open.
+ */
 .cellNotDue {
   composes: cell;
+  border: 1px solid var(--border-subtle);
   background-color: var(--bg-surface-sunken);
   color: var(--ink-500);
   font-weight: var(--weight-medium);
 }
 
+/*
+ * **`composes:` does not chain.** This composed `cellNotDue`, which itself
+ * composes `cell` — and the element came out with `cellQuiet cellNotDue` and
+ * no `cell` at all. No width, no flex, just the border: a 2px square where a
+ * 34px one belonged, which is what made "Not started" and "Not held" look
+ * like legend entries with no swatch.
+ *
+ * Nothing catches it. The class exists, the guard is happy, the typechecker
+ * has no opinion, and the only symptom is an element that renders to nothing.
+ * So the base is composed here explicitly rather than inherited through
+ * another class.
+ */
 .cellQuiet {
+  composes: cell;
   composes: cellNotDue;
-}
-
-/* The second fact on a given dose: its second signature is not recorded. */
-.cellSignatureGap {
-  composes: unrecordedMark from '../../../styles/unrecorded.module.css';
-  padding: 0 var(--space-4);
-  border-radius: var(--radius-sm);
-  font-weight: var(--weight-semibold);
-}
-
-/* A closed omission's mark: plain, because the closure is a record. */
-.cellClosed {
-  padding: 0 var(--space-4);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-pill);
-  background-color: var(--bg-surface);
-  color: var(--ink-700);
 }
 
 /* ---------------------------------------------------------------- the detail */

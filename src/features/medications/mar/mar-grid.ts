@@ -33,6 +33,17 @@ export interface MarMonth {
   month: number
 }
 
+/**
+ * How much of the record is on screen at once, as the Admin build's chart
+ * offers it and CLAUDE.md §6 already names — "the MAR's week and month" is the
+ * example the segmented control exists for.
+ *
+ * A week is what a shift reads; a month is what a review reads. They are two
+ * presentations of one record rather than two records, which is why the
+ * control is a segmented one and not navigation.
+ */
+export type MarRange = 'week' | 'month'
+
 export interface MarDay {
   date: IsoDate
   /** 'Wed' */
@@ -67,14 +78,41 @@ export interface MarCellAt {
 export interface MarRow {
   medication: Medication
   cells: MarCellAt[]
+  /**
+   * Rule 4 on every row, as the Admin build's chart states it.
+   *
+   * **Counted out of the rounds this medicine was scheduled for in this month,
+   * never out of the grid's cells.** Most cells on a row are not that
+   * medicine's round at all, and counting them would put a denominator on the
+   * row that nothing was ever expected against — a figure that grows when
+   * somebody else's medicine gains a round time.
+   *
+   * A cell the record does not reach — before the medicine was prescribed, or
+   * a day outside the recorded window — is not scheduled and is not counted
+   * either way. Deriving an omission there would assert a dose was due and
+   * nobody gave it, which is the Evidence Invariant inverted: an absence that
+   * is an artefact of the view.
+   */
+  scheduled: number
+  given: number
+  omitted: number
 }
 
 export interface MarGrid {
-  month: MarMonth
   days: MarDay[]
   /** Every round time any of the resident's medicines uses, in order. */
   rounds: string[]
   rows: MarRow[]
+  /**
+   * The one fact this screen exists for, stated before a cell is scanned.
+   *
+   * **Counted over the whole range, never over what a filter leaves showing.**
+   * Narrowing the grid to the rows that carry an omission must not change the
+   * figure above it, or the claim becomes an artefact of the view — a gap
+   * marker inside a filtered set asserting an absence the filter created
+   * (CLAUDE.md §1).
+   */
+  omissions: { count: number; ofDue: number }
 }
 
 /**
@@ -109,12 +147,10 @@ function isoDate(year: number, month: number, day: number): IsoDate {
   return `${year}-${pad(month)}-${pad(day)}` as IsoDate
 }
 
-function monthOf(date: IsoDate): MarMonth {
+export function monthOf(date: IsoDate): MarMonth {
   const [year, month] = date.split('-')
   return { year: Number(year), month: Number(month) }
 }
-
-const sameMonth = (a: MarMonth, b: MarMonth) => a.year === b.year && a.month === b.month
 
 /** 'September 2026'. */
 export function monthLabel(month: MarMonth): string {
@@ -156,6 +192,61 @@ export function historyOf(records: MarRecord[]): MarHistory {
  * a day on which nothing was given, and a column after today as a day already
  * lived.
  */
+/**
+ * The days a range covers, clipped to the record at both ends.
+ *
+ * **Clipped, as the month view always was**: no column may stand for a day the
+ * record does not reach. A column before the record reads as a day on which
+ * nothing was given, and one after today as a day already lived.
+ *
+ * A week runs Monday to Sunday around the anchor, which is how a rota reads;
+ * a month is the calendar month the anchor falls in.
+ */
+export function daysIn(
+  anchor: IsoDate,
+  range: MarRange,
+  history: Extract<MarHistory, { kind: 'held' }>,
+): MarDay[] {
+  const at = new Date(`${anchor}T00:00:00Z`)
+  let first: Date
+  let length: number
+  if (range === 'week') {
+    /* Monday first: getUTCDay() is 0 on Sunday, which belongs to the week
+       before it here. */
+    const weekday = (at.getUTCDay() + 6) % 7
+    first = new Date(at)
+    first.setUTCDate(at.getUTCDate() - weekday)
+    length = 7
+  } else {
+    first = new Date(Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), 1))
+    length = new Date(
+      Date.UTC(at.getUTCFullYear(), at.getUTCMonth() + 1, 0),
+    ).getUTCDate()
+  }
+
+  const days: MarDay[] = []
+  for (let step = 0; step < length; step += 1) {
+    const day = new Date(first)
+    day.setUTCDate(first.getUTCDate() + step)
+    const date = day.toISOString().slice(0, 10) as IsoDate
+    if (date < history.firstDate || date > history.lastDate) continue
+    days.push({
+      date,
+      weekday: WEEKDAYS[day.getUTCDay()]!,
+      label: `${pad(day.getUTCDate())}/${pad(day.getUTCMonth() + 1)}`,
+    })
+  }
+  return days
+}
+
+/** Where a range starts, for stepping back and forward by one of it. */
+export function shiftAnchor(anchor: IsoDate, range: MarRange, by: -1 | 1): IsoDate {
+  const at = new Date(`${anchor}T00:00:00Z`)
+  if (range === 'week') at.setUTCDate(at.getUTCDate() + by * 7)
+  else at.setUTCMonth(at.getUTCMonth() + by)
+  return at.toISOString().slice(0, 10) as IsoDate
+}
+
 export function daysShown(
   month: MarMonth,
   history: Extract<MarHistory, { kind: 'held' }>,
@@ -179,28 +270,35 @@ export function daysShown(
 export function buildMarGrid(
   medications: Medication[],
   records: MarRecord[],
-  month: MarMonth,
-  history: Extract<MarHistory, { kind: 'held' }>,
+  days: MarDay[],
 ): MarGrid {
-  const days = daysShown(month, history)
   const rounds = [
     ...new Set(medications.flatMap((medication) => medication.roundTimes)),
   ].sort()
 
+  const inRange = new Set(days.map((day) => day.date))
   const byKey = new Map<string, MarRecord>()
   for (const record of records) {
-    if (!sameMonth(monthOf(record.date), month)) continue
+    if (!inRange.has(record.date)) continue
     byKey.set(keyOf(record.medicationId, record.date, record.roundTime), record)
   }
 
   const rows = medications.map((medication): MarRow => {
     const onRound = new Set<string>(medication.roundTimes)
+    let scheduled = 0
+    let given = 0
+    let omitted = 0
+
     const cells = days.flatMap((day) =>
       rounds.map((roundTime): MarCellAt => {
         const record = byKey.get(keyOf(medication.id, day.date, roundTime))
         const at = { medication, date: day.date, roundTime }
-        if (record !== undefined)
+        if (record !== undefined) {
+          scheduled += 1
+          if (record.state.kind === 'given') given += 1
+          if (record.state.kind === 'omitted') omitted += 1
           return { ...at, cell: { kind: 'recorded', state: record.state } }
+        }
         if (day.date < medication.startedOn)
           return {
             ...at,
@@ -211,10 +309,21 @@ export function buildMarGrid(
         return { ...at, cell: { kind: 'not_held' } }
       }),
     )
-    return { medication, cells }
+    return { medication, cells, scheduled, given, omitted }
   })
 
-  return { month, days, rounds, rows }
+  return {
+    days,
+    rounds,
+    rows,
+    omissions: rows.reduce(
+      (running, row) => ({
+        count: running.count + row.omitted,
+        ofDue: running.ofDue + row.scheduled,
+      }),
+      { count: 0, ofDue: 0 },
+    ),
+  }
 }
 
 export const keyOf = (medicationId: string, date: string, roundTime: string) =>

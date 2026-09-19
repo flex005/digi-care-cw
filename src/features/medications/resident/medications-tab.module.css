@@ -79,3 +79,21 @@
   line-height: var(--text-body-sm-line);
   font-weight: var(--weight-semibold);
 }
+
+/* The head and its one act on one line, the act at the right. */
+.tabHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.tabHeading {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.tabHeading > header {
+  margin-bottom: 0;
+}
