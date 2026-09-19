@@ -4,14 +4,7 @@ import { CARE_NOTE_CATEGORIES } from '@/data/types'
 import type { DueMedication } from '@/data/access/client'
 import { staffLabel } from '@/data/access/team-store'
 import { now } from '@/data/fixtures/clock'
-import {
-  ActLine,
-  Avatar,
-  Button,
-  Card,
-  CardHead,
-  buttonClassName,
-} from '@/components/primitives'
+import { Avatar, Card, CardHead, buttonClassName } from '@/components/primitives'
 import {
   MoodBadge,
   NeverWrittenUp,
@@ -55,53 +48,47 @@ export function ProfileHeader({ record }: { record: OpenRecord }) {
             <h1 className={styles.preferredName}>{resident.preferredName}</h1>
             <p className={styles.legalName}>{resident.fullLegalName}</p>
             <p className={styles.facts}>
-              <span>
-                Room{' '}
+              <span className={styles.fact}>
+                <span className={styles.factLabel}>Room</span>{' '}
                 {resident.room.kind === 'recorded' ? (
-                  resident.room.value
+                  <span className={styles.factValue}>{resident.room.value}</span>
                 ) : (
                   <Unrecorded label="Room not recorded" />
                 )}
               </span>
-              <span data-numeric>
-                Born {formatDate(resident.dateOfBirth)} (
-                {ageFrom(resident.dateOfBirth, now())})
+              <span className={styles.fact}>
+                <span className={styles.factLabel}>Born</span>{' '}
+                <span className={styles.factValue} data-numeric>
+                  {formatDate(resident.dateOfBirth)} (
+                  {ageFrom(resident.dateOfBirth, now())})
+                </span>
               </span>
-              <span>{site.name}</span>
+              <span className={styles.fact}>
+                <span className={styles.factLabel}>Site</span>{' '}
+                <span className={styles.factValue}>{site.name}</span>
+              </span>
             </p>
           </div>
 
           <div className={styles.contacts}>
             {gp.kind === 'recorded' ? (
-              <span className={styles.gp} data-gp="recorded">
-                <span className={styles.contactRole}>GP</span> {gp.value.name}
-                <span className={styles.contactQuiet}> · {gp.value.practice}</span>
-              </span>
+              <ContactChip
+                what="gp"
+                heading="GP"
+                name={gp.value.name}
+                phone={gp.value.contact.phone}
+              />
             ) : (
               <Unrecorded label="GP not recorded" />
             )}
 
             {nextOfKin.kind === 'recorded' ? (
-              <div className={styles.kin} data-next-of-kin>
-                <p className={styles.kinText}>
-                  <span className={styles.contactRole}>
-                    Next of kin · {nextOfKin.value.relationship}
-                  </span>{' '}
-                  <span className={styles.kinName}>{nextOfKin.value.name}</span>{' '}
-                  <span className={styles.contactQuiet} data-numeric>
-                    {nextOfKin.value.contact.phone}
-                  </span>
-                </p>
-                <div className={styles.call}>
-                  <Button variant="secondary" size="small">
-                    <Icon name={profileIcons.call} size={16} />
-                    Call {nextOfKin.value.name.split(/\s+/)[0]}
-                  </Button>
-                  <ActLine kind="not_built">
-                    Calling is not built: this is a design specification.
-                  </ActLine>
-                </div>
-              </div>
+              <ContactChip
+                what="next-of-kin"
+                heading={`Next of kin · ${nextOfKin.value.relationship}`}
+                name={nextOfKin.value.name}
+                phone={nextOfKin.value.contact.phone}
+              />
             ) : (
               <Unrecorded label="Next of kin not recorded" />
             )}
@@ -159,6 +146,56 @@ export function ProfileHeader({ record }: { record: OpenRecord }) {
         </Card>
       </div>
     </header>
+  )
+}
+
+/**
+ * Who to telephone, and the number to telephone them on.
+ *
+ * **It is not a control, and it is not drawn as one.** It replaced a "Call
+ * Sarah" button that could not place a call and carried a line saying so. The
+ * number is what somebody needs — they dial it on the handset in their hand —
+ * and a chip that states it promises nothing it cannot do, so there is nothing
+ * left to disclaim. RES-02 draws a call action; `docs/DEPARTURES.md` has the
+ * reason this does not.
+ *
+ * The icon is a label for the number beside it rather than something to press,
+ * so it is hidden from assistive technology and the words carry the meaning.
+ */
+function ContactChip({
+  what,
+  heading,
+  name,
+  phone,
+}: {
+  what: 'gp' | 'next-of-kin'
+  /**
+   * "GP", "Next of kin · Husband".
+   *
+   * Named `heading` rather than `role`: a prop called `role` on a JSX element
+   * is the ARIA attribute as far as a reader and the a11y linter are concerned,
+   * and this one is a person's relationship to the resident.
+   */
+  heading: string
+  name: string
+  phone: string
+}) {
+  return (
+    <span className={styles.contact} data-contact={what}>
+      <span className={styles.contactIcon} aria-hidden="true">
+        <Icon name={profileIcons.call} size={16} />
+      </span>
+      <span className={styles.contactText}>
+        <span className={styles.contactRole}>{heading}</span>
+        <span className={styles.contactValue}>
+          <span className={styles.contactName}>{name}</span>
+          <span className={styles.contactQuiet} data-numeric>
+            {' '}
+            · {phone}
+          </span>
+        </span>
+      </span>
+    </span>
   )
 }
 

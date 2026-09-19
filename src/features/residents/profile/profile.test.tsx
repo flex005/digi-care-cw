@@ -84,15 +84,38 @@ describe('the head of the record', () => {
     ).toEqual(['falls', 'allergies', 'resuscitation', 'eolc', 'isolation'])
   })
 
-  it('draws the call button with the line that says it does nothing', async () => {
+  /*
+   * **The number, and nothing that claims to dial it.** This was a "Call Sarah"
+   * button that could not place a call, carrying a line saying so. A care
+   * worker reads the number and dials it on the handset in their hand, so the
+   * chip states it and promises nothing — which leaves nothing to disclaim.
+   */
+  it('gives the two contacts their number, and draws no control that dials', async () => {
     open('res-okafor')
     renderProfileTab(staffEze.id, <GoalsTab />)
-    const kin = await screen.findByText(/^Next of kin/)
-    const block = kin.closest('[data-next-of-kin]') as HTMLElement
-    expect(within(block).getByRole('button', { name: /^Call / })).toBeTruthy()
+
+    const kin = (await screen.findByText(/^Next of kin/)).closest(
+      '[data-contact="next-of-kin"]',
+    ) as HTMLElement
+    expect(kin.textContent).toMatch(/\d/)
+    expect(within(kin).queryByRole('button')).toBeNull()
+    expect(within(kin).queryByRole('link')).toBeNull()
+
+    const gp = document.querySelector('[data-contact="gp"]')
+    // Recorded or not, whichever this resident is, nothing here offers a call.
+    expect(screen.queryByRole('button', { name: /^Call / })).toBeNull()
+    expect(screen.queryByText(/Calling is not built/)).toBeNull()
+    if (gp !== null) expect(within(gp as HTMLElement).queryByRole('button')).toBeNull()
+  })
+
+  it('names the room, the date of birth and the home, each with its value', async () => {
+    open('res-okafor')
+    renderProfileTab(staffEze.id, <GoalsTab />)
+    const facts = (await screen.findByText('Room')).closest('p') as HTMLElement
     expect(
-      within(block).getByText('Calling is not built: this is a design specification.'),
-    ).toBeTruthy()
+      [...facts.querySelectorAll('[class*="factLabel"]')].map((s) => s.textContent),
+    ).toEqual(['Room', 'Born', 'Site'])
+    expect(facts.textContent).toMatch(/Rosewood Court/)
   })
 
   it('puts the medication due on the one dark card, with what it is out of', async () => {

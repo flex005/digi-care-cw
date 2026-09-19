@@ -698,3 +698,19 @@ The three acts that stay are the ones a reader here performs: scoring an assessm
 - **The subject travels with it.** `NoteForm` draws `SubjectStrip`, so the photo, name, room and date of birth are on the write surface in the dialog as they were on the page. §2 does not relax because the surface is a dialog.
 - **The list behind the dialog re-reads on save**, because the page it replaced got its fresh read by navigating. A dialog closing over a list that still showed the record as it stood a moment before would be an absence meaning "no note" immediately after one was written. Mutation-tested: dropping the reload from the read's dependencies fails the new test.
 - A dialog holding a form is 880px where a confirmation is 560 — `NoteForm` is laid out for 880 and had 512. The gutter is kept, so at narrow widths they are the same panel.
+
+---
+
+## The head of a resident's record, rearranged (19/09/2026)
+
+Built to the reference: the photograph, then the preferred name over the full legal name, then room, date of birth and home as label-and-value pairs divided by a rule — the label quiet, the value not, because what a reader scans for is the number and "Room 213" in one weight makes the word and the number equally loud. At the right, the GP and the next of kin as two chips, each with the role above the name and the number.
+
+**The call button went with it, and that is the part worth arguing.** It placed no call and carried "Calling is not built: this is a design specification." — a line that existed only because the button did. What a care worker needs is the number, which they dial on the handset in their hand. A chip that states it promises nothing it cannot do, so there is nothing left to disclaim. Same shape as the edit controls earlier today: §6 asks a control that *does nothing* to say so; it does not ask for a control to exist so that something can be said. Tap-to-call stays in RES-02, where a developer will find it.
+
+**A contact nobody has recorded keeps the hatch and does not become a chip.** "GP not recorded" sits beside a recorded next of kin looking nothing like it, checked on Okafor, who has exactly that pair. A gap that borrowed the chip's shape would read as a contact somebody had entered.
+
+**Found by looking at 390 rather than by a test.** The divider is a `border-left` on the second and third fact, and a border-left follows its item onto a wrapped line and lands at the start of it — at 390 the third fact began with a rule dividing nothing. Worse, the comment I had just written claimed it "goes when they wrap onto their own lines", which it did not: CSS cannot ask whether an item wrapped. Below the breakpoint they stack one per line with no rule, and the comment now says what is true.
+
+**And one the linter caught.** The chip's prop was `role`, which on a JSX element is the ARIA attribute as far as `jsx-a11y` and a reader are concerned. It is `heading` now.
+
+**Then the row was centred.** It was top-aligned, which hung the photograph and the two chips off the top of a block whose height the name and the three facts set: the chips ended level with "Ada" and the lower half of the avatar sat against nothing. Measured after: the avatar, the name block and the contacts all centre on the same line, and the row fills the card's content box exactly.

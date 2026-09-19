@@ -45,11 +45,19 @@
 
 /* ------------------------------------------------------------------ identity */
 
+/*
+ * The photograph, the name block and the two contacts on one centre line.
+ *
+ * They were top-aligned, which hung the avatar and the chips off the top of a
+ * block whose height the name and the three facts set — the chips ended level
+ * with "Ada" and the avatar's lower half sat against nothing. Centred, the
+ * three read as one row, which is what they are.
+ */
 .identity {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-16) var(--space-24);
-  align-items: flex-start;
+  align-items: center;
 }
 
 .who {
@@ -75,6 +83,21 @@
   font-weight: var(--weight-medium);
 }
 
+/*
+ * Room, date of birth and home, on one line, divided rather than run together.
+ *
+ * Each fact is a quiet label and a value that is not quiet: what a reader
+ * scans for is the number, and "Room 213" in one weight makes the word and the
+ * number equally loud. The rule between them is a border on the second and
+ * third, so it never appears before the first or after the last.
+ *
+ * **It cannot survive a wrap, so below the breakpoint they stack instead.** A
+ * border-left follows its item onto the next line and lands at the start of it,
+ * which is a divider dividing nothing — it was drawn that way at 390 before
+ * anybody looked. CSS has no way to ask whether an item wrapped, so the row is
+ * a row only where all three fit, and the compact layout puts them one per
+ * line with no rule at all.
+ */
 .facts {
   display: flex;
   flex-wrap: wrap;
@@ -85,26 +108,89 @@
   line-height: var(--text-body-sm-line);
 }
 
+.fact {
+  display: inline-flex;
+  gap: var(--space-4);
+  align-items: baseline;
+}
+
+.fact + .fact {
+  padding-left: var(--space-16);
+  border-left: 1px solid var(--border-strong);
+}
+
+.factLabel {
+  color: var(--ink-500);
+}
+
+.factValue {
+  color: var(--ink-900);
+  font-weight: var(--weight-semibold);
+}
+
+@media (width < 1024px) {
+  .facts {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .fact + .fact {
+    padding-left: 0;
+    border-left: none;
+  }
+}
+
+/*
+ * Who to telephone, at the right of the head and beside the name rather than
+ * under it: on this screen they are read together — this is the person, and
+ * this is who to ring about them.
+ */
 .contacts {
   display: flex;
-  flex: 1 1 320px;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: var(--space-12);
-  align-items: flex-start;
+  align-items: center;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+/* A statement, not a control: no hover, no pointer, nothing that suggests
+   pressing it places a call. */
+.contact {
+  display: inline-flex;
+  gap: var(--space-12);
+  align-items: center;
+  padding: var(--space-8) var(--space-16);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.contactIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-32);
+  height: var(--space-32);
+  border-radius: var(--radius-pill);
+  background-color: var(--purple-50);
+  color: var(--purple-600);
+}
+
+.contactText {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
 
-.gp {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  align-items: baseline;
-  padding: var(--space-8) var(--space-16);
-  border: 1.5px solid var(--border-strong);
-  border-radius: var(--radius-pill);
+.contactValue {
   color: var(--ink-900);
-  font-size: var(--text-body-sm-size);
-  line-height: var(--text-body-sm-line);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+}
+
+.contactName {
   font-weight: var(--weight-semibold);
 }
 
@@ -120,29 +206,6 @@
 .contactQuiet {
   color: var(--ink-500);
   font-weight: var(--weight-regular);
-}
-
-.kin {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-}
-
-.kinText {
-  color: var(--ink-900);
-  font-size: var(--text-body-sm-size);
-  line-height: var(--text-body-sm-line);
-}
-
-.kinName {
-  font-weight: var(--weight-semibold);
-}
-
-.call {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8) var(--space-12);
-  align-items: center;
 }
 
 /* ------------------------------------------------------------------ risk flags */
