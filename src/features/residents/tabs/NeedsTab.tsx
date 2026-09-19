@@ -2,9 +2,7 @@ import type { ReactNode } from 'react'
 import type { CarePlanDomainId, CarePlanDomainRecord } from '@/data/types'
 import { Card, CardHead } from '@/components/primitives'
 import { DomainStatusBadge, SupportLevelBadge, Unrecorded } from '@/components/status'
-import { ActPoint } from '@/components/layout/ActPoint'
 import { useSiteFormat } from '@/app/session/use-session'
-import { useViewer } from '@/app/session/use-viewer'
 import { staffLabel } from '@/data/access/team-store'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
 import { NEEDS_SECTIONS, domainName } from './needs-sections'
@@ -147,7 +145,6 @@ function DomainRow({
 
 export function NeedsTab() {
   const { resident } = useOpenRecord()
-  const viewer = useViewer()
   const byDomain = new Map(resident.carePlan.map((entry) => [entry.domainId, entry]))
   const carePlanHref = `/residents/${resident.id}/care-plan`
 
@@ -158,12 +155,6 @@ export function NeedsTab() {
           Generated from the care plan and read-only. All ten domains are listed, filled
           in or not.
         </p>
-        <ActPoint
-          answer={viewer.ask('write_care_plan', resident.id)}
-          label="Edit care plan"
-          notBuilt="Editing a care plan is not built."
-          residentName={resident.preferredName}
-        />
       </div>
 
       {NEEDS_SECTIONS.map((section) => (

@@ -38,12 +38,30 @@
   flex: 1;
 }
 
+/*
+ * The strip fills the column, so the tiles end where the dark card beside them
+ * does.
+ *
+ * Without it the strip sized to its own content and the slack fell at the
+ * bottom of the column — which made a tile's height a fact about its content
+ * rather than about the strip. Residents came out at 172px and Care notes at
+ * 192px for no better reason than that one figure is a hatched chip with a
+ * long label and one denominator wraps to a second line: a reader comparing
+ * two modules saw a difference in card height that meant nothing. The row
+ * already refuses this within a strip (`align-items: stretch` in
+ * `MetricTile.module.css`, and the comment there says why); this is the same
+ * refusal one level out.
+ */
 .tileColumn {
   display: flex;
   flex: 3 1 560px;
   flex-direction: column;
   gap: var(--space-8);
   min-width: 0;
+}
+
+.tileColumn > section {
+  flex: 1;
 }
 
 .scopeNote {
@@ -329,6 +347,26 @@
 }
 
 /* ------------------------------------------------------------------ the tab */
+
+/* The head and its act on one line, the act at the right. */
+.tabHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.tabHeading {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+/* The head's own bottom margin is the gap to the card's body; with nothing
+   under it here, it would hang below the card's padding. */
+.tabHeading > header {
+  margin-bottom: 0;
+}
 
 .tabAct {
   display: flex;

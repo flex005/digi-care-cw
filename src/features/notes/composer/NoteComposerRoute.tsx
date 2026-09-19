@@ -32,10 +32,31 @@ import styles from './composer.module.css'
  * See `draft-store.ts`.
  */
 export function NoteComposerRoute() {
+  const { resident } = useOpenRecord()
+  const router = useRouter()
+  return (
+    <div className={styles.page}>
+      <NoteComposer onSaved={() => router.push(`/residents/${resident.id}/notes`)} />
+    </div>
+  )
+}
+
+/**
+ * The composer itself, wherever it is opened.
+ *
+ * **Split from the route so the resident's own Care Notes tab can open it in a
+ * dialog** without a second copy of the draft handling, the role answer or the
+ * save. What differs between the two is only what happens after a note is
+ * saved, which is why that is the one thing passed in.
+ *
+ * The subject travels with it: `NoteForm` draws `SubjectStrip`, so the photo,
+ * name, room and date of birth are on the write surface in a dialog exactly as
+ * they are on the page (CLAUDE.md §2).
+ */
+export function NoteComposer({ onSaved }: { onSaved: () => void }) {
   const { resident, site } = useOpenRecord()
   const viewer = useViewer()
   const { member } = useSignedIn()
-  const router = useRouter()
   const format = useSiteFormat()
 
   /* Read once, when the composer opens, so the shift shown is the shift saved. */
@@ -54,7 +75,7 @@ export function NoteComposerRoute() {
   const answer = viewer.ask('write_care_note', resident.id)
   if (answer.kind !== 'yes')
     return (
-      <div className={styles.page} data-note-composer="refused">
+      <div data-note-composer="refused">
         <ActPoint
           answer={answer}
           label="Write a care note"
@@ -90,7 +111,7 @@ export function NoteComposerRoute() {
           ? 'Flagged for a senior to review. Nobody is notified: it waits in the flagged queue.'
           : 'none',
       )
-      router.push(`/residents/${resident.id}/notes`)
+      onSaved()
     } catch (failure) {
       setRefusal(refusalOf(failure))
       setSaving(false)
@@ -104,7 +125,7 @@ export function NoteComposerRoute() {
       : format.dateTime(kept.keptAt)
 
   return (
-    <div className={styles.page} data-note-composer="open">
+    <div data-note-composer="open">
       <NoteForm
         resident={resident}
         site={site}

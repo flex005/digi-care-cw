@@ -39,6 +39,17 @@
   transform: translate(-50%, -50%);
 }
 
+/*
+ * A dialog holding a write surface rather than a confirmation.
+ *
+ * The note composer's form is laid out for a column up to 880px; at the
+ * confirmation's 560 it had 512 to work in. The gutter is kept, so on a narrow
+ * screen this is the same panel the confirmation is.
+ */
+.panelForm {
+  width: min(880px, calc(100vw - var(--space-64)));
+}
+
 /* Anchored floating panel — dropdown, select, popover. */
 .floating {
   composes: surface;

@@ -1,8 +1,6 @@
 import type { Resident } from '@/data/types'
 import { Card, CardHead } from '@/components/primitives'
 import { Unrecorded } from '@/components/status'
-import { ActPoint } from '@/components/layout/ActPoint'
-import { useViewer } from '@/app/session/use-viewer'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
 import { Field, FieldList } from './FieldList'
 import { GENERAL_INFORMATION_SECTIONS } from './general-information-fields'
@@ -40,16 +38,9 @@ import styles from './general-information.module.css'
  */
 export function GeneralInformationTab() {
   const { resident } = useOpenRecord()
-  const viewer = useViewer()
 
   return (
     <div className={styles.tabPanel} data-tab-panel="general">
-      <ActPoint
-        answer={viewer.ask('edit_resident_profile', resident.id)}
-        label="Edit profile"
-        notBuilt="Editing a profile is not built."
-        residentName={resident.preferredName}
-      />
       <ProfileSections resident={resident} />
     </div>
   )

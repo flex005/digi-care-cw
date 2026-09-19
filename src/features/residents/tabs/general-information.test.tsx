@@ -277,22 +277,36 @@ describe('attribution', () => {
   })
 })
 
-describe('read-only, with the one act drawn from the role table', () => {
+/**
+ * **Read-only, and it no longer says who may edit.**
+ *
+ * The tab used to draw a disabled "Edit profile" with the role table's refusal
+ * beside it. Neither role can ever perform it — `edit_resident_profile` is
+ * `may_not` for both, whatever the resident — so the control was an act nobody
+ * reading this screen can do, repeated on four tabs, telling a care worker
+ * about somebody else's job. It is gone; the role table still holds the rule,
+ * and `capabilities.test.ts` still holds the role table.
+ *
+ * The line a control that does nothing must carry (CLAUDE.md §6) is not owed
+ * here, because there is no longer a control. That rule exists so nothing on
+ * screen implies an act happened; drawing nothing implies nothing.
+ */
+describe('read-only, with nothing on it that writes', () => {
   it.each([
     ['a care worker, Eze', staffEze.id],
     ['a senior carer, Akinyemi', staffAkinyemi.id],
-  ] as const)('draws the edit act refused for %s', async (_who, staffId) => {
-    const { tab } = await openGeneral(staffId, 'res-okafor')
+  ] as const)(
+    'offers %s no edit control and no refusal about it',
+    async (_who, staffId) => {
+      const { tab } = await openGeneral(staffId, 'res-okafor')
 
-    const button = within(tab).getByRole('button', { name: 'Edit profile' })
-    expect(button).toBeDisabled()
+      expect(within(tab).queryByRole('button', { name: 'Edit profile' })).toBeNull()
+      expect(tab.querySelector('[data-act-line]')).toBeNull()
+      for (const reason of editRefusals) expect(tab.textContent).not.toContain(reason)
+    },
+  )
 
-    const line = tab.querySelector('[data-act-line="refused"]')
-    expect(editRefusals.length).toBeGreaterThan(0)
-    expect(editRefusals).toContain(line?.textContent?.trim())
-  })
-
-  it('draws the act once, and no change control on any field', async () => {
+  it('draws no change control on any field', async () => {
     const withAllergies = residents.find(
       (r) => r.allergies.kind === 'allergies' && r.gp.kind === 'recorded',
     )
@@ -300,13 +314,12 @@ describe('read-only, with the one act drawn from the role table', () => {
       throw new Error('no resident with allergies and a GP')
     const { tab } = await openGeneral(staffAkinyemi.id, withAllergies.id)
 
-    // The card expand buttons are navigation, not writes; everything else that
-    // is a button is the one edit act.
+    // The card expand buttons are navigation. Nothing else here is a button.
     const writes = within(tab)
       .queryAllByRole('button')
       .filter((button) => button.getAttribute('data-expand') === null)
-    expect(writes.map((button) => button.textContent)).toEqual(['Edit profile'])
-    expect(tab.querySelectorAll('[data-act-line]')).toHaveLength(1)
+    expect(writes).toEqual([])
+    expect(tab.querySelectorAll('[data-act-line]')).toHaveLength(0)
   })
 
   it('has no detectable accessibility violations', async () => {

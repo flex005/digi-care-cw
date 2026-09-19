@@ -1,7 +1,5 @@
 import type { Resident } from '@/data/types'
 import { Card, CardHead } from '@/components/primitives'
-import { ActPoint } from '@/components/layout/ActPoint'
-import { useViewer } from '@/app/session/use-viewer'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
 import { Field, FieldList } from './FieldList'
 import { FUTURE_PLANS_SECTIONS } from './future-plans-sections'
@@ -22,7 +20,6 @@ import styles from './people-and-plans.module.css'
  */
 export function FuturePlansTab() {
   const { resident } = useOpenRecord()
-  const viewer = useViewer()
 
   return (
     <div className={styles.tabPanel}>
@@ -30,12 +27,6 @@ export function FuturePlansTab() {
         <p className={styles.tabIntro}>
           Recorded in advance, while this person could say what they wanted.
         </p>
-        <ActPoint
-          answer={viewer.ask('edit_resident_profile', resident.id)}
-          label="Edit profile"
-          notBuilt="Editing a profile is not built."
-          residentName={resident.preferredName}
-        />
       </div>
       <PlanSections resident={resident} />
     </div>

@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import Link from 'next/link'
 import type { CareNote } from '@/data/types'
 import { getCareNotes } from '@/data/access/client'
@@ -7,9 +7,9 @@ import {
   Button,
   Card,
   CardHead,
+  Dialog,
   EmptyState,
   Pager,
-  buttonClassName,
   usePaged,
 } from '@/components/primitives'
 import { NeverWrittenUp, NotYourHome } from '@/components/status'
@@ -25,6 +25,7 @@ import {
   ShiftOverride,
   noteHref,
 } from './note-parts'
+import { NoteComposer } from './composer/NoteComposerRoute'
 import { notesIcons } from './notes.icons'
 import { Icon } from '@/components/icon/Icon'
 import styles from './notes.module.css'
@@ -42,14 +43,28 @@ import styles from './notes.module.css'
  * marked, because the fact that somebody first wrote the wrong thing is part of
  * the record.
  *
+ * **Writing opens a dialog rather than a second screen.** The note is about the
+ * resident whose record is already open, and sending the reader to their own
+ * address to write it loses the list they were reading and the place they were
+ * in it. The dialog carries the subject header with it, so what a page
+ * guaranteed about the subject still holds (CLAUDE.md §2).
+ *
  * Writing is asked of the role table for this resident, and drawn at the head.
  */
 export function NotesTab() {
   const { resident } = useOpenRecord()
   const viewer = useViewer()
 
+  const [writing, setWriting] = useState(false)
+  /*
+   * Bumped when a note is saved in the dialog, so the list behind it re-reads
+   * rather than showing the record as it was before the note somebody just
+   * wrote. The page it replaced got a fresh read by navigating.
+   */
+  const [saved, setSaved] = useState(0)
+
   const load = useCallback(() => getCareNotes(resident.id), [resident.id])
-  const resource = useResource<CareNote[]>(load, [resident.id])
+  const resource = useResource<CareNote[]>(load, [resident.id, saved])
   const notes = resource.kind === 'ready' ? resource.data : EMPTY
   const paged = usePaged(notes)
 
@@ -58,19 +73,20 @@ export function NotesTab() {
   return (
     <div className={styles.tabPanel} data-notes-tab>
       <Card>
-        <CardHead
-          title={`${resident.preferredName}’s care notes`}
-          subtitle="Newest first. A care note is never changed once saved."
-          expand={{ kind: 'whole' }}
-        />
-        <div className={styles.tabAct}>
+        {/* The act sits on the head's own line, at its right: it is what this
+            card is for, and under the subtitle it read as a footnote to it. */}
+        <div className={styles.tabHead}>
+          <div className={styles.tabHeading}>
+            <CardHead
+              title={`${resident.preferredName}’s care notes`}
+              subtitle="Newest first. A care note is never changed once saved."
+              expand={{ kind: 'whole' }}
+            />
+          </div>
           {answer.kind === 'yes' ? (
-            <Link
-              href={`/residents/${resident.id}/notes/new`}
-              className={buttonClassName({ variant: 'primary', size: 'large' })}
-            >
+            <Button size="large" onClick={() => setWriting(true)} data-write-note>
               Write a care note
-            </Link>
+            </Button>
           ) : (
             <ActPoint
               answer={answer}
@@ -81,6 +97,20 @@ export function NotesTab() {
           )}
         </div>
       </Card>
+
+      <Dialog
+        open={writing}
+        onOpenChange={setWriting}
+        title={`Write a care note for ${resident.fullLegalName}`}
+        size="form"
+      >
+        <NoteComposer
+          onSaved={() => {
+            setWriting(false)
+            setSaved((count) => count + 1)
+          }}
+        />
+      </Dialog>
 
       <Card>
         {(() => {

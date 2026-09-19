@@ -197,20 +197,28 @@ describe('a revision in progress', () => {
   })
 })
 
-describe('read-only, with the one act drawn from the role table', () => {
+/*
+ * **Read-only, and it no longer names whose job the writing is.** A manager
+ * writes and finalises the care plan, which is true of both roles that sign in
+ * here, so the disabled "Edit care plan" was an act neither reader could ever
+ * perform. The rule is still in the role table and still tested there.
+ */
+describe('read-only, with nothing on it that writes', () => {
   it.each([
     ['a care worker, Eze', staffEze.id],
     ['a senior carer, Akinyemi', staffAkinyemi.id],
-  ] as const)('draws the care plan act refused for %s', async (_who, staffId) => {
-    const { tab } = await openNeeds(staffId, 'res-hutchinson')
+  ] as const)(
+    'offers %s no care plan act and no refusal about it',
+    async (_who, staffId) => {
+      const { tab } = await openNeeds(staffId, 'res-hutchinson')
 
-    expect(within(tab).getByRole('button', { name: 'Edit care plan' })).toBeDisabled()
-    const lines = tab.querySelectorAll('[data-act-line]')
-    expect(lines).toHaveLength(1)
-    expect(lines[0]?.getAttribute('data-act-line')).toBe('refused')
-    expect(carePlanRefusals.length).toBeGreaterThan(0)
-    expect(carePlanRefusals).toContain(lines[0]?.textContent?.trim())
-  })
+      expect(within(tab).queryByRole('button', { name: 'Edit care plan' })).toBeNull()
+      expect(tab.querySelectorAll('[data-act-line]')).toHaveLength(0)
+      expect(carePlanRefusals.length).toBeGreaterThan(0)
+      for (const reason of carePlanRefusals)
+        expect(tab.textContent).not.toContain(reason)
+    },
+  )
 
   it('offers no per-domain writing, and opens the Care Plan tab from each section', async () => {
     const { tab } = await openNeeds(staffAkinyemi.id, 'res-sowande')

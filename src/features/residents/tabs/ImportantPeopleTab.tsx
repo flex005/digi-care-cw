@@ -1,7 +1,5 @@
 import type { Resident } from '@/data/types'
 import { Card, CardHead } from '@/components/primitives'
-import { ActPoint } from '@/components/layout/ActPoint'
-import { useViewer } from '@/app/session/use-viewer'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
 import { Field, FieldList } from './FieldList'
 import { IMPORTANT_PEOPLE_SECTIONS } from './important-people-sections'
@@ -20,18 +18,9 @@ import styles from './people-and-plans.module.css'
  */
 export function ImportantPeopleTab() {
   const { resident } = useOpenRecord()
-  const viewer = useViewer()
 
   return (
     <div className={styles.tabPanel}>
-      <div className={styles.lead}>
-        <ActPoint
-          answer={viewer.ask('edit_resident_profile', resident.id)}
-          label="Edit profile"
-          notBuilt="Editing a profile is not built."
-          residentName={resident.preferredName}
-        />
-      </div>
       <PeopleSections resident={resident} />
     </div>
   )

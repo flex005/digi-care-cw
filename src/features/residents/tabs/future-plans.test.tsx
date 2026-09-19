@@ -142,22 +142,24 @@ describe('every entry is date-stamped, signed and version-controlled', () => {
 })
 
 describe('the tab within the profile', () => {
+  /*
+   * The edit act is gone from this tab, as from the other three. A resuscitation
+   * decision is signed by a clinician and a plan is a manager's to change, so
+   * the control was never one a reader of this screen could use.
+   */
   it.each([
     ['a care worker', staffEze.id],
     ['a senior carer', staffAkinyemi.id],
   ] as const)(
-    'refuses editing to %s, in the role table’s words',
+    'offers %s no edit control, and says nothing about who may',
     async (_who, staffId) => {
       const { container } = openPlans(staffId, 'res-okafor')
       await screen.findByText('In an emergency')
 
-      const point = container.querySelector('[data-answer]')!
-      expect(point.getAttribute('data-answer')).toBe('not_your_role')
-      expect(
-        within(point as HTMLElement).getByRole('button', { name: 'Edit profile' }),
-      ).toBeDisabled()
-      const line = point.querySelector('[data-act-line="refused"]')
-      expect(editRefusals).toContain(line?.textContent?.trim())
+      expect(container.querySelector('[data-answer]')).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Edit profile' })).toBeNull()
+      for (const reason of editRefusals)
+        expect(container.textContent).not.toContain(reason)
     },
   )
 
@@ -166,13 +168,9 @@ describe('the tab within the profile', () => {
     await screen.findByText('In an emergency')
 
     const panel = container.querySelector('[class*="tabPanel"]') as HTMLElement
-    // The act, and nothing else. Each section card is the whole of its
-    // section, so it carries no expand button (CLAUDE.md §6).
-    expect(
-      within(panel)
-        .getAllByRole('button')
-        .map((button) => button.textContent || button.getAttribute('aria-label')),
-    ).toEqual(['Edit profile'])
+    // Nothing at all. Each section card is the whole of its section, so it
+    // carries no expand button either (CLAUDE.md §6).
+    expect(within(panel).queryAllByRole('button')).toEqual([])
   })
 
   it('keeps the subject header mounted alongside it', async () => {

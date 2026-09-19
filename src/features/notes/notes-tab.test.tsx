@@ -83,16 +83,66 @@ describe('a resident’s care notes tab', () => {
     )
   })
 
-  it('offers a care worker whose list names the resident the act of writing', async () => {
-    renderProfileTab(staffEze.id, <NotesTab />)
-    const link = await screen.findByRole('link', { name: 'Write a care note' })
-    expect(link.getAttribute('href')).toBe('/residents/res-okafor/notes/new')
-  })
+  /*
+   * Writing opens a dialog over the record rather than a second screen: the
+   * note is about the resident already open, and leaving the list loses the
+   * reader's place in it.
+   */
+  it.each([
+    ['a care worker whose list names the resident', staffEze.id, undefined],
+    ['a senior carer', staffAkinyemi.id, 'site-rosewood-court'],
+  ] as const)(
+    'offers %s the act of writing, in a dialog',
+    async (_who, staffId, site) => {
+      const user = userEvent.setup()
+      renderProfileTab(staffId, <NotesTab />, site)
+      const act = await screen.findByRole('button', { name: 'Write a care note' })
+      // Not a link: nothing navigates away from the record.
+      expect(screen.queryByRole('link', { name: 'Write a care note' })).toBeNull()
+      expect(screen.queryByRole('dialog')).toBeNull()
 
-  it('offers a senior carer the same act', async () => {
-    renderProfileTab(staffAkinyemi.id, <NotesTab />, 'site-rosewood-court')
-    const link = await screen.findByRole('link', { name: 'Write a care note' })
-    expect(link.getAttribute('href')).toBe('/residents/res-okafor/notes/new')
+      await user.click(act)
+      const dialog = await screen.findByRole('dialog')
+      expect(dialog.textContent).toMatch(/Write a care note for Emmanuel Okafor/)
+      // The subject travels with the write surface (CLAUDE.md §2).
+      expect(within(dialog).getAllByText(/Emmanuel/).length).toBeGreaterThan(0)
+    },
+  )
+
+  /*
+   * **The list behind the dialog re-reads after a save.** The page this
+   * replaced got a fresh read by navigating; a dialog closes over a list that
+   * would otherwise still be the record as it stood before the note somebody
+   * just wrote — a screen showing a note's absence a moment after it was
+   * written is the blank that means two things.
+   */
+  it('closes on save, and the note is in the list behind it', async () => {
+    const user = userEvent.setup()
+    renderProfileTab(staffEze.id, <NotesTab />)
+    await user.click(await screen.findByRole('button', { name: 'Write a care note' }))
+
+    const dialog = await screen.findByRole('dialog')
+    const category = within(dialog).getByRole('combobox', { name: /category/i })
+    category.focus()
+    await user.keyboard('{Enter}')
+    await user.click(await screen.findByRole('option', { name: 'Personal Care' }))
+
+    const body = 'Walked to the dining room with one person assisting, and ate well.'
+    await user.type(
+      within(dialog).getByPlaceholderText(
+        'What you found, what you saw, what the resident said.',
+      ),
+      body,
+    )
+    await user.click(within(dialog).getByRole('radio', { name: 'Not recorded' }))
+    await user.click(
+      within(dialog).getByRole('button', { name: /^Save note for Emmanuel/ }),
+    )
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() =>
+      expect(document.querySelector('[data-notes-tab]')?.textContent).toContain(body),
+    )
   })
 
   it('shows the flag with its reason, and a review with who, when and what was done', async () => {

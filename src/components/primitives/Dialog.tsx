@@ -25,6 +25,17 @@ export interface DialogProps {
   children?: ReactNode
   /** Buttons, right-aligned. */
   actions?: ReactNode
+  /**
+   * How much room the contents need.
+   *
+   * `confirmation` is the default and the shape everything here was built for:
+   * a sentence naming the subject and two buttons. `form` is for a write
+   * surface opened over the record it is about — the care note composer — whose
+   * fields are laid out for a column far wider than a confirmation wants.
+   * Sizing that by the confirmation's width squeezes a form designed for 880px
+   * into 512.
+   */
+  size?: 'confirmation' | 'form'
 }
 
 export function Dialog({
@@ -34,12 +45,17 @@ export function Dialog({
   description,
   children,
   actions,
+  size = 'confirmation',
 }: DialogProps) {
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       <RadixDialog.Portal>
         <RadixDialog.Overlay className={styles.overlay} />
-        <RadixDialog.Content className={styles.panel}>
+        <RadixDialog.Content
+          className={
+            size === 'form' ? `${styles.panel} ${styles.panelForm}` : styles.panel
+          }
+        >
           <RadixDialog.Title className={styles.title}>{title}</RadixDialog.Title>
           {description ? (
             <RadixDialog.Description className={styles.description}>

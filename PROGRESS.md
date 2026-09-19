@@ -669,3 +669,32 @@ The fixed height is a floor now. `.columns` takes `flex: 1` with `min-height: 22
 **The tile block grows at 999 to the card's 1.** So the spare width on a shared row goes to the tiles and the card holds the width it was sized to — but below about 850 the tiles wrap onto their own line, and a card that could not grow sat there at 480px with 300px of white beside it. Now it fills the line it is alone on. Measured at 1440, 1280, 1100, 1024, 980, 900, 820, 768 and 390.
 
 **And a test that was true for one day.** The full verify failed on two tests in `report.test.tsx` that nobody had touched: the date had rolled to the 19th, and the incident form's tests held `'2026-09-18T20:20'` as the expected default and `'2026-09-19T08:00'` as a time "in the future" — which had become the past. Both now derive from `now()`, the same clock the screen reads. A sweep of every test file that imports the fixture clock found no others of that shape: the rest supply their own `now` beside their own records, where the literals and the clock move together. New §8 entry.
+
+---
+
+## One tile height on Residents and Care notes (19/09/2026)
+
+The metric tiles came out 172px on Residents and 192px on Care notes, and the reason was nothing a reader could learn anything from: Care notes has a figure that is a hatched chip with a long label, and Residents has a denominator that wraps to a second line. Both modules put the strip in a `.tileColumn` beside the dark card, the column is stretched to the card's height, and the strip inside sized to its own content — so the slack fell at the bottom of the column and the tile height became a fact about one tile's content.
+
+`MetricTile.module.css` already refuses this inside a strip: `align-items: stretch`, with a comment saying a tile that is taller because its figure is a hatched block rather than a numeral reads as a difference in the data. This is the same refusal one level out — `.tileColumn > section { flex: 1 }`, the idiom both files already use for `.lead`. Both strips are 235px now, and they end where the dark card beside them does: 235 + the 8px gap + the 16px scope note is the card's 259.
+
+**Medications keeps its own height, deliberately.** Its strip sits in the same shape of column, but its dark card is 390px against a 158px strip, and filling that column would give it 358px tiles — a tile sized by a card that happens to be tall is the same defect the other way round. Left as it is, and the difference is worth a look next time that screen is opened.
+
+Measured before and after on all five modules that draw the strip, rather than inferred: Residents 172→235, Care notes 192→235, Handover 315 (stretched by its own card, unchanged), Incidents 291 (unchanged), Medications 158 (unchanged).
+
+---
+
+## The resident's record: no edit controls, and a composer in a dialog (19/09/2026)
+
+**Four tabs stopped saying whose job the editing is.** General Information, Important People and Future Plans each drew a disabled "Edit profile" with the role table's refusal beside it, and Needs drew "Edit care plan" the same way. Table 3 gives both roles `Read only` on both acts, whatever the resident, so these were acts no reader of this product can ever perform — drawn four times on one record, each telling a care worker about an admin's or a manager's job.
+
+**CPLN-01 asked for exactly this and the build had not done it**: "No Edit button, no Finalise button, no PIN entry for care workers". The Needs tab had an Edit button. That is the thing worth noticing rather than the tidy-up: the control was added so that a refusal could be attached to it, and then carrying the refusal became the reason the control existed. §6 says a control that *does nothing* must say so at the point of the act; it does not ask for a control to exist so that something can be said. Where an act is refused to everybody who can sign in, drawing nothing implies nothing, and that is the honest screen.
+
+The three acts that stay are the ones a reader here performs: scoring an assessment, recording a consent decision and filing a document are live for a senior carer and refused for a care worker in the table's words. The rules for editing are untouched in `capabilities.ts` and still tested in `capabilities.test.ts`; four screen tests now assert the stronger thing — that the tab draws no control that writes at all, and repeats none of the role table's refusal text.
+
+**Writing a care note moved to the head and into a dialog.** The act was a link under the card's subtitle, reading as a footnote to it, and it navigated to a second address. It is now a button at the right of the card's head, and it opens the composer over the record.
+
+- `NoteComposerRoute` was split: `NoteComposer` holds the draft handling, the role answer and the save, and takes only what to do afterwards; the route is a wrapper that navigates, and the dialog is a wrapper that closes. No second copy of the composer.
+- **The subject travels with it.** `NoteForm` draws `SubjectStrip`, so the photo, name, room and date of birth are on the write surface in the dialog as they were on the page. §2 does not relax because the surface is a dialog.
+- **The list behind the dialog re-reads on save**, because the page it replaced got its fresh read by navigating. A dialog closing over a list that still showed the record as it stood a moment before would be an absence meaning "no note" immediately after one was written. Mutation-tested: dropping the reload from the read's dependencies fails the new test.
+- A dialog holding a form is 880px where a confirmation is 560 — `NoteForm` is laid out for 880 and had 512. The gutter is kept, so at narrow widths they are the same panel.

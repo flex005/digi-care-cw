@@ -232,22 +232,24 @@ describe('who this home rings first', () => {
 })
 
 describe('the tab within the profile', () => {
+  /*
+   * The edit act is gone from this tab. Neither role can ever perform it, so
+   * the control was telling a care worker about an admin's job on four tabs
+   * at once. The rule still lives in the role table and is still tested there.
+   */
   it.each([
     ['a care worker', staffEze.id],
     ['a senior carer', staffAkinyemi.id],
   ] as const)(
-    'refuses editing to %s, in the role table’s words',
+    'offers %s no edit control, and says nothing about who may',
     async (_who, staffId) => {
       const { container } = openPeople(staffId, 'res-okafor')
       await screen.findByText('Family and next of kin')
 
-      const point = container.querySelector('[data-answer]')!
-      expect(point.getAttribute('data-answer')).toBe('not_your_role')
-      expect(
-        within(point as HTMLElement).getByRole('button', { name: 'Edit profile' }),
-      ).toBeDisabled()
-      const line = point.querySelector('[data-act-line="refused"]')
-      expect(editRefusals).toContain(line?.textContent?.trim())
+      expect(container.querySelector('[data-answer]')).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Edit profile' })).toBeNull()
+      for (const reason of editRefusals)
+        expect(container.textContent).not.toContain(reason)
     },
   )
 
@@ -258,12 +260,9 @@ describe('the tab within the profile', () => {
     expect(screen.queryByRole('button', { name: /primary contact/i })).toBeNull()
     const panel = container.querySelector('[class*="tabPanel"]')!
     expect(panel.querySelector('a[href^="tel:"]')).toBeNull()
-    // The act, and nothing else. Each section card is the whole of its
-    // section, so it carries no expand button (CLAUDE.md §6).
-    const buttons = within(panel as HTMLElement).getAllByRole('button')
-    expect(
-      buttons.map((button) => button.textContent || button.getAttribute('aria-label')),
-    ).toEqual(['Edit profile'])
+    // Nothing at all. Each section card is the whole of its section, so it
+    // carries no expand button either (CLAUDE.md §6).
+    expect(within(panel as HTMLElement).queryAllByRole('button')).toEqual([])
   })
 
   it('keeps the subject header mounted alongside it', async () => {
