@@ -17,7 +17,7 @@ import {
 import { endSession } from '@/data/access/session-losses'
 import { renderSignedIn } from '@/test/render-signed-in'
 import { ReviewQueueRoute } from './ReviewQueueRoute'
-import { DISCUSSION_LINE, WholePlanReviewRoute } from './WholePlanReviewRoute'
+import { WholePlanReviewRoute } from './WholePlanReviewRoute'
 import { byLongestOverdue, isOwed, standingOf, type ReviewRow } from './review-queue'
 
 const navigation = vi.hoisted(() => ({
@@ -117,12 +117,12 @@ describe('the queue', () => {
     expect(document.querySelector('[data-act-line]')).toBeNull()
   })
 
-  it('gives a care worker the role table’s refusal, once, and no way in', async () => {
+  it('gives a care worker the queue to read and no way into a review', async () => {
     await openQueue(staffEze.id)
-    expect(document.querySelector('[data-act-line="refused"]')?.textContent).toBe(
+    expect(document.querySelectorAll('[data-act-line]')).toHaveLength(0)
+    expect(document.body.textContent).not.toContain(
       'Conducting a review is for a senior carer.',
     )
-    expect(document.querySelectorAll('[data-act-line]')).toHaveLength(1)
     expect(document.querySelector('[data-open-review]')).toBeNull()
   })
 })
@@ -148,9 +148,9 @@ describe('the review itself', () => {
     }
   })
 
-  it('says the discussion is not kept', async () => {
+  it('draws no notice about what this build does not keep', async () => {
     await openReview(someone().id)
-    expect(screen.getByText(DISCUSSION_LINE)).toBeInTheDocument()
+    expect(document.querySelector('[data-act-line]')).toBeNull()
   })
 
   it('records the review with what was outstanding, and nothing is sent', async () => {
@@ -178,9 +178,10 @@ describe('the review itself', () => {
     )
   })
 
-  it('refuses a care worker with the role table’s reason', async () => {
+  it('offers a care worker nothing to complete, and no reason either', async () => {
     await openReview(someone().id, staffEze.id)
-    expect(document.querySelector('[data-act-line="refused"]')?.textContent).toBe(
+    expect(document.querySelector('[data-act-line]')).toBeNull()
+    expect(document.body.textContent).not.toContain(
       'Conducting a review is for a senior carer.',
     )
     expect(

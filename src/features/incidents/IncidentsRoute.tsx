@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react'
-import Link from 'next/link'
 import type {
   Incident,
   IncidentSeverityId,
@@ -18,27 +17,23 @@ import { ActPoint } from '@/components/layout/ActPoint'
 import { PageHead } from '@/components/layout/PageHead'
 import { MetricTile, MetricTiles, MetricValue } from '@/components/metric/MetricTile'
 import {
-  ActLine,
   Button,
   Card,
   CardHead,
+  Dialog,
   EmptyState,
   Pager,
   Select,
   SelectedMark,
-  buttonClassName,
   usePaged,
 } from '@/components/primitives'
 import { NotYourHome } from '@/components/status'
 import { formatCount, pluralise } from '@/lib/format'
 import { AcknowledgeControl } from './AcknowledgeControl'
+import { ReportIncidentForm, ReportedCard, type Reported } from './ReportIncidentRoute'
 import { IncidentRow } from './IncidentRow'
 import { incidentsIcons } from './incidents.icons'
 import styles from './incidents.module.css'
-
-/** The line the head carries, decided and not to be reworded. */
-export const NOTHING_SENT_LINE =
-  'Nothing is sent from this screen: no push to a manager, and no badge anywhere else.'
 
 /** Why there is nowhere to open to, said where INC-01 puts its link. */
 export const NO_DETAIL_LINE =
@@ -86,6 +81,8 @@ export function IncidentsRoute() {
   const [severity, setSeverity] = useState<IncidentSeverityId | 'any'>('any')
   const [written, setWritten] = useState(0)
   const [done, setDone] = useState('')
+  const [reporting, setReporting] = useState(false)
+  const [reported, setReported] = useState<Reported | 'not_yet'>('not_yet')
   const [at] = useState(() => now().toISOString() as IsoDateTime)
 
   const load = useCallback(() => getIncidents(activeSite.id), [activeSite.id])
@@ -95,18 +92,42 @@ export function IncidentsRoute() {
   ])
 
   const reportAnswer = viewer.ask('report_incident')
+  /*
+   * **Reported over the list, not at a second address.** An incident is
+   * written standing in front of everything else that has happened at this
+   * home, and the list is what a reporter checks against while they write.
+   */
   const head = (
     <PageHead
       title="Incidents"
       lines={[activeSite.name, 'every incident at this home']}
       action={
         reportAnswer.kind === 'yes' ? (
-          <Link
-            href="/incidents/new"
-            className={buttonClassName({ variant: 'primary', size: 'large' })}
-          >
-            Report an incident
-          </Link>
+          <>
+            <Button
+              size="large"
+              onClick={() => setReporting(true)}
+              data-report-incident
+            >
+              Report an incident
+            </Button>
+            <Dialog
+              open={reporting}
+              onOpenChange={setReporting}
+              title={`Report an incident at ${activeSite.name}`}
+              size="form"
+            >
+              {reporting ? (
+                <ReportIncidentForm
+                  onReported={(next) => {
+                    setReporting(false)
+                    setReported(next)
+                    setWritten((count) => count + 1)
+                  }}
+                />
+              ) : null}
+            </Dialog>
+          </>
         ) : undefined
       }
     />
@@ -157,6 +178,7 @@ export function IncidentsRoute() {
       severity={severity}
       onSeverity={setSeverity}
       done={done}
+      reported={reported}
       onAcknowledged={(words) => {
         setDone(words)
         setWritten((count) => count + 1)
@@ -177,6 +199,7 @@ function List({
   severity,
   onSeverity,
   done,
+  reported,
   onAcknowledged,
 }: {
   head: React.ReactNode
@@ -190,6 +213,8 @@ function List({
   severity: IncidentSeverityId | 'any'
   onSeverity: (next: IncidentSeverityId | 'any') => void
   done: string
+  /** What the dialog last reported, said where the reporter is left. */
+  reported: Reported | 'not_yet'
   onAcknowledged: (words: string) => void
 }) {
   const viewer = useViewer()
@@ -225,14 +250,21 @@ function List({
     <div className={styles.page}>
       {head}
 
-      <div className={styles.headLines}>
-        <ActLine kind="not_performed">{NOTHING_SENT_LINE}</ActLine>
-      </div>
+      <div className={styles.headLines}></div>
 
       {done === '' ? null : (
         <p className={styles.done} role="status" data-incident-done>
           {done}
         </p>
+      )}
+
+      {/* What was just reported, on the list the dialog closed over. */}
+      {reported === 'not_yet' ? null : (
+        <Card>
+          <div role="status" data-incident-reported>
+            <ReportedCard reported={reported} />
+          </div>
+        </Card>
       )}
 
       <div className={styles.figures}>
@@ -258,14 +290,13 @@ function List({
                   Every incident here has been picked up
                 </span>
               ) : (
-                <button
-                  type="button"
-                  className={buttonClassName({ variant: 'secondary' })}
+                <Button
+                  variant="secondary"
                   onClick={() => onStatus('not_acknowledged')}
                   data-show-unacknowledged
                 >
                   Show the {unacknowledged.length} not acknowledged
-                </button>
+                </Button>
               )
             }
           />

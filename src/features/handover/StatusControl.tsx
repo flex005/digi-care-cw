@@ -5,7 +5,7 @@ import { now } from '@/data/fixtures/clock'
 import { useSignedIn } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { ActPoint } from '@/components/layout/ActPoint'
-import { ActLine, Button, Dialog, RadioGroup } from '@/components/primitives'
+import { Button, Dialog, RadioGroup } from '@/components/primitives'
 import styles from './handover.module.css'
 
 /**
@@ -184,10 +184,6 @@ export function StatusControl({
         {/* HO-01 sends an immediate count and a push to the senior on duty when
             somebody is marked urgent. Nothing is sent from here, and the act
             says so where it is performed. */}
-        <ActLine kind="not_performed">
-          Nothing is sent: the senior on duty is not notified, whatever is recorded
-          here.
-        </ActLine>
 
         {error === '' ? null : (
           <p className={styles.formError} role="alert">

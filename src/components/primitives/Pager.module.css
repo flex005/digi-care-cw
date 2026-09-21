@@ -59,3 +59,21 @@
   font-size: var(--text-body-sm-size);
   line-height: var(--text-body-sm-line);
 }
+
+/*
+ * **Paging is navigation, so a thumb has to hit it** (CLAUDE.md §7). The
+ * desk's 30px control is the one a mouse points at; on a phone Previous and
+ * Next take a hand's worth of height and the width to go with it, because they
+ * are the only way through a list of 28.
+ */
+@media (width < 1024px) {
+  .controls {
+    flex-wrap: wrap;
+  }
+
+  .button {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-height: var(--space-48);
+  }
+}

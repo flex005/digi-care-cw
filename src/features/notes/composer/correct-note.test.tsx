@@ -58,7 +58,12 @@ describe('correcting a care note', () => {
     )
 
     await user.click(await screen.findByRole('button', { name: 'Add a correction' }))
-    const form = screen.getByRole('form', { name: 'Correction for Emmanuel' })
+    // Over the note it corrects, not in place of it.
+    const dialog = await screen.findByRole('dialog')
+    expect(
+      within(dialog).getByRole('heading', { name: 'Correction for Emmanuel Okafor' }),
+    ).toBeInTheDocument()
+    const form = within(dialog).getByRole('form', { name: 'Correction for Emmanuel' })
     expect(form.querySelector('[data-subject-strip="res-okafor"]')).not.toBeNull()
     expect(
       within(form).getByRole('combobox', { name: /category/i }).textContent,

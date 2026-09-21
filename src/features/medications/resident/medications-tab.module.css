@@ -97,3 +97,23 @@
 .tabHeading > header {
   margin-bottom: 0;
 }
+
+/*
+ * **On a phone the act takes the width.** A head's act sits at its right on a
+ * desk; at 390 that leaves a pill floating against one edge with a wrapped
+ * heading beside it, and a thumb reaching across the screen for it. It goes
+ * under the heading and fills the line, which is where the eye already is and
+ * what a thumb can hit without aiming.
+ */
+@media (width < 1024px) {
+  .tabHead {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tabHead > a,
+  .tabHead > button {
+    justify-content: center;
+    width: 100%;
+  }
+}

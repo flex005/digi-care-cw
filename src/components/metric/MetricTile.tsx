@@ -55,7 +55,7 @@ export function MetricTiles({
   children: ReactNode
 }) {
   return (
-    <section className={styles.tiles} aria-label={label}>
+    <section className={styles.tiles} aria-label={label} data-metric-tiles>
       {children}
     </section>
   )

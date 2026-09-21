@@ -1,12 +1,13 @@
-import type { AnyConsent } from '@/data/types'
+import { useState } from 'react'
+import type { AnyConsent, ConsentTypeId, Resident, Site } from '@/data/types'
 import { CONSENT_TYPES } from '@/data/types'
 import { configuredState, type ConfiguredState } from '@/data/access/site-config-store'
-import Link from 'next/link'
-import { Card, CardHead, buttonClassName } from '@/components/primitives'
+import { Button, Card, CardHead, Dialog } from '@/components/primitives'
 import { ConsentBadge, GapCount } from '@/components/status'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { useViewer } from '@/app/session/use-viewer'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
+import { ConsentDecisionForm } from '@/features/consent/ConsentDecisionRoute'
 import { consentGaps } from '@/features/residents/profile/record-gaps'
 import { formatCount, pluralise } from '@/lib/format'
 import { ConsentAuthority, EffectCountValue } from './ConsentParts'
@@ -36,8 +37,9 @@ import styles from './consent-and-documents.module.css'
  * withdrawing what is there, which is a different act.
  */
 export function ConsentTab() {
-  const { resident } = useOpenRecord()
+  const { resident, site, reload } = useOpenRecord()
   const viewer = useViewer()
+  const [done, setDone] = useState('')
   const recordAnswer = viewer.ask('record_consent', resident.id)
 
   const gaps = consentGaps(resident)
@@ -88,6 +90,11 @@ export function ConsentTab() {
                 <span className={styles.figureOf}>{figureOf}</span>
               </p>
             )}
+            {done === '' ? null : (
+              <p className={styles.note} role="status" data-consent-done>
+                {done}
+              </p>
+            )}
             {notAsked > 0 ? (
               <p className={styles.note} data-not-asked-note>
                 {formatCount(notAsked)} of the {formatCount(CONSENT_TYPES.length)}{' '}
@@ -101,11 +108,14 @@ export function ConsentTab() {
            * consent decision is about one thing somebody is being asked. The
            * refusal stays at the head, once.
            */}
-          {recordAnswer.kind === 'yes' ? (
-            <p className={styles.note} data-consent-live>
-              Recording a decision is on each consent type below.
-            </p>
-          ) : (
+          {/*
+           * Nothing here for somebody who may record one: the act is on the
+           * row it acts on, a few lines below, and a sentence saying so is a
+           * signpost to something already in view. A reader who cannot record
+           * one still gets the table's reason, once, rather than on each of
+           * eight rows.
+           */}
+          {recordAnswer.kind === 'yes' ? null : (
             <ActPoint
               answer={recordAnswer}
               label="Record a consent decision"
@@ -147,13 +157,16 @@ export function ConsentTab() {
               status.kind === 'given' ||
               status.kind === 'refused' ? null : (
                 <div className={styles.rowAct}>
-                  <Link
-                    href={`/residents/${resident.id}/consent/${type.id}`}
-                    className={buttonClassName({ variant: 'secondary' })}
-                    data-record-consent={type.id}
-                  >
-                    Record a decision
-                  </Link>
+                  <RecordDecisionAct
+                    resident={resident}
+                    site={site}
+                    typeId={type.id}
+                    typeName={type.name}
+                    onRecorded={(words) => {
+                      setDone(words)
+                      reload()
+                    }}
+                  />
                 </div>
               )}
             </li>
@@ -161,6 +174,60 @@ export function ConsentTab() {
         </ul>
       </Card>
     </div>
+  )
+}
+
+/**
+ * "Record a decision" on one consent type, opened over the eight.
+ *
+ * **It opens in a dialog rather than at a second address**: the decision is
+ * about one of the types in the list behind it, and the list is what says why
+ * it matters. The form is the route's, so the capacity gate, the authority and
+ * the outcome are one implementation wherever they are answered.
+ */
+function RecordDecisionAct({
+  resident,
+  site,
+  typeId,
+  typeName,
+  onRecorded,
+}: {
+  resident: Resident
+  site: Site
+  typeId: ConsentTypeId
+  typeName: string
+  onRecorded: (words: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <>
+      <Button
+        variant="secondary"
+        onClick={() => setOpen(true)}
+        data-record-consent={typeId}
+      >
+        Record a decision
+      </Button>
+      <Dialog
+        open={open}
+        onOpenChange={setOpen}
+        title={`${typeName}, ${resident.fullLegalName}`}
+        size="form"
+      >
+        <ConsentDecisionForm
+          resident={resident}
+          site={site}
+          typeId={typeId}
+          typeName={typeName}
+          done=""
+          onRecorded={(words) => {
+            setOpen(false)
+            onRecorded(words)
+          }}
+        />
+      </Dialog>
+    </>
   )
 }
 

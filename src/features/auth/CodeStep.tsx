@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useSession } from '@/app/session/use-session'
-import { ActLine, Button, DigitField } from '@/components/primitives'
+import { Button, DigitField } from '@/components/primitives'
 import { AuthActions, AuthPage, AuthStack, authLinkClass } from './AuthPage'
 import styles from './auth.module.css'
 
@@ -88,9 +88,6 @@ export function CodeStep({ purpose }: { purpose: 'sign_in' | 'set_up_account' })
       }
     >
       <AuthStack>
-        <ActLine kind="not_performed">
-          No code is sent: any six digits continue.
-        </ActLine>
         <DigitField
           label="6-digit code"
           length={6}
@@ -112,11 +109,6 @@ export function CodeStep({ purpose }: { purpose: 'sign_in' | 'set_up_account' })
             'That code has run out. Ask for another.'
           )}
         </p>
-        {settingUp ? (
-          <ActLine kind="not_performed">
-            Your account lasts until you sign out: nothing is saved.
-          </ActLine>
-        ) : null}
         <AuthActions>
           <Button size="large" disabled={!ready} onClick={verify} data-code-submit>
             Verify

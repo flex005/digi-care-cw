@@ -10,14 +10,13 @@ import { scopeLine } from '@/app/session/resident-scope'
 import styles from './medications.module.css'
 
 /**
- * The Medications module: its head and the strip of its four tabs. CW PRD
+ * The Medications module: its head and the strip of its three tabs. CW PRD
  * MED-01 to MED-03.
  *
- * **All four tabs for both roles.** The controlled drug register and Add
- * interim refuse on their own pages with the role table's reason; a tab that
- * vanished for one role would say the act does not exist rather than that it
- * is not theirs. **No Pharmacy cycle tab**: neither role touches it and the PRD
- * specifies no screen for it (docs/DEPARTURES.md).
+ * **Three tabs, both roles.** **No Add interim tab**: neither role that signs
+ * in here adds one, and a tab whose only content was the role table's reason
+ * was a page about somebody else's job. **No Pharmacy cycle tab**: neither role
+ * touches it and the PRD specifies no screen for it (docs/DEPARTURES.md).
  *
  * **An underline strip, because it navigates within a page** (CLAUDE.md §6).
  * The tab you are on is heavier, darker and underlined, and says so to a
@@ -27,7 +26,6 @@ export const MEDICATION_TABS = [
   { label: 'Omissions', href: '/medications' },
   { label: 'Round', href: '/medications/round' },
   { label: 'Controlled drug register', href: '/medications/register' },
-  { label: 'Add interim', href: '/medications/interim' },
 ] as const
 
 export function MedicationsLayout({ children }: { children?: ReactNode }) {

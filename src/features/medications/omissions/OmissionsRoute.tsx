@@ -11,7 +11,6 @@ import { useResource } from '@/data/access/use-resource'
 import { staffLabel } from '@/data/access/team-store'
 import { now } from '@/data/fixtures/clock'
 import {
-  ActLine,
   Button,
   Card,
   CardHead,
@@ -177,7 +176,6 @@ function Omissions({ scope }: { scope: ResidentScope }) {
   }
 
   const noRecordOf = `of ${pluralise(omissions.length, 'dose')} with no record`
-  const closeAnswer = viewer.ask('close_omission')
 
   return (
     <div className={styles.page}>
@@ -293,10 +291,6 @@ function Omissions({ scope }: { scope: ResidentScope }) {
             <span data-numeric>{formatCount(omissions.length)}</span> this week,{' '}
             {across} · oldest first
           </p>
-          {/* One refusal, at the head. A refusal repeated down a list is noise. */}
-          {closeAnswer.kind === 'not_your_role' ? (
-            <ActLine kind="refused">{closeAnswer.reason}</ActLine>
-          ) : null}
         </div>
 
         {lastClosed.kind === 'closed' ? (
@@ -432,16 +426,19 @@ function OmissionRow({
             <span data-numeric>{format.instantDate(closure.at)}</span>: {closure.reason}
           </p>
         ) : null}
-        <div className={styles.rowActs}>
-          <CloseOmissionControl omission={omission} onClosed={onClosed} />
-          <Link
-            className={styles.openLink}
-            href={`/residents/${resident.id}/medications/mar`}
-          >
-            Open MAR
-            <Icon name={medicationsIcons.open} size={16} />
-          </Link>
-        </div>
+      </div>
+
+      {/* At the end of the row. Under the drug they read as another fact about
+          it rather than as what to do about the gap. */}
+      <div className={styles.rowActs}>
+        <CloseOmissionControl omission={omission} onClosed={onClosed} />
+        <Link
+          className={styles.openLink}
+          href={`/residents/${resident.id}/medications/mar`}
+        >
+          Open MAR
+          <Icon name={medicationsIcons.open} size={16} />
+        </Link>
       </div>
     </li>
   )

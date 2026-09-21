@@ -95,3 +95,29 @@
   line-height: var(--text-body-line);
   cursor: pointer;
 }
+
+/*
+ * **A switch is 48×24, which a thumb misses vertically.** The track keeps its
+ * shape — it is the thing that reads as on or off — and the label row around
+ * it grows, so what a finger lands on is 48px tall whatever it hits.
+ */
+@media (width < 1024px) {
+  .field {
+    min-height: var(--space-48);
+  }
+
+  /*
+   * The track keeps its 48×24 shape — it is the thing that reads as on or off
+   * — and grows a hit area to 48 tall around it, so what a thumb has to land
+   * on is the size §7 asks for without the switch becoming a slab.
+   */
+  .switch {
+    position: relative;
+  }
+
+  .switch::after {
+    position: absolute;
+    inset: -12px 0;
+    content: '';
+  }
+}

@@ -24,7 +24,6 @@ import { useViewer } from '@/app/session/use-viewer'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { PageHead } from '@/components/layout/PageHead'
 import {
-  ActLine,
   Avatar,
   Button,
   Card,
@@ -46,10 +45,6 @@ import {
   type ReportDraft,
 } from './report-rules'
 import styles from './incidents.module.css'
-
-/** Said at the act, because INC-03's confirmation claims a notification. */
-export const NOT_NOTIFIED_LINE =
-  'Nothing is sent when you report this: no manager is notified, and no badge changes anywhere else.'
 
 /** The three injury answers, in INC-03's own words. */
 const INJURY_OPTIONS: { value: InjuryChoice; label: string }[] = [
@@ -94,9 +89,91 @@ const INJURY_OPTIONS: { value: InjuryChoice; label: string }[] = [
  */
 export function ReportIncidentRoute() {
   const { activeSite } = useSession()
+  const router = useRouter()
+  const [reported, setReported] = useState<Reported | 'not_yet'>('not_yet')
+
+  if (reported !== 'not_yet')
+    return (
+      <div className={styles.page}>
+        <PageHead title="Incident reported" lines={[activeSite.name]} />
+        <Card>
+          <ReportedCard reported={reported} />
+          <div className={styles.foot}>
+            <Button
+              variant="secondary"
+              size="large"
+              onClick={() => router.push('/incidents')}
+            >
+              Back to incidents
+            </Button>
+          </div>
+        </Card>
+      </div>
+    )
+
+  return (
+    <div className={styles.page}>
+      <PageHead
+        title="Report an incident"
+        lines={[activeSite.name, 'everything on one screen']}
+      />
+      <ReportIncidentForm onReported={setReported} />
+    </div>
+  )
+}
+
+/** What was reported, enough to say so without loading the record again. */
+export interface Reported {
+  incident: Incident
+  /** The subject's full legal name, or `''` where no resident was involved. */
+  subjectName: string
+  reportedBy: string
+}
+
+/**
+ * What the record now holds, drawn wherever the reporter is left: on this
+ * screen's own confirmation, or on the incidents list under the dialog that
+ * has just closed.
+ */
+export function ReportedCard({ reported }: { reported: Reported }) {
+  const { incident, subjectName, reportedBy } = reported
+  return (
+    <>
+      <CardHead
+        title={`${
+          incident.subject.kind === 'resident' && subjectName !== ''
+            ? `${subjectName}’s ${typePhrase(incident.type)}`
+            : `A ${typePhrase(incident.type)} with no resident involved`
+        } is on the record`}
+        subtitle={`Reported by ${reportedBy}, and held in this session only.`}
+        expand={{ kind: 'whole' }}
+      />
+      <Unrecorded
+        variant="panel"
+        label="Not acknowledged"
+        detail="nobody has picked it up yet: it waits on the incidents list until a senior carer does"
+      />
+    </>
+  )
+}
+
+/**
+ * The form itself, wherever it is opened.
+ *
+ * **Split from the route so the incidents list can open it in a dialog**, the
+ * way the care note composer is: reporting an incident is done standing in
+ * front of the list of everything else that has happened, and a second address
+ * took that away. The page head and the way out belong to the route; what is
+ * reported comes back through `onReported`.
+ */
+export function ReportIncidentForm({
+  onReported,
+}: {
+  onReported: (reported: Reported) => void
+}) {
+  const { activeSite } = useSession()
   const { member } = useSignedIn()
   const viewer = useViewer()
-  const router = useRouter()
   const id = useId()
 
   const [draft, setDraft] = useState<ReportDraft>(() => ({
@@ -109,7 +186,6 @@ export function ReportIncidentRoute() {
   }))
   const [view, setView] = useState<'front' | 'back'>('front')
   const [error, setError] = useState('')
-  const [reported, setReported] = useState<Incident | 'not_yet'>('not_yet')
 
   const load = useMemo(() => () => getResidentsBySite(activeSite.id), [activeSite.id])
   const resource = useResource<Resident[]>(load, [activeSite.id])
@@ -238,54 +314,20 @@ export function ReportIncidentRoute() {
       at,
     })
       .then((incident) => {
-        setReported(incident)
         setError('')
+        onReported({
+          incident,
+          subjectName: resident === undefined ? '' : resident.fullLegalName,
+          reportedBy: member.ref.displayName,
+        })
       })
       .catch((cause: unknown) =>
         setError(cause instanceof Error ? cause.message : 'Nothing was reported.'),
       )
   }
 
-  if (reported !== 'not_yet')
-    return (
-      <div className={styles.page}>
-        <PageHead title="Incident reported" lines={[activeSite.name]} />
-        <Card>
-          <CardHead
-            title={`${
-              reported.subject.kind === 'resident' && resident !== undefined
-                ? `${resident.fullLegalName}’s ${typePhrase(reported.type)}`
-                : `A ${typePhrase(reported.type)} with no resident involved`
-            } is on the record`}
-            subtitle={`Reported by ${member.ref.displayName}, and held in this session only.`}
-            expand={{ kind: 'whole' }}
-          />
-          <Unrecorded
-            variant="panel"
-            label="Not acknowledged"
-            detail="nobody has picked it up yet: it waits on the incidents list until a senior carer does"
-          />
-          <ActLine kind="not_performed">{NOT_NOTIFIED_LINE}</ActLine>
-          <div className={styles.foot}>
-            <Button
-              variant="secondary"
-              size="large"
-              onClick={() => router.push('/incidents')}
-            >
-              Back to incidents
-            </Button>
-          </div>
-        </Card>
-      </div>
-    )
-
   return (
-    <div className={styles.page}>
-      <PageHead
-        title="Report an incident"
-        lines={[activeSite.name, 'everything on one screen']}
-      />
-
+    <div className={styles.form}>
       <Card>
         {/* ---- who ------------------------------------------------------- */}
         <section className={styles.section} aria-labelledby="who-heading">
@@ -600,8 +642,6 @@ export function ReportIncidentRoute() {
               </>
             )}
           </p>
-
-          <ActLine kind="not_performed">{NOT_NOTIFIED_LINE}</ActLine>
 
           {answer.kind === 'yes' ? (
             <Button

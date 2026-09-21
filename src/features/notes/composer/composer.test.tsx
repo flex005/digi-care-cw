@@ -126,16 +126,10 @@ describe('the composer', () => {
     expect(text.selectionStart).toBe('Declined '.length)
   })
 
-  it('refuses voice-to-text, and says why at the button', async () => {
+  it('offers no voice-to-text, because it is not offered at all', async () => {
     const { form } = await openAs()
-    expect(within(form).getByRole('button', { name: 'Voice to text' })).toBeDisabled()
-    const line = within(form)
-      .getByText(/^Voice-to-text is not offered/)
-      .closest('[data-act-line]')
-    expect(line?.getAttribute('data-act-line')).toBe('refused')
-    expect(line?.textContent).toBe(
-      'Voice-to-text is not offered: the browser’s speech service sends the audio to a third party, which is no place for a care note.',
-    )
+    expect(within(form).queryByRole('button', { name: 'Voice to text' })).toBeNull()
+    expect(form.textContent).not.toContain('Voice-to-text')
   })
 
   it('chooses no mood, and will not save until one is chosen', async () => {
@@ -203,14 +197,10 @@ describe('the composer', () => {
     expect(note.shift.value).not.toBe(clock)
   })
 
-  it('says beside the flag that nobody is notified', async () => {
+  it('claims no notification beside the flag, and does not deny one either', async () => {
     const { form } = await openAs()
-    const line = within(form)
-      .getByText(
-        'Nobody is notified: the note waits in the flagged queue for a senior.',
-      )
-      .closest('[data-act-line]')
-    expect(line?.getAttribute('data-act-line')).toBe('not_performed')
+    expect(form.querySelector('[data-act-line]')).toBeNull()
+    expect(form.textContent).not.toMatch(/notified|is sent/i)
   })
 
   it('sends a flag with an empty reason as not given, and a typed one as given', async () => {

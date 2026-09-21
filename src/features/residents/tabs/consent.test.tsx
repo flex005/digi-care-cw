@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { waitFor, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { axe } from 'vitest-axe'
 import type { AnyConsent, Resident, StaffRef } from '@/data/types'
 import { CONSENT_TYPES } from '@/data/types'
@@ -250,33 +251,64 @@ describe('recording a decision is the senior carer’s act', () => {
     )
   }
 
-  it('is live for Akinyemi, and says it is not built', async () => {
+  /*
+   * The act is on the row it acts on, and the head says nothing about it: a
+   * sentence pointing at a control already in view is a signpost to the thing
+   * beside it.
+   */
+  it('is live for Akinyemi, on the rows and not announced at the head', async () => {
     expect(answerOf(staffAkinyemi, okafor).kind).toBe('yes')
 
     const { container } = openAs(staffAkinyemi, okafor)
     const panel = await panelOf(container)
 
-    expect(panel.querySelector('[data-consent-live]')?.textContent).toBe(
-      'Recording a decision is on each consent type below.',
-    )
+    expect(panel.querySelector('[data-consent-live]')).toBeNull()
+    expect(panel.textContent).not.toContain('on each consent type below')
     expect(panel.querySelector('[data-act-line]')).toBeNull()
     expect(panel.querySelectorAll('[data-record-consent]').length).toBeGreaterThan(0)
   })
 
-  it('is unavailable to Eze, with the role table’s reason', async () => {
+  /*
+   * It opens over the eight types rather than at a second address, and the
+   * capacity gate is the first thing in it — asked about this decision, not as
+   * a standing claim about a person.
+   */
+  it('opens the decision over the list, subject named, capacity first', async () => {
+    const user = userEvent.setup()
+    const { container } = openAs(staffAkinyemi, okafor)
+    const panel = await panelOf(container)
+
+    const act = panel.querySelector<HTMLElement>('[data-record-consent]')
+    if (act === null) throw new Error('No row offers a decision')
+    const typeId = act.getAttribute('data-record-consent')
+    const typeName = CONSENT_TYPES.find((entry) => entry.id === typeId)?.name
+    await user.click(act)
+
+    const dialog = await screen.findByRole('dialog')
+    expect(
+      within(dialog).getByRole('heading', {
+        name: `${typeName}, ${okafor.fullLegalName}`,
+      }),
+    ).toBeInTheDocument()
+    expect(
+      within(dialog).getByRole('radiogroup', {
+        name: 'Do they have capacity for this decision?',
+      }),
+    ).toBeInTheDocument()
+  })
+
+  it('offers Eze nothing to record with, and says nothing about whose act it is', async () => {
     const answer = answerOf(staffEze, okafor)
     if (answer.kind !== 'not_your_role') throw new Error('expected a refusal by role')
 
     const { container } = openAs(staffEze, okafor)
     const panel = await panelOf(container)
 
-    const button = within(panel).getByRole('button', {
-      name: 'Record a consent decision',
-    })
-    expect(button).toBeDisabled()
-    expect(panel.querySelector('[data-act-line="refused"]')?.textContent).toBe(
-      answer.reason,
-    )
+    expect(
+      within(panel).queryByRole('button', { name: 'Record a consent decision' }),
+    ).toBeNull()
+    expect(panel.querySelector('[data-act-line]')).toBeNull()
+    expect(panel.textContent).not.toContain(answer.reason)
   })
 })
 

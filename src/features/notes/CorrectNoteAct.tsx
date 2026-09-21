@@ -132,30 +132,8 @@ export function CorrectNoteAct({
       )
   }
 
-  if (open.kind === 'closed')
-    return (
-      <div className={styles.correction} data-correct-note="closed">
-        <Button
-          variant="secondary"
-          size="large"
-          onClick={() => {
-            setFields({ ...EMPTY_FIELDS, category: note.category })
-            setRefusal(NO_REFUSAL)
-            setOpen({
-              kind: 'open',
-              clockShift: shiftAt(
-                now().toISOString() as IsoDateTime,
-                record.site.timeZone,
-              ),
-            })
-          }}
-        >
-          Add a correction
-        </Button>
-      </div>
-    )
-
   const save = async () => {
+    if (open.kind !== 'open') return
     const at = now().toISOString() as IsoDateTime
     const submission = toSubmission(fields, open.clockShift, member.ref, at)
     if (submission === 'incomplete') return
@@ -182,39 +160,76 @@ export function CorrectNoteAct({
     }
   }
 
+  /*
+   * **Over the note, not in place of it.** The form used to replace the button
+   * and push the note it corrects off the top of the screen, which is the one
+   * thing a correction is written against: the reader needs the original in
+   * view while they say what was actually the case.
+   */
   return (
-    <div className={styles.correction} data-correct-note="open">
-      <NoteForm
-        resident={resident}
-        site={record.site}
-        title={`Correction for ${resident.preferredName}`}
-        clockShift={open.clockShift}
-        fields={fields}
-        onChange={(next) => {
-          setFields(next)
+    <div
+      className={styles.correction}
+      data-correct-note={open.kind === 'open' ? 'open' : 'closed'}
+    >
+      <Button
+        variant="secondary"
+        size="large"
+        onClick={() => {
+          setFields({ ...EMPTY_FIELDS, category: note.category })
           setRefusal(NO_REFUSAL)
+          setOpen({
+            kind: 'open',
+            clockShift: shiftAt(
+              now().toISOString() as IsoDateTime,
+              record.site.timeZone,
+            ),
+          })
         }}
-        phrases="not_offered"
-        bodyLabel="What was actually the case? Written for whoever reads this next."
-        submitLabel={`Save correction for ${listName(resident)}`}
-        refusal={refusal}
-        saving={saving}
-        onSubmit={() => void save()}
-        notice={
-          <p className={styles.hint}>
-            The note you are correcting stays on the record as it was written.
-          </p>
-        }
-        secondaryAct={
-          <Button
-            variant="ghost"
-            size="large"
-            onClick={() => setOpen({ kind: 'closed' })}
-          >
-            Cancel
-          </Button>
-        }
-      />
+      >
+        Add a correction
+      </Button>
+      <Dialog
+        open={open.kind === 'open'}
+        onOpenChange={(next) => {
+          if (!next) setOpen({ kind: 'closed' })
+        }}
+        title={`Correction for ${resident.fullLegalName}`}
+        size="form"
+      >
+        {open.kind === 'open' ? (
+          <NoteForm
+            resident={resident}
+            site={record.site}
+            title={`Correction for ${resident.preferredName}`}
+            clockShift={open.clockShift}
+            fields={fields}
+            onChange={(next) => {
+              setFields(next)
+              setRefusal(NO_REFUSAL)
+            }}
+            phrases="not_offered"
+            bodyLabel="What was actually the case? Written for whoever reads this next."
+            submitLabel={`Save correction for ${listName(resident)}`}
+            refusal={refusal}
+            saving={saving}
+            onSubmit={() => void save()}
+            notice={
+              <p className={styles.hint}>
+                The note you are correcting stays on the record as it was written.
+              </p>
+            }
+            secondaryAct={
+              <Button
+                variant="ghost"
+                size="large"
+                onClick={() => setOpen({ kind: 'closed' })}
+              >
+                Cancel
+              </Button>
+            }
+          />
+        ) : null}
+      </Dialog>
     </div>
   )
 }

@@ -124,12 +124,11 @@ describe('the queue', () => {
     expect(amber?.closest('[data-state="unrecorded"]')).toBeNull()
   })
 
-  it('refuses both roles a goal’s status, in the role table’s words, drawn once', async () => {
+  it('offers no goal-status control, and draws no refusal where one stood', async () => {
     await openQueue(staffEze.id)
-    const refusals = [...document.querySelectorAll('[data-act-line="refused"]')].map(
-      (line) => line.textContent,
-    )
-    expect(refusals).toEqual(['A manager sets and closes goals.'])
+    expect(document.querySelectorAll('[data-act-line="refused"]')).toHaveLength(0)
+    expect(screen.queryByRole('button', { name: /close a goal/i })).toBeNull()
+    expect(screen.queryByText(/manager/i)).toBeNull()
   })
 })
 
@@ -204,12 +203,12 @@ describe('one goal', () => {
     )
   })
 
-  it('says nothing is sent, where GOAL-02 claims a notification', async () => {
+  it('claims no notification, and nothing about a portal that is not built', async () => {
     const goal = openGoalWithNotes()
     await openGoal(goal.id)
-    expect(
-      screen.getByText(/the Family Portal — which is not built — receives nothing/),
-    ).toBeInTheDocument()
+    expect(screen.queryByText(/Family Portal/)).toBeNull()
+    expect(screen.queryByText(/notified|is sent|is told/i)).toBeNull()
+    expect(document.querySelectorAll('[data-act-line="not_performed"]')).toHaveLength(0)
   })
 
   it('draws the PRD’s question at the act for a resident off a care worker’s list', async () => {

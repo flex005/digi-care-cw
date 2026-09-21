@@ -192,16 +192,18 @@ describe('the views', () => {
 })
 
 describe('marking a flagged note reviewed', () => {
-  it('gives a care worker one refusal line and no control on any row', async () => {
-    // A second flagged note, so the queue has rows for a refusal to repeat down.
+  it('gives a care worker the queue to read and no control on any row', async () => {
+    // A second flagged note, so the queue has rows for a control to appear on.
     await flagANote()
     renderSignedIn(staffEze.id, <CareNotesRoute />)
     await screen.findByText('Flagged, not reviewed', { selector: 'h2' })
     expect(rows().length).toBeGreaterThan(1)
-    expect(
-      screen.getAllByText('Marking a flagged note reviewed is for a senior carer.'),
-    ).toHaveLength(1)
     expect(screen.queryByRole('button', { name: 'Mark reviewed' })).toBeNull()
+    // Read-only, and nothing said about whose job the review is.
+    expect(document.querySelector('[data-act-line]')).toBeNull()
+    expect(
+      screen.queryByText('Marking a flagged note reviewed is for a senior carer.'),
+    ).toBeNull()
   })
 
   it('gives a senior carer the control on every row, and no refusal', async () => {

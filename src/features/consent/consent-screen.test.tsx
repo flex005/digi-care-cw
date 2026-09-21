@@ -20,7 +20,7 @@ import {
 } from '@/data/access/resident-store'
 import { endSession } from '@/data/access/session-losses'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { ConsentDecisionRoute, NOTHING_SENT_LINE } from './ConsentDecisionRoute'
+import { ConsentDecisionRoute } from './ConsentDecisionRoute'
 
 const navigation = vi.hoisted(() => ({
   pathname: '/residents/res-okafor/consent/medical_treatment',
@@ -124,14 +124,16 @@ describe('the gate', () => {
     expect(decision.by.assessment.finding.kind).toBe('has_capacity')
   })
 
-  it('says nothing is sent', async () => {
+  it('claims no notification, in either direction', async () => {
     await openGate()
-    expect(screen.getByText(NOTHING_SENT_LINE)).toBeInTheDocument()
+    expect(document.querySelector('[data-act-line]')).toBeNull()
+    expect(document.body.textContent).not.toMatch(/Family Portal|is told/)
   })
 
-  it('refuses a care worker with the role table’s reason', async () => {
+  it('offers a care worker nothing to record with, and no reason either', async () => {
     await openGate(staffEze.id)
-    expect(document.querySelector('[data-act-line="refused"]')?.textContent).toBe(
+    expect(document.querySelector('[data-act-line]')).toBeNull()
+    expect(document.body.textContent).not.toContain(
       'Recording consent is for a senior carer.',
     )
     expect(screen.queryByRole('button', { name: /^Record this for / })).toBeNull()

@@ -5,13 +5,11 @@ import { getHandoverBoard, getResidentsBySite } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import { useSession } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
-import { noListYetLine } from '@/app/session/resident-scope'
 import { ActionCard } from '@/components/layout/ActionCard'
 import { MetricTile, MetricTiles, MetricValue } from '@/components/metric/MetricTile'
 import { metricIcons } from '@/components/metric/metric-tiles.icons'
 import { PageHead } from '@/components/layout/PageHead'
 import {
-  ActLine,
   Avatar,
   Button,
   Card,
@@ -30,10 +28,6 @@ import { StatusControl } from './StatusControl'
 import { UnsignedHandover } from './UnsignedHandover'
 import { groupRows, type GroupId } from './handover-groups'
 import styles from './handover.module.css'
-
-/** The line the head carries, decided and not to be reworded. */
-export const NO_HANDOVER_PUSH_LINE =
-  'Nothing is sent from this screen: no push, no alert, and no count goes anywhere else.'
 
 /** What the board is counted over, said once, because it is not the viewer's list. */
 export const WHOLE_HOME_LINE =
@@ -192,9 +186,7 @@ function Board({
         }
       />
 
-      <div className={styles.head}>
-        <ActLine kind="not_performed">{NO_HANDOVER_PUSH_LINE}</ActLine>
-      </div>
+      <div className={styles.head}></div>
 
       {done === '' ? null : (
         <p className={styles.done} role="status" data-handover-done>
@@ -300,7 +292,6 @@ function Board({
 
         {noList ? (
           <div className={styles.noList} data-no-list>
-            <ActLine kind="refused">{noListYetLine}</ActLine>
             <p className={styles.empty}>
               The handover is the shift&rsquo;s, so it is all here to read. Recording a
               status is per resident, and nobody has given you any.

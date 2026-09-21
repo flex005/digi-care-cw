@@ -36,6 +36,26 @@
   padding: var(--space-12) var(--space-24);
 }
 
+/*
+ * **On a phone every button is a touch target and most are the act of the
+ * section they sit in.** `small` and `medium` are desk sizes: a 32px pill is
+ * under the 44px WCAG 2.2 asks of a pointer target and well under what a thumb
+ * finds on a moving trolley, so both grow to the large size here. `nowrap` also
+ * goes: a label that cannot wrap is a label that overflows a 390px screen
+ * rather than taking a second line.
+ */
+@media (width < 1024px) {
+  .button {
+    white-space: normal;
+  }
+
+  .small,
+  .medium {
+    min-height: var(--space-48);
+    padding: var(--space-12) var(--space-20);
+  }
+}
+
 .primary {
   background-color: var(--purple-600);
   color: var(--bg-surface);

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { STAFF_ROLE_NAMES, type SiteId } from '@/data/types'
 import { residentsBySite } from '@/data/fixtures/residents'
 import { useSession } from '@/app/session/use-session'
-import { ActLine, Button, SelectedMark } from '@/components/primitives'
+import { Button, SelectedMark } from '@/components/primitives'
 import { pluralise } from '@/lib/format'
 import { AuthActions, AuthPage, AuthStack, authLinkClass } from './AuthPage'
 import styles from './auth.module.css'
@@ -82,9 +82,6 @@ export function HomeChoiceRoute() {
             )
           })}
         </fieldset>
-        <ActLine kind="not_performed">
-          Nothing remembers this choice: you choose each time you sign in.
-        </ActLine>
         <AuthActions>
           <Button
             size="large"

@@ -1,9 +1,9 @@
-import type { RiskStatus } from '@/data/types'
+import { useState } from 'react'
+import type { Resident, RiskStatus, RiskTemplateId, Site } from '@/data/types'
 import { RISK_ASSESSMENT_TEMPLATES } from '@/data/types'
 import { type ConfiguredState, configuredState } from '@/data/access/site-config-store'
 import { staffLabel } from '@/data/access/team-store'
-import Link from 'next/link'
-import { Card, CardHead, buttonClassName } from '@/components/primitives'
+import { Button, Card, CardHead, Dialog } from '@/components/primitives'
 import { Settled, StatusPill, Unrecorded } from '@/components/status'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { useSiteFormat } from '@/app/session/use-session'
@@ -12,6 +12,7 @@ import { assertNever } from '@/lib/assert-never'
 import { formatCount, formatLateness } from '@/lib/format'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
 import { riskAssessmentGaps } from '@/features/residents/profile/record-gaps'
+import { AssessmentForm } from '@/features/risk/AssessmentFormRoute'
 import { PlaceholderBanner } from '@/features/risk/PlaceholderBanner'
 import { LEVEL_LABEL, isScored } from '@/features/risk/instrument'
 import { scoreText } from '@/features/risk/score'
@@ -38,9 +39,10 @@ import styles from './risk-and-plan.module.css'
  * this home does not ask.
  */
 export function RiskAssessmentsTab() {
-  const { resident, site } = useOpenRecord()
+  const { resident, site, reload } = useOpenRecord()
   const viewer = useViewer()
   const scoreAnswer = viewer.ask('score_risk_assessment', resident.id)
+  const [done, setDone] = useState('')
 
   /*
    * **Every template, and what the home decided about it.** The two together
@@ -115,6 +117,11 @@ export function RiskAssessmentsTab() {
             recorded against them is still below.
           </p>
         ) : null}
+        {done === '' ? null : (
+          <p className={styles.note} role="status" data-assessment-done>
+            {done}
+          </p>
+        )}
         <div className={styles.act}>
           {/*
            * Live from Phase 8. A care worker still meets the act and the
@@ -166,13 +173,17 @@ export function RiskAssessmentsTab() {
               <LevelCell status={status} state={state} />
               {scoreAnswer.kind !== 'yes' || state === 'retired_unanswered' ? null : (
                 <div className={styles.rowAct}>
-                  <Link
-                    href={`/residents/${resident.id}/risk-assessments/${template.id}`}
-                    className={buttonClassName({ variant: 'secondary' })}
-                    data-score={template.id}
-                  >
-                    {status.kind === 'assessed' ? 'Re-score' : 'Score'}
-                  </Link>
+                  <ScoreAct
+                    resident={resident}
+                    site={site}
+                    templateId={template.id}
+                    templateName={template.name}
+                    label={status.kind === 'assessed' ? 'Re-score' : 'Score'}
+                    onRecorded={(words) => {
+                      setDone(words)
+                      reload()
+                    }}
+                  />
                 </div>
               )}
             </li>
@@ -180,6 +191,60 @@ export function RiskAssessmentsTab() {
         </ul>
       </Card>
     </div>
+  )
+}
+
+/**
+ * "Score" or "Re-score" on one template, opened over the nine.
+ *
+ * **It opens in a dialog rather than at a second address.** Scoring is done
+ * looking at what the record already holds — the level standing now, when it
+ * was last looked at, and the other eight assessments — and a second page took
+ * all of that out of view. The form is the route's, so the instrument, the
+ * level and the medication PIN are one implementation wherever they are
+ * answered.
+ */
+function ScoreAct({
+  resident,
+  site,
+  templateId,
+  templateName,
+  label,
+  onRecorded,
+}: {
+  resident: Resident
+  site: Site
+  templateId: RiskTemplateId
+  templateName: string
+  label: string
+  onRecorded: (words: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <>
+      <Button variant="secondary" onClick={() => setOpen(true)} data-score={templateId}>
+        {label}
+      </Button>
+      <Dialog
+        open={open}
+        onOpenChange={setOpen}
+        title={`${templateName}, ${resident.fullLegalName}`}
+        size="form"
+      >
+        <AssessmentForm
+          resident={resident}
+          site={site}
+          templateId={templateId}
+          templateName={templateName}
+          done=""
+          onRecorded={(words) => {
+            setOpen(false)
+            onRecorded(words)
+          }}
+        />
+      </Dialog>
+    </>
   )
 }
 

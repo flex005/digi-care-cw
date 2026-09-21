@@ -6,7 +6,6 @@ import { useResource } from '@/data/access/use-resource'
 import { staffLabel } from '@/data/access/team-store'
 import { now } from '@/data/fixtures/clock'
 import {
-  ActLine,
   Button,
   Card,
   CardHead,
@@ -352,12 +351,6 @@ function FlaggedView({
   lastChange: ReviewChange | 'none'
   onChanged: (change: ReviewChange) => void
 }) {
-  const viewer = useViewer()
-  /*
-   * One refusal, at the head. Every row is asked of the role table too, and
-   * draws the control only on a yes; a refusal repeated down the queue is noise.
-   */
-  const roleAnswer = viewer.ask('mark_flagged_note_reviewed')
   const justReviewed = justReviewedNote(lastChange, notes, residents)
 
   return (
@@ -373,9 +366,6 @@ function FlaggedView({
           {flagged.length === 1 ? 'note' : 'notes'} flagged and not yet reviewed,{' '}
           {across(scoped)} · oldest first
         </p>
-        {roleAnswer.kind === 'not_your_role' ? (
-          <ActLine kind="refused">{roleAnswer.reason}</ActLine>
-        ) : null}
       </div>
 
       {justReviewed === 'none' ? null : (

@@ -350,13 +350,6 @@ const SCREENS = {
       ),
     { ssr: false },
   ),
-  medicationsInterim: dynamic(
-    () =>
-      import('@/features/medications/interim/InterimRoute').then(
-        (module) => module.InterimRoute,
-      ),
-    { ssr: false },
-  ),
   residentRisk: dynamic(
     () =>
       import('@/features/residents/tabs/RiskAssessmentsTab').then(

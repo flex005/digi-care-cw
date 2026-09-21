@@ -86,13 +86,37 @@
 
 /* Both credential forms, in one column at every width: a password field and
    the rules under it read as a sequence, never as two columns. */
+
+/* A card whose act sits at the right of its head, not under its fields. */
+.cardHeadRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.cardHeading {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.cardHeading > header {
+  margin-bottom: 0;
+}
+
+.formAct {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* No max-width: inside a dialog the panel sets the column, and 520px in a
+   560px panel left the fields short of one edge. */
 .form {
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
   align-items: stretch;
-  max-width: 520px;
-  margin-top: var(--space-16);
 }
 
 .waiting {
@@ -203,6 +227,13 @@
   align-items: flex-start;
 }
 
+.deviceName {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  font-weight: var(--weight-medium);
+  line-height: var(--text-body-line);
+}
+
 .sessions {
   display: flex;
   flex-direction: column;
@@ -234,4 +265,104 @@
   gap: var(--space-8);
   align-items: flex-start;
   margin-top: var(--space-16);
+}
+
+/*
+ * **On a phone the act takes the width.** A head's act sits at its right on a
+ * desk; at 390 that leaves a pill floating against one edge with a wrapped
+ * heading beside it, and a thumb reaching across the screen for it. It goes
+ * under the heading and fills the line, which is where the eye already is and
+ * what a thumb can hit without aiming.
+ */
+@media (width < 1024px) {
+  .cardHeadRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cardHeadRow > button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .formAct > button {
+    width: 100%;
+  }
+}
+
+/* ------------------------------------------ the notifications on a phone */
+
+/*
+ * One notification per block, with every column the table carries. Drawn below
+ * the breakpoint only; the table is drawn above it only.
+ */
+.kindList {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-16);
+  padding: 0;
+  list-style: none;
+}
+
+.kind {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-16) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.kind:last-child {
+  border-bottom: none;
+}
+
+.kindWhat {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-semibold);
+}
+
+.kindFacts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.kindFact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+}
+
+.kindFact dt {
+  flex: 0 0 auto;
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.kindFact dd {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.kindAct {
+  display: flex;
+}
+
+@media (width < 1024px) {
+  .scroll {
+    display: none;
+  }
+
+  .kindList {
+    display: flex;
+  }
 }

@@ -16,7 +16,7 @@ const tabs = () =>
 
 describe('Medications layout', () => {
   it.each([staffAkinyemi.id, staffEze.id])(
-    'draws the same four tabs for %s, with no Pharmacy cycle',
+    'draws the same three tabs for %s, with no Pharmacy cycle and no Add interim',
     (id) => {
       navigation.pathname = '/medications'
       renderSignedIn(id, <MedicationsLayout />)
@@ -24,9 +24,9 @@ describe('Medications layout', () => {
         ['Omissions', '/medications'],
         ['Round', '/medications/round'],
         ['Controlled drug register', '/medications/register'],
-        ['Add interim', '/medications/interim'],
       ])
       expect(screen.queryByText(/Pharmacy cycle/)).toBeNull()
+      expect(screen.queryByText(/Add interim/)).toBeNull()
     },
   )
 
@@ -34,7 +34,6 @@ describe('Medications layout', () => {
     ['/medications', 'Omissions'],
     ['/medications/round', 'Round'],
     ['/medications/register', 'Controlled drug register'],
-    ['/medications/interim', 'Add interim'],
   ])('marks %s as the current tab, and only that one', (path, label) => {
     navigation.pathname = path
     renderSignedIn(staffAkinyemi.id, <MedicationsLayout />)

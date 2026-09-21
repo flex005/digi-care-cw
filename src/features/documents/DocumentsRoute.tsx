@@ -1,7 +1,13 @@
-import { useCallback } from 'react'
-import Link from 'next/link'
-import type { DocumentRecord, IsoDate, IsoDateTime, Resident } from '@/data/types'
-import { getSiteDocuments } from '@/data/access/client'
+import { useCallback, useState } from 'react'
+import type {
+  DocumentRecord,
+  IsoDate,
+  IsoDateTime,
+  Resident,
+  ResidentId,
+  Site,
+} from '@/data/types'
+import { getResidentsBySite, getSiteDocuments } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import { useSession, useSiteFormat } from '@/app/session/use-session'
 import { now } from '@/data/fixtures/clock'
@@ -12,8 +18,9 @@ import {
   Button,
   Card,
   CardHead,
+  Dialog,
   EmptyState,
-  buttonClassName,
+  Select,
 } from '@/components/primitives'
 import {
   AggregateFigure,
@@ -21,6 +28,8 @@ import {
   StatusPill,
   Unrecorded,
 } from '@/components/status'
+import { listName } from '@/features/residents/list-name'
+import { FileDocumentForm } from './UploadDocumentRoute'
 import { zonedDate } from '@/lib/format'
 import { formatCount, pluralise } from '@/lib/format'
 import {
@@ -58,10 +67,13 @@ export function DocumentsRoute() {
   const format = useSiteFormat()
   const viewer = useViewer()
 
+  const [filed, setFiled] = useState(0)
+  const [done, setDone] = useState('')
+
   const load = useCallback(() => getSiteDocuments(activeSite.id), [activeSite.id])
   const resource = useResource<{ documents: DocumentRecord[]; residents: Resident[] }>(
     load,
-    [activeSite.id],
+    [activeSite.id, filed],
   )
 
   /* Asked before the early returns, because the head carries the act and the
@@ -77,16 +89,17 @@ export function DocumentsRoute() {
       ]}
       action={
         uploadAnswer.kind === 'yes' ? (
-          /* DOC-01 puts the act top right. It goes to the residents list
-             because a document belongs to somebody, and the subject is asked
-             first — Phase 8's screen, not a second one here. */
-          <Link
-            href="/residents"
-            className={buttonClassName({ variant: 'primary', size: 'large' })}
-            data-upload-document
-          >
-            Upload a document
-          </Link>
+          /* DOC-01 puts the act top right. It opens over this library rather
+             than sending the reader to the residents list to find their way
+             back: a document belongs to somebody, so the dialog asks who
+             first and draws nothing else until it has an answer. */
+          <FileForSomebody
+            site={activeSite}
+            onFiled={(words) => {
+              setDone(words)
+              setFiled((count) => count + 1)
+            }}
+          />
         ) : undefined
       }
     />
@@ -136,6 +149,12 @@ export function DocumentsRoute() {
   return (
     <div className={styles.page}>
       {head}
+
+      {done === '' ? null : (
+        <p className={styles.status} role="status" data-document-done>
+          {done}
+        </p>
+      )}
 
       <Card>
         <CardHead
@@ -261,5 +280,78 @@ function CategoryRow({ category }: { category: CategorySummary }) {
         </div>
       </div>
     </li>
+  )
+}
+
+/**
+ * "Upload a document" on the home's library.
+ *
+ * **A document belongs to somebody, so the dialog asks who before anything
+ * else.** It used to be a link to the residents list, where a reader had to
+ * find the person, open their record, find the Documents tab and file it
+ * there — four moves away from the library they were looking at, with no way
+ * back. Choosing the resident here is the same question, asked in place.
+ *
+ * The form is the resident tab's, so the categories, the expiry decision and
+ * the save are one implementation, and the subject travels with it.
+ */
+function FileForSomebody({
+  site,
+  onFiled,
+}: {
+  site: Site
+  onFiled: (words: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [chosen, setChosen] = useState<ResidentId | 'not_chosen'>('not_chosen')
+
+  const load = useCallback(() => getResidentsBySite(site.id), [site.id])
+  const residents = useResource<Resident[]>(load, [site.id])
+  const people = residents.kind === 'ready' ? residents.data : []
+  const resident = people.find((person) => person.id === chosen)
+
+  return (
+    <>
+      <Button size="large" onClick={() => setOpen(true)} data-upload-document>
+        Upload a document
+      </Button>
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next)
+          if (!next) setChosen('not_chosen')
+        }}
+        title={`File a document at ${site.name}`}
+        size="form"
+      >
+        <div className={styles.fileFor}>
+          <Select
+            labelVisible
+            label="Who the document is about"
+            placeholder="Choose a resident"
+            value={chosen === 'not_chosen' ? undefined : chosen}
+            onValueChange={(value) => setChosen(value as ResidentId)}
+            options={people.map((person) => ({
+              value: person.id,
+              label: listName(person),
+            }))}
+          />
+          {/* Nothing until somebody is chosen: a form with no subject is the
+              wrong-subject failure waiting to happen (CLAUDE.md §2). */}
+          {resident === undefined ? null : (
+            <FileDocumentForm
+              resident={resident}
+              site={site}
+              done=""
+              onFiled={(words) => {
+                setOpen(false)
+                setChosen('not_chosen')
+                onFiled(words)
+              }}
+            />
+          )}
+        </div>
+      </Dialog>
+    </>
   )
 }

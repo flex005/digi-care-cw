@@ -1,5 +1,6 @@
 import { vi } from 'vitest'
 import { screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { staffAkinyemi, staffEze } from '@/data/fixtures/organisation'
 import { endSession } from '@/data/access/session-losses'
@@ -106,20 +107,42 @@ describe('the categories', () => {
 })
 
 describe('who may file a document', () => {
-  it('refuses a care worker once, and leaves the library readable', async () => {
+  it('offers a care worker no filing, and leaves the library readable', async () => {
     await openList(staffEze.id)
-    const points = document.querySelectorAll('[data-answer]')
-    expect(points).toHaveLength(1)
-    expect(points[0]?.getAttribute('data-answer')).toBe('not_your_role')
+    expect(document.querySelectorAll('[data-answer]')).toHaveLength(0)
+    expect(document.querySelector('[data-act-line]')).toBeNull()
     expect(document.querySelector('[data-upload-document]')).toBeNull()
     expect(document.querySelectorAll('[data-category]')).toHaveLength(7)
   })
 
-  it('sends a senior carer to the resident the document is about', async () => {
+  /*
+   * DOC-01 puts the act top right, and a document belongs to somebody — so the
+   * dialog asks who before it draws a form, and draws no form until it has an
+   * answer (CLAUDE.md §2).
+   */
+  it('asks a senior carer who the document is about, over the library', async () => {
+    const user = userEvent.setup()
     await openList(staffAkinyemi.id)
     expect(document.querySelectorAll('[data-answer]')).toHaveLength(0)
-    // DOC-01 puts the act top right, and a document belongs to somebody.
-    const link = document.querySelector('[data-upload-document]')
-    expect(link?.getAttribute('href')).toBe('/residents')
+
+    const act = document.querySelector<HTMLElement>('[data-upload-document]')
+    expect(act?.tagName).toBe('BUTTON')
+    await user.click(act!)
+
+    const dialog = await screen.findByRole('dialog')
+    expect(
+      within(dialog).getByRole('combobox', { name: 'Who the document is about' }),
+    ).toBeInTheDocument()
+    // Nothing to fill in until somebody is chosen.
+    expect(within(dialog).queryByLabelText('Title')).toBeNull()
+
+    await user.click(
+      within(dialog).getByRole('combobox', { name: 'Who the document is about' }),
+    )
+    const [first] = await screen.findAllByRole('option')
+    await user.click(first!)
+
+    expect(await within(dialog).findByLabelText('Title')).toBeInTheDocument()
+    expect(dialog.querySelector('[data-subject-strip]')).not.toBeNull()
   })
 })

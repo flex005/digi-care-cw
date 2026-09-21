@@ -15,7 +15,7 @@ The two products describe one home. Where the Admin build already decided someth
 - **Eight consent types, the fixtures' eight** (CON-01). The PRD lists Medical Treatment, Family Portal Access, Photography, Sharing information with GP, Sharing information with social care, Financial decisions, Research participation, and Recording and monitoring. The fixtures hold Care and Support, Medication Administration, Photography and Video, Data Sharing, Family Portal Access, Research and Audit, Medical Treatment, and Electronic Records. Four names overlap. **The consent list is a fact about the home rather than a screen decision**, and the manager screens already show these eight; a care worker screen showing a different eight would leave a developer to work out which is true.
 - **The password strength bar reads "N of 5 rules met"**, not Weak/Fair/Strong in red, amber and green (AUTH-02). Traffic-light colours are for findings, and "strong" is a claim about security nothing in this build can make.
 - **The active sessions list has one row: this session** (PROF-01, AUTH-09). A list of other devices would be invented records.
-- **No confirmation claims anybody was notified.** "Incident reported. Your manager has been notified." (INC-03) and every push the PRD describes are replaced by a statement that nothing was sent, at the point of the act. Somebody who believes the manager was told may not telephone the manager.
+- **No confirmation claims anybody was notified.** "Incident reported. Your manager has been notified." (INC-03) and every push the PRD describes are not drawn. ~~They are replaced by a statement that nothing was sent, at the point of the act.~~ **The replacement statement is withdrawn** (see "Controls that refuse, and lines that explain the build", below); what stands is that no screen in this build claims a notification, an email or a push went out. The consequence a developer must not infer from the silence is written down here rather than on the screen.
 - **Amber is for findings, never for a gap or a notice.** The PRD's amber dot on a profile tab for "GP not recorded" or a risk never assessed (RES-03) is words on the tab, hatched where they name a gap (see Resident record, below). A PRN administration on the MAR (MED-04) is not amber: it is a recorded dose. Partial attendance on an activity card (ACT-01) renders as two facts, the attendance recorded and the remainder not recorded, rather than one amber card. A goal's "Not yet asked" (GOAL-02) is the hatch. An escalated omission (MED-01) is two facts, not one amber, hatched, dashed pill.
 - **"No care note in 48h" at zero is a plain zero** (RES-01). The PRD hatches it. A zero there says every resident has a note, and a hatch would claim a gap the record says is not there.
 - **No draft survives a sign-out** (AUTH-09, CN-02). Nothing in this build persists outside the tab, and record data is never written to browser storage, so the "unsaved care note" recovery banner on the next login has nothing to recover.
@@ -234,6 +234,103 @@ The two products describe one home, and a care worker and a manager reading the 
 - **The two are never summed.** A dose with no record and the row's coverage are different facts, and one number holding both would hide the one that matters.
 - **The denominator is what the record covers for that medicine**, never the row's cells. Most cells on a row are another medicine's round; counting them would put a denominator on the row that nothing was ever expected against, and it would grow whenever somebody else's medicine gained a round time.
 - **Each cell says whether the record reaches it** (`data-recorded`). A recorded "nothing was due" and a round this medicine is not on draw identically, and to a reader they are the same thing — but not to the row's denominator, and the look alone could not tell them apart.
+
+## Where an act sits on a resident's record
+
+One rule across the tabs, arrived at a screen at a time and worth stating once: **the act goes at the right of the card's head, and the way out goes above the card on the left.** Under the head an act reads as a footnote to the subtitle; in the head's action slot the way *out* reads as the thing the screen is for, which on a form is the thing at the foot of it.
+
+- **Scoring a risk assessment**: "Back to Ada's assessments" moved from the head's action slot, at the right, to a pill above the head — the same shape the MAR chart uses.
+- **A resident's documents**: "File a document" moved from under the findings, where it read as a fourth finding, to the right of the head.
+- **A resident's medications**: "Open MAR" likewise, and "Add interim medication" is gone (above).
+- **The care plan**: "Edit care plan" is gone. A manager writes and finalises the plan, which is true of both roles that sign in here, and **CPLN-01 asks for its absence in as many words** — "No Edit button, no Finalise button, no PIN entry for care workers". The rule stays in `capabilities.ts`.
+- **Consent**: the head no longer says "Recording a decision is on each consent type below" to somebody who may record one. A sentence pointing at a control already in view is a signpost to the thing beside it. The act stays on the row it acts on, because it acts on one consent type; a reader who may not record one still gets the table's reason once, rather than on each of eight rows.
+
+## Controls that refuse, and lines that explain the build
+
+**Decided 19/09/2026, on the design owner's instruction, and it reverses a rule this build had followed since Phase 0.** Every unavailable control is gone, and with it every line at the point of an act that explained what this build does not do.
+
+What went:
+
+- **Controls drawn only to be refused.** An act the role table denies this reader is no longer drawn unavailable with the table's reason beneath it — it is not drawn at all. `ActPoint` used to render a disabled `Button` plus an `ActLine` for every answer; it now renders only the PRD's open question, and nothing for `not_your_role`, `not_on_your_list`, `no_list_yet` or `not_the_author`. That is one edit covering thirty-odd act points across twenty-eight screens.
+- **Controls drawn only to say a thing is not built**: the photograph chooser on the profile, the file chooser on a document, "Upload photos" on an activity, the engagement radios, voice-to-text on the care note composer, the two device switches on the profile.
+- **`ActLine` of kinds `not_built`, `not_performed` and `refused`, everywhere.** Sixty-five of them. `not_stated` stays: three lines, plus whatever `ActPoint` draws. It is not a statement about this build at all — it is the question the PRD leaves open, quoted where the decision would be made, for the PRD's author.
+- **The Add interim tab** on Medications. Neither role that signs in here adds an interim medication, so the tab's entire content was the role table's reason; the tab, its route and its screen are gone.
+
+**Why the reasoning it replaces was not wrong, and is being overridden anyway.** CLAUDE.md §6 says a control that does nothing says so, in one short line at the point of the act, and the strongest case for it is real: a reader who believes the manager was told may not telephone the manager. That case is about `not_performed` specifically, and removing those lines is the part of this that can mislead rather than merely declutter — a screen that says nothing about sending can be read as a screen that sends. **It is recorded here instead**, because the deliverable is a Figma import read by developers, and the place a developer looks for what the real thing must do is this file and the PRD, not a caption in a rectangle. **Nothing in this build sends anything**: no email, no push, no notification to a manager, no Family Portal. A developer building the real product is building all of that.
+
+The other three cases needed less defending. A refusal tells a reader about somebody else's job while their own shift is running. A "not built" line describes the specification rather than the care home. And a disabled control is an affordance that looks reachable and is not, which is the grey-link problem the expand button was given its own rule to avoid — **the same reasoning that removed Edit profile, Edit care plan and the next-of-kin call button one screen at a time**, arrived at generally.
+
+What stays disabled, and why it is a different thing:
+
+- **A submit button waiting on its own form.** "Sign off this assessment" is unavailable until every factor has an answer, and the screen says which are outstanding. The reader closes that gap themselves, in the next few seconds, on this screen.
+- **A dose before its round window opens.** The window is a state of the record that changes on its own, said beside the control in the record's own words, and the control becomes live when it does.
+
+Neither is a statement about what this product cannot do; both are about what has not happened yet.
+
+**What this costs.** A care worker on the risk assessments tab now sees nine templates and no control, where before they saw nine templates and one sentence saying scoring is a senior carer's. The role table still holds every rule, `capabilities.test.ts` still holds the role table, and the screens still ask it — the answer just decides whether something is drawn rather than how it is drawn. **CLAUDE.md §6 now overstates what the build does**, and the wording is the design owner's to change (CLAUDE.md §9); it is flagged rather than edited.
+
+## Writing over the record it is about
+
+**Four acts moved out of a second address and into a dialog over the record**, on the design owner's instruction and following the care note composer from the previous phase:
+
+- **"File a document"** on a resident's Documents tab, which went to `/residents/[id]/documents/new`.
+- **"Record a decision"** on each consent type, which went to `/residents/[id]/consent/[type]`.
+- **"Score" and "Re-score"** on each risk assessment template, which went to `/residents/[id]/risk-assessments/[template]`.
+
+Each form is now one component used by both the dialog and its own address, split the way `NoteComposer` was: the route keeps the page head and the way out, the form keeps the fields, the role question and the save, and `SubjectStrip` travels inside the form so a write surface names who it is about wherever it is drawn (CLAUDE.md §2). **The addresses stay**, reachable and unchanged, because a form deep in a record is also a thing somebody links to.
+
+**A tab that writes now re-reads the record.** `OpenRecord` gained `reload()`, provided by the profile layout: without it the Consent tab would go on showing "never sought" beside a decision the reader had just made, which in this record is the difference between an absence and a record.
+
+**The home-wide risk list's "Score now" stays a link.** It goes from a list of the whole home to one resident's assessment, which is a move to a different subject rather than a closer look at the one in front of you.
+
+## Taking an intervention off a risk assessment
+
+An intervention added by mistake can be removed: each row carries "Remove this intervention" where there is more than one, and the last row carries none, so the card cannot be emptied and nothing here is a control that refuses. **The line saying interventions are not kept is gone** with the rest of them; the fact it stated — the assessment record both products share holds a level, a score, an author and a review date, and nothing about what anybody decided to do — is unchanged, and adding a field for them is still a change to shared data.
+
+## Where an act sits in a row, and on the one dark card
+
+**Decided 20/09/2026, on the design owner's instruction**, and it is the row-level half of the rule already written above for a card's head: **an act goes at the end of the section it acts on, never stacked underneath the words it acts on.** Under the content an act reads as one more line of the record; at the end of the row it reads as the thing to do about it.
+
+- **Care notes**, both the flagged queue and every other row: "Mark reviewed" and "Open this note" left the note's own column for the end of the row.
+- **Handover**: "Review" and "Change" likewise. The column they sat in carried a `380px` basis sized for a refusal line this build no longer draws, which was wide enough to wrap the act onto its own line under the status it was about.
+- **Omissions**: "Close omission" and "Open MAR" left the drug's column for the end of the row.
+- **The controlled drug register**: "Countersign" likewise.
+- **A round's doses**: the answer buttons sit at the end of their own column, and the reason and note fields still fill it.
+- **A round's card foot**: what is outstanding and the act that answers it share a line.
+- ~~**`ActionCard`, everywhere**: the foot fact and the act share a line, wrapping to two where the card is too narrow for both.~~ **Withdrawn the same day, on the design owner's instruction.** The fact keeps its own line and the act stays beneath it, as before — but the pair now sits at the **bottom** of the card (`margin-top: auto`), which is what the one-line arrangement was reaching for: on a card stretched to the height of the tiles beside it, the rule and the button used to sit halfway down with empty colour underneath. Measured on Omissions: the card is 390px, the button's underside 24px clear of the card's, which is the card's own padding.
+
+**The four cards in a figures row are one height.** A row of metric tiles beside the dark card now grows to the row's height, and each tile grows to the row's — so the register's four cards measure 255px each rather than three at their content height beside one that stretched. The scope note under the register's tiles moved below the whole row, because inside the column it was what made that side taller.
+
+## Writing over the record, not at a second address (continued)
+
+Five more acts opened a page and now open a dialog over what they are about, on the same reasoning as the three before them:
+
+- **"Add a correction"** on a care note. It used to replace the button with the form *in place*, which pushed the note being corrected off the top of the screen — the one thing a correction is written against.
+- **"Report an incident"**, which went to `/incidents/new`. An incident is written standing in front of everything else that has happened at the home. `ReportIncidentRoute` splits into the route and `ReportIncidentForm`; what was reported comes back through `onReported` and the confirmation is drawn where the reporter is left, on the list under the dialog that has just closed.
+- **"Upload a document"** on the home's library, **which did not open a form at all**: it was a link to `/residents`, four moves from the library the reader was looking at, with no way back. It now asks who the document is about in the dialog and draws no form until it has an answer — the subject question, asked in place, and the wrong-subject failure refused before a field exists (CLAUDE.md §2).
+- **"Change password"** and **"Change your medication PIN"** on Profile and settings. Settings is a screen somebody reads down, and three sets of empty boxes stood open on it between the reader and everything else. Each card now states what it is and carries the act at the right of its head.
+
+**Signing out** is the sixth, and the one where a page was doing active harm: leaving the screen to be asked whether you want to leave the screen loses what you were looking at *before* you have agreed to lose anything, and "Stay signed in" then returned you to the home page rather than to where you were. The rail, the account menu and the profile's two ways in now ask over the screen. `/sign-out` stays and is the same question at its own address, sharing one `SignOutConfirmation`, because anybody who arrives there directly should still be asked properly.
+
+The addresses that had one still work and are unchanged.
+
+## The compact layout, reviewed as its own design (20/09/2026)
+
+**Decided on the design owner's instruction**, after a survey of all 24 screens at 390 wide that measured, per screen: whether the page scrolled sideways, how tall it was, what overflowed the viewport, and how many controls were under 44px. The build had twenty compact rules in it, which is what a desk layout narrowed looks like rather than a phone layout designed.
+
+**The record's context belongs to the record's front page.** `ProfileHeader` drew the identity, the five risk flags and the three routine cards above *every* one of eleven tabs. At 390 that was 1,936px before the MAR began — two full screens of things the reader had already read, on the way to the thing they had opened. Below the breakpoint the risk flags and the routine cards are drawn on the record's own front page only; the identity card and the tab strip stay everywhere, at every width. **What carries the wrong-subject check into a write is the write's own subject strip** (CLAUDE.md §2) — the photograph, name, room, date of birth and allergies — which every dialog that records anything already draws, so the check does not depend on this head being on screen. At 1024 and above nothing changes.
+
+**The tab strip's edge counters are not drawn on a phone.** "1 more" and "9 more" were built for a pointer, which cannot drag a row that does not scroll under it; a thumb drags the row itself. At 390 the two of them took 109px of a 358px strip, which left the eleven tabs 205px — the counters were the reason the tabs did not fit, and they told a reader inside a record how many tabs they were not looking at.
+
+**Two tables are a list on a phone, and a table on a desk.** The controlled drug register's seven columns are 750px and the notification preferences' five are 650px; at 390 both were a 314px window onto something twice its width, inside a page that already scrolled down. Restyling the table itself takes its semantics with it — `display: block` drops the implicit roles and `jsx-a11y/no-redundant-roles` refuses to let them be stated back — so each screen carries both renderings and **CSS alone decides which is drawn** (CLAUDE.md §4), which is also what makes a capture at a width get that width's layout. Nothing is left out of either: every column of the table is a line of the list, in the table's order. `profile.test.tsx` now asserts both renderings carry all twelve of Appendix D's rows, so one cannot quietly fall behind the other.
+
+**The MAR's row totals stop being sticky below the breakpoint.** Two sticky columns on a 358px window left 108px of chart between them — one day of rounds and a sliver of the next. "A total that scrolls away is a total nobody reads" is a desk rule; on a phone it costs the thing the total is about. The medicine column stays sticky, the total sits at the end of its row, and the legend drops its per-entry sentences and goes two to a line: the sentence for a cell is on the cell, which opens when it is tapped.
+
+**Touch targets, from CLAUDE.md §7's 48px.** Below the breakpoint: `small` and `medium` buttons take the large size; filter pills, the links into a record, the expand button (36px on a desk, which is the visual direction's size), the pager's Previous and Next, and select triggers all take 48. A switch keeps its 48×24 track — the shape is what reads as on or off — and grows a hit area around it, checked by hit-testing points 14px above and below its centre rather than by measuring its box. **The MAR's own cells stay at 34px**: a chart drawn at thumb size is not a chart, and the grid is the one place in the build where density is the point.
+
+**Acts take the width.** A head's act at its right, and a row's act at its end, both leave a pill against one edge with wrapped words beside it at 390. Below the breakpoint they go under what they act on and fill the line — "Open MAR" among them, which is what prompted the review.
+
+**What this did not fix, measured and left.** The controlled drug register is 39,913px tall on a phone against the table's 24,103: eighteen drugs with a page of entries each, where a list costs about 65% more height than a table does. It is the one number the pass made worse, and it buys a screen that can be read at all. The round is 19,927px for the same reason — a round is every resident with a dose at that time — and the residents list 13,367px for twenty-eight residents. None of the three scrolls sideways.
 
 ## Questions for the PRD's author
 

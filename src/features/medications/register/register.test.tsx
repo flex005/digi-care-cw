@@ -46,7 +46,7 @@ async function findAwaiting(
 }
 
 describe('Controlled drug register: a care worker', () => {
-  it('draws the tab, refused in the table’s words, with the register named', async () => {
+  it('says what the register is and offers no way into it', async () => {
     renderSignedIn(staffEze.id, <RegisterRoute />)
     const page = await waitFor(() => {
       const found = document.querySelector<HTMLElement>('[data-register-refused]')
@@ -54,12 +54,9 @@ describe('Controlled drug register: a care worker', () => {
       return found!
     })
     expect(page.textContent).toContain('Senior carers keep it.')
-    expect(
-      within(page).getByRole('button', { name: 'Open the register' }),
-    ).toBeDisabled()
-    expect(page.querySelector('[data-act-line="refused"]')?.textContent).toBe(
-      'The controlled drug register is for senior carers.',
-    )
+    // Nothing to press, and nothing about whose job it is beyond that sentence.
+    expect(within(page).queryByRole('button')).toBeNull()
+    expect(page.querySelector('[data-act-line]')).toBeNull()
     expect(document.querySelector('table')).toBeNull()
     expect(document.querySelector('[data-awaiting]')).toBeNull()
   })
@@ -213,7 +210,7 @@ describe('Controlled drug register: a senior carer', () => {
     expect(own.querySelector('[data-state="unrecorded"]')).toBeTruthy()
   })
 
-  it('bans further administration in a red banner where a count does not reconcile, and says no alert is sent', async () => {
+  it('bans further administration in a red banner where a count does not reconcile', async () => {
     renderSignedIn(staffAkinyemi.id, <RegisterRoute />)
     await loaded()
     const card = drugCard(GAP_MEDICATION_IDS.controlledDrugWithDiscrepancy)!
@@ -221,9 +218,7 @@ describe('Controlled drug register: a senior carer', () => {
     expect(banner.textContent).toContain(
       'Stock count does not match the running balance. This must be resolved before any further administration.',
     )
-    expect(banner.querySelector('[data-act-line="not_performed"]')?.textContent).toBe(
-      'No alert is sent to the manager.',
-    )
+    expect(banner.querySelector('[data-act-line]')).toBeNull()
     expect(document.querySelectorAll('[data-discrepancy]')).toHaveLength(1)
   })
 })

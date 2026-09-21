@@ -50,7 +50,7 @@ describe('one care note', () => {
     expect(screen.queryByRole('button', { name: /^Edit|Delete/ })).toBeNull()
   })
 
-  it('states the flag, its reason and the wait, and refuses review to a care worker', async () => {
+  it('states the flag, its reason and the wait, and offers a care worker no review', async () => {
     open('res-okafor', GAP_NOTE_IDS.flaggedNotReviewed)
     renderProfileTab(staffEze.id, <NoteDetailRoute />)
     await detail()
@@ -66,9 +66,9 @@ describe('one care note', () => {
     expect(within(supervision).getByText('Not reviewed')).toBeTruthy()
     expect(within(supervision).getByText(/^waiting .+ so far$/)).toBeTruthy()
     expect(
-      screen.getByText('Marking a flagged note reviewed is for a senior carer.'),
-    ).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Mark reviewed' })).toBeDisabled()
+      screen.queryByText('Marking a flagged note reviewed is for a senior carer.'),
+    ).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Mark reviewed' })).toBeNull()
   })
 
   it('gives a senior carer the review, and then shows its outcome', async () => {

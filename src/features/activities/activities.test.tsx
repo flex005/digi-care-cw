@@ -16,7 +16,7 @@ import { endSession } from '@/data/access/session-losses'
 import { resetSessionActivities } from '@/data/access/activity-store'
 import { renderSignedIn } from '@/test/render-signed-in'
 import { ActivitiesRoute, invitedLine } from './ActivitiesRoute'
-import { AttendanceRoute, ENGAGEMENT_LINE, PHOTOS_LINE } from './AttendanceRoute'
+import { AttendanceRoute } from './AttendanceRoute'
 import {
   countsOf,
   mondayOf,
@@ -124,9 +124,10 @@ describe('the week', () => {
     expect([...inList].sort()).toEqual([...inCalendar].sort())
   })
 
-  it('refuses a care worker the planning acts, in the role table’s words', async () => {
+  it('offers a care worker no planning act, and says nothing about whose it is', async () => {
     await openCalendar(staffEze.id)
-    expect(document.querySelector('[data-act-line="refused"]')?.textContent).toBe(
+    expect(document.querySelector('[data-act-line]')).toBeNull()
+    expect(document.body.textContent).not.toContain(
       'Creating a session is for a senior carer.',
     )
   })
@@ -185,20 +186,20 @@ describe('one session', () => {
     expect(screen.getByRole('button', { name: 'Record attendance' })).toBeDisabled()
   })
 
-  it('says the photo upload stores nothing and sends nothing', async () => {
+  it('offers no photo upload, because there is nowhere to put one', async () => {
     const activity = sessionWithGaps()
     await openSession(activity.id)
-    expect(screen.getByRole('button', { name: /Upload photos/ })).toBeDisabled()
-    expect(screen.getByText(PHOTOS_LINE)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Upload photos/ })).toBeNull()
+    expect(document.body.textContent).not.toMatch(/Upload photos/)
   })
 
-  it('says the engagement level is not kept, where the record has no field for it', async () => {
+  it('asks nothing about engagement, where the record has no field for it', async () => {
     const activity = sessionWithGaps()
     const { user } = await openSession(activity.id)
     const attended = document.querySelector<HTMLElement>('[data-answer="attended"]')
     if (attended === null) throw new Error('No unanswered resident on this session')
     await user.click(attended)
-    expect(screen.getByText(ENGAGEMENT_LINE)).toBeInTheDocument()
-    expect(screen.getByRole('radio', { name: 'Fully engaged' })).toBeDisabled()
+    expect(screen.queryByRole('radio', { name: 'Fully engaged' })).toBeNull()
+    expect(document.querySelector('[data-engagement]')).toBeNull()
   })
 })

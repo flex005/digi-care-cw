@@ -1,20 +1,14 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import type { CategoryState, DocumentRecord, IsoDate, LibraryRow } from '@/data/types'
 import { getResidentDocuments } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import { dueSoonDays } from '@/data/access/settings-store'
-import Link from 'next/link'
-import {
-  Button,
-  Card,
-  CardHead,
-  EmptyState,
-  buttonClassName,
-} from '@/components/primitives'
+import { Button, Card, CardHead, Dialog, EmptyState } from '@/components/primitives'
 import { NotYourHome, Unrecorded } from '@/components/status'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { useViewer } from '@/app/session/use-viewer'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
+import { FileDocumentForm } from '@/features/documents/UploadDocumentRoute'
 import { assertNever } from '@/lib/assert-never'
 import { formatCount, pluralise } from '@/lib/format'
 import { BrokenReference, ExpiryChip, FileFactsText, FiledBy } from './DocumentParts'
@@ -41,23 +35,42 @@ import styles from './consent-and-documents.module.css'
  * refusal in the same place.
  */
 export function DocumentsTab() {
-  const { resident, medications } = useOpenRecord()
+  const { resident, medications, site } = useOpenRecord()
   const viewer = useViewer()
   const today = useSiteToday()
+  const [filing, setFiling] = useState(false)
+  const [filed, setFiled] = useState(0)
+  const [done, setDone] = useState('')
 
   const load = useCallback(() => getResidentDocuments(resident.id), [resident.id])
-  const resource = useResource(load, [resident.id])
+  const resource = useResource(load, [resident.id, filed])
 
   const uploadAnswer = viewer.ask('upload_document', resident.id)
+  /* Filing opens over the library it changes, not at a second address. */
   const act =
     uploadAnswer.kind === 'yes' ? (
-      <Link
-        href={`/residents/${resident.id}/documents/new`}
-        className={buttonClassName({ variant: 'secondary' })}
-        data-file-document
-      >
-        File a document
-      </Link>
+      <>
+        <Button variant="secondary" onClick={() => setFiling(true)} data-file-document>
+          File a document
+        </Button>
+        <Dialog
+          open={filing}
+          onOpenChange={setFiling}
+          title={`File a document for ${resident.fullLegalName}`}
+          size="form"
+        >
+          <FileDocumentForm
+            resident={resident}
+            site={site}
+            done=""
+            onFiled={(words) => {
+              setDone(words)
+              setFiling(false)
+              setFiled((count) => count + 1)
+            }}
+          />
+        </Dialog>
+      </>
     ) : (
       <ActPoint
         answer={uploadAnswer}
@@ -66,12 +79,25 @@ export function DocumentsTab() {
         residentName={resident.preferredName}
       />
     )
+  /* The act at the right of the head, on the head's own line. Under the
+     findings it read as one more of them rather than as the thing to do. */
+  const filedLine =
+    done === '' ? null : (
+      <p className={styles.status} role="status" data-document-done>
+        {done}
+      </p>
+    )
   const head = (
-    <CardHead
-      title={`${resident.preferredName}’s documents`}
-      subtitle="What is on file, when it expires, and who filed it."
-      expand={{ kind: 'whole' }}
-    />
+    <div className={styles.tabHead}>
+      <div className={styles.tabHeading}>
+        <CardHead
+          title={`${resident.preferredName}’s documents`}
+          subtitle="What is on file, when it expires, and who filed it."
+          expand={{ kind: 'whole' }}
+        />
+      </div>
+      {act}
+    </div>
   )
 
   switch (resource.kind) {
@@ -132,12 +158,12 @@ export function DocumentsTab() {
         <div className={styles.panel} data-documents-panel>
           <Card>
             {head}
+            {filedLine}
             <div className={styles.head}>
               <Findings
                 counts={library.counts}
                 preferredName={resident.preferredName}
               />
-              {act}
             </div>
           </Card>
 

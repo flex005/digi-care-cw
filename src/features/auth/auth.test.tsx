@@ -80,7 +80,7 @@ describe('signing in', () => {
     expect(router.push).not.toHaveBeenCalled()
   })
 
-  it('locks the address after five refusals, and says nobody was told', () => {
+  it('locks the address after five refusals, and keeps it locked', () => {
     const { container } = wrap(<SignInRoute />)
     type(container, 'email', 'n.eze@rosewoodcourt.example')
     for (let attempt = 0; attempt < 5; attempt++) {
@@ -89,9 +89,7 @@ describe('signing in', () => {
     }
     const locked = container.querySelector('[data-refusal="locked"]')
     expect(locked?.textContent).toMatch(/locked until \d\d:\d\d/)
-    expect(
-      locked?.querySelector('[data-act-line="not_performed"]')?.textContent,
-    ).toMatch(/No alert email is sent/)
+    expect(locked?.querySelector('[data-act-line]')).toBeNull()
 
     // Locked means locked: a password that meets the rules does not get through.
     type(container, 'password', 'Kept-Safe-2026!')
@@ -166,7 +164,7 @@ describe('the code step', () => {
     return container
   }
 
-  it('says nothing is sent before anything else in the form', async () => {
+  it('asks for the code and says nothing about what was or was not sent', async () => {
     const { container } = wrap(
       <Awaiting id={staffEze.id}>
         <CodeStep purpose="sign_in" />
@@ -174,9 +172,8 @@ describe('the code step', () => {
     )
     await screen.findByLabelText('6-digit code')
     const card = container.querySelector('[data-code-step="sign_in"] section')!
-    const form = card.lastElementChild!
-    expect(form.firstElementChild?.getAttribute('data-act-line')).toBe('not_performed')
-    expect(form.firstElementChild?.textContent).toMatch(/No code is sent/)
+    expect(card.querySelector('[data-act-line]')).toBeNull()
+    expect(card.textContent).not.toMatch(/is sent|is saved/)
   })
 
   it('signs somebody at one home straight in', async () => {
@@ -205,10 +202,10 @@ describe('setting up an account from an invitation', () => {
     expect(container.querySelector('[data-set-up-account]')).toBeNull()
   })
 
-  it('refuses 1234 as a PIN, says it cannot check the birth year, and grants access for the session on a valid form', () => {
+  it('refuses 1234 as a PIN, and grants access for the session on a valid form', () => {
     params = { staffId: staffAdeyinka.id }
     const { container } = wrap(<InvitationSetupRoute />)
-    expect(container.textContent).toMatch(/Your birth year cannot be checked/)
+    expect(container.querySelector('[data-act-line]')).toBeNull()
 
     type(container, 'password', 'Kept-Safe-2026!')
     type(container, 'confirm', 'Kept-Safe-2026!')

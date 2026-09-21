@@ -15,8 +15,10 @@
  * Two halves, because a store can fail either way:
  *
  *  1. Every `*Holdings` export is reached by something that assembles the loss
- *     list — `session-losses.ts` for the record stores, `SignOutRoute.tsx` for
- *     the three the session itself holds.
+ *     list — `session-losses.ts` for the record stores, `SignOutDialog.tsx` for
+ *     the three the session itself holds. (It was `SignOutRoute.tsx` until the
+ *     confirmation moved into a dialog; the guard named the move on the first
+ *     run after it, which is what it is for.)
  *  2. Every `reset*` export beside one is called where a session ends —
  *     `endSession()` or the provider's `signOut`.
  *
@@ -30,7 +32,7 @@ const source = join(root, 'src')
 
 const LOSS_LIST = [
   'src/data/access/session-losses.ts',
-  'src/features/auth/SignOutRoute.tsx',
+  'src/features/auth/SignOutDialog.tsx',
 ]
 const RESETTERS = [
   'src/data/access/session-losses.ts',

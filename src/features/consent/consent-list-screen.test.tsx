@@ -132,11 +132,10 @@ describe('who may seek consent', () => {
     )
   })
 
-  it('refuses a care worker once, not 224 times, and leaves them reading', async () => {
+  it('offers a care worker nothing to seek with, and leaves them reading', async () => {
     await openList(staffEze.id)
-    const points = document.querySelectorAll('[data-answer]')
-    expect(points).toHaveLength(1)
-    expect(points[0]?.getAttribute('data-answer')).toBe('not_your_role')
+    expect(document.querySelectorAll('[data-answer]')).toHaveLength(0)
+    expect(document.querySelector('[data-act-line]')).toBeNull()
     expect(screen.queryByRole('link', { name: 'Seek consent' })).toBeNull()
     expect(claim()).toMatch(/42 of 224/)
     expect(rows().length).toBeGreaterThan(0)

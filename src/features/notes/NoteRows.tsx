@@ -77,10 +77,13 @@ export function FlaggedRow({
         <FlagReasonLine reason={note.review.reason} />
         <ShiftOverride note={note} />
         <CorrectionLinks note={note} />
-        <div className={styles.rowActs}>
-          <ReviewNoteControl note={note} resident={resident} onChanged={onChanged} />
-          <OpenNote note={note} />
-        </div>
+      </div>
+      {/* At the end of the row, not under the note. Stacked beneath the words
+          the acts read as the last line of the note rather than as the thing
+          to do about it. */}
+      <div className={styles.rowActs}>
+        <ReviewNoteControl note={note} resident={resident} onChanged={onChanged} />
+        <OpenNote note={note} />
       </div>
     </li>
   )
@@ -105,9 +108,9 @@ export function NoteRow({ note, resident }: { note: CareNote; resident: Resident
         <ShiftOverride note={note} />
         <FlagRecord review={note.review} />
         <CorrectionLinks note={note} />
-        <div className={styles.rowActs}>
-          <OpenNote note={note} />
-        </div>
+      </div>
+      <div className={styles.rowActs}>
+        <OpenNote note={note} />
       </div>
     </li>
   )

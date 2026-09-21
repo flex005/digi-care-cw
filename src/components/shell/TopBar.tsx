@@ -1,5 +1,6 @@
 import { useRouter } from 'next/navigation'
 import { STAFF_ROLE_NAMES } from '@/data/types'
+import { askToSignOut } from '@/features/auth/SignOutDialog'
 import { Icon } from '@/components/icon/Icon'
 import { Logo } from '@/components/brand/Logo'
 import {
@@ -96,7 +97,7 @@ export function TopBar() {
               <Icon name={shellIcons.profile} size={16} />
               Profile and settings
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => router.push('/sign-out')}>
+            <DropdownMenuItem onSelect={askToSignOut}>
               <Icon name={shellIcons.signOut} size={16} />
               Sign out
             </DropdownMenuItem>

@@ -19,7 +19,6 @@ import { useViewer } from '@/app/session/use-viewer'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { PageHead } from '@/components/layout/PageHead'
 import {
-  ActLine,
   Button,
   Card,
   CardHead,
@@ -42,10 +41,6 @@ import {
   type DecisionDraft,
 } from './consent-decision'
 import styles from './consent.module.css'
-
-/** Said at the act: nothing about a consent decision leaves this build. */
-export const NOTHING_SENT_LINE =
-  'Nothing is sent: no family is told, and the Family Portal — which is not built — receives nothing.'
 
 /**
  * Recording a consent decision. Table 3: "Consent — record", senior carers
@@ -118,21 +113,46 @@ export function ConsentDecisionRoute() {
     )
 
   return (
-    <Gate
-      resident={resource.data}
-      site={activeSite}
-      typeId={typeId}
-      typeName={type.name}
-      done={done}
-      onRecorded={(words) => {
-        setDone(words)
-        setWritten((count) => count + 1)
-      }}
-    />
+    <div className={styles.page}>
+      <PageHead
+        title={`${type.name}, ${resource.data.fullLegalName}`}
+        lines={[activeSite.name, 'senior carers record a consent decision']}
+        action={
+          <Link
+            href={`/residents/${residentId}/consent`}
+            className={buttonClassName({ variant: 'secondary' })}
+          >
+            Back to consent
+          </Link>
+        }
+      />
+      <ConsentDecisionForm
+        resident={resource.data}
+        site={activeSite}
+        typeId={typeId}
+        typeName={type.name}
+        done={done}
+        onRecorded={(words) => {
+          setDone(words)
+          setWritten((count) => count + 1)
+        }}
+      />
+    </div>
   )
 }
 
-function Gate({
+/**
+ * The gate and the decision, wherever they are opened.
+ *
+ * **Split from the route so the resident's Consent tab can open it in a
+ * dialog**, following the care note composer: a decision is about one consent
+ * type on one record, and opening it over that record keeps the eight types in
+ * view behind it. What differs between a page and a dialog is the chrome and
+ * what happens after something is recorded, so those are what the route
+ * supplies. `SubjectStrip` is inside the form, so the write surface names who
+ * it is about wherever it is drawn (CLAUDE.md §2).
+ */
+export function ConsentDecisionForm({
   resident,
   site,
   typeId,
@@ -232,20 +252,7 @@ function Gate({
   }
 
   return (
-    <div className={styles.page}>
-      <PageHead
-        title={`${typeName}, ${resident.fullLegalName}`}
-        lines={[site.name, 'senior carers record a consent decision']}
-        action={
-          <Link
-            href={`/residents/${resident.id}/consent`}
-            className={buttonClassName({ variant: 'secondary' })}
-          >
-            Back to consent
-          </Link>
-        }
-      />
-
+    <div className={styles.form}>
       <Card>
         <SubjectStrip resident={resident} site={site} />
         <p className={styles.means} data-means>
@@ -481,8 +488,6 @@ function Gate({
                   </>
                 )}
               </p>
-
-              <ActLine kind="not_performed">{NOTHING_SENT_LINE}</ActLine>
 
               {answer.kind === 'yes' ? (
                 <Button

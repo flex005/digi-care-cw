@@ -16,7 +16,6 @@ import { useViewer } from '@/app/session/use-viewer'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { PageHead } from '@/components/layout/PageHead'
 import {
-  ActLine,
   Button,
   Card,
   CardHead,
@@ -29,14 +28,6 @@ import { nextReviewFrom } from '@/lib/review-interval'
 import { SubjectStrip } from '@/features/notes/composer/SubjectStrip'
 import { domainRows, gapWords, isGap } from './review-queue'
 import styles from './reviews.module.css'
-
-/** Said at the act: a completed review is told to nobody in this build. */
-export const NOTHING_SENT_LINE =
-  'Nothing is sent: no manager is told, and no family sees that a review happened.'
-
-/** Said where the discussion is written, because the record holds no field for it. */
-export const DISCUSSION_LINE =
-  'What was discussed is not kept: the review record both products share holds who completed it, when, what it was against, and which domains were outstanding — and no account of the meeting. Adding a field for one is a change to their shared data.'
 
 /**
  * The whole care plan review — the meeting, not the plan. Table 3: "Reviews —
@@ -228,7 +219,6 @@ function Review({
             onChange={(event) => setDiscussion(event.target.value)}
             data-discussion
           />
-          <ActLine kind="not_built">{DISCUSSION_LINE}</ActLine>
         </div>
       </Card>
 
@@ -264,8 +254,6 @@ function Review({
             The next review falls due <span data-numeric>{format.date(nextDueOn)}</span>
             , and that becomes the date every screen reads.
           </p>
-
-          <ActLine kind="not_performed">{NOTHING_SENT_LINE}</ActLine>
 
           {answer.kind === 'yes' ? (
             <Button size="large" onClick={complete} data-complete-review>

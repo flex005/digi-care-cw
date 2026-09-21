@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { waitFor, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { axe } from 'vitest-axe'
 import type { DocumentRecord, IsoDate, Resident, StaffRef } from '@/data/types'
 import { residents } from '@/data/fixtures/residents'
@@ -296,33 +297,41 @@ describe('uploading is the senior carer’s act', () => {
 
   /*
    * Phase 8: filing is live, and it is about the file rather than any one row,
-   * so it stays at the head where the refusal was.
+   * so it stays at the head where the refusal was. It opens over the library
+   * it changes rather than at a second address, and the form names the subject
+   * in full (CLAUDE.md §2).
    */
-  it('takes Akinyemi to the form, from the head of the tab', async () => {
+  it('opens the form over the library for Akinyemi, naming the subject', async () => {
     expect(answerOf(staffAkinyemi, okafor).kind).toBe('yes')
 
+    const user = userEvent.setup()
     const { container } = openAs(staffAkinyemi, okafor)
     const panel = await panelOf(container)
-
-    const act = within(panel).getByRole('link', { name: 'File a document' })
-    expect(act.getAttribute('href')).toBe(`/residents/${okafor.id}/documents/new`)
     expect(panel.querySelector('[data-act-line]')).toBeNull()
+    expect(within(panel).queryByRole('link', { name: 'File a document' })).toBeNull()
+
+    await user.click(within(panel).getByRole('button', { name: 'File a document' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(
+      within(dialog).getByRole('heading', {
+        name: `File a document for ${okafor.fullLegalName}`,
+      }),
+    ).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('Title')).toBeInTheDocument()
   })
 
-  it('is unavailable to Eze, with the role table’s reason', async () => {
+  it('offers Eze nothing to file with, and says nothing about whose act it is', async () => {
     const answer = answerOf(staffEze, okafor)
     if (answer.kind !== 'not_your_role') throw new Error('expected a refusal by role')
 
     const { container } = openAs(staffEze, okafor)
     const panel = await panelOf(container)
 
-    expect(
-      within(panel).getByRole('button', { name: 'File a document' }),
-    ).toBeDisabled()
-    expect(panel.querySelector('[data-act-line="refused"]')?.textContent).toBe(
-      answer.reason,
-    )
+    expect(within(panel).queryByRole('button', { name: 'File a document' })).toBeNull()
     expect(within(panel).queryByRole('link', { name: 'File a document' })).toBeNull()
+    expect(panel.querySelector('[data-act-line]')).toBeNull()
+    expect(panel.textContent).not.toContain(answer.reason)
   })
 })
 

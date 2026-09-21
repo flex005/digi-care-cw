@@ -1,12 +1,10 @@
 import { useId, useLayoutEffect, useRef, type ReactNode } from 'react'
 import type { MoodScore, Resident, Shift, Site } from '@/data/types'
 import { CARE_NOTE_CATEGORIES, MOOD_LABELS } from '@/data/types'
-import { ActLine, Button, Checkbox, RadioGroup, Select } from '@/components/primitives'
-import { Icon } from '@/components/icon/Icon'
+import { Button, Checkbox, RadioGroup, Select } from '@/components/primitives'
 import { SHIFTS, SHIFT_NAMES, shiftHours } from '@/lib/shift'
 import { SubjectStrip } from './SubjectStrip'
 import { SUGGESTED_PHRASES } from './suggested-phrases'
-import { composerIcons } from './composer.icons'
 import { listInWords, stillNeeded, type NoteFields } from './note-fields'
 import styles from './composer.module.css'
 
@@ -210,17 +208,6 @@ export function NoteForm({
             </p>
           ) : null}
           {refusedAt('body')}
-
-          <div className={styles.voice}>
-            <Button variant="secondary" size="medium" disabled data-voice>
-              <Icon name={composerIcons.voice} size={16} />
-              Voice to text
-            </Button>
-            <ActLine kind="refused">
-              Voice-to-text is not offered: the browser’s speech service sends the audio
-              to a third party, which is no place for a care note.
-            </ActLine>
-          </div>
         </div>
 
         {/* ---- Shift ---- */}
@@ -356,9 +343,6 @@ export function NoteForm({
               />
             </div>
           ) : null}
-          <ActLine kind="not_performed">
-            Nobody is notified: the note waits in the flagged queue for a senior.
-          </ActLine>
         </div>
 
         {/* ---- Saving. The immutability line is read before, never after. ---- */}

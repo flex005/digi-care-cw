@@ -33,8 +33,5 @@ export const PIN_RULES: PinRule[] = [
   },
 ]
 
-export const PIN_CANNOT_CHECK =
-  'Your birth year cannot be checked: no date of birth is held.'
-
 export const pinReady = (pin: string, confirm: string): boolean =>
   PIN_RULES.every((rule) => rule.met(pin, confirm))

@@ -191,7 +191,7 @@ describe('Omissions: separate facts', () => {
 })
 
 describe('Omissions: closing', () => {
-  it('refuses without a reason, records, moves the row to Closed and says nobody is notified', async () => {
+  it('refuses without a reason, records it, and moves the row to Closed', async () => {
     renderSignedIn(staffAkinyemi.id, <OmissionsRoute />)
     await loaded()
     const open = rows().find((row) => row.dataset.closure === 'open')!
@@ -204,7 +204,7 @@ describe('Omissions: closing', () => {
       /^Close the omission for .+’s .+ at \d{2}:\d{2}, \d{2}\/\d{2}\/\d{4}\?$/,
     )
     expect(dialog.querySelector('[data-confirm-subject]')).toBeTruthy()
-    expect(within(dialog).getByText('Nobody is notified.')).toBeInTheDocument()
+    expect(dialog.querySelector('[data-act-line]')).toBeNull()
 
     const confirm = dialog.querySelector<HTMLButtonElement>('[data-confirm-close]')!
     expect(confirm).toBeDisabled()
@@ -235,12 +235,13 @@ describe('Omissions: closing', () => {
     await waitFor(() => expect(row()).toBeTruthy())
   })
 
-  it('gives a care worker one refusal at the head of the list and no control on any row', async () => {
+  it('leaves a care worker the list to read and no control on any row', async () => {
     renderSignedIn(staffEze.id, <OmissionsRoute />)
     await loaded()
-    const refusals = document.querySelectorAll('[data-act-line="refused"]')
-    expect(refusals).toHaveLength(1)
-    expect(refusals[0]?.textContent).toBe('Closing an omission is for a senior carer.')
+    expect(document.querySelectorAll('[data-act-line]')).toHaveLength(0)
+    expect(document.body.textContent).not.toContain(
+      'Closing an omission is for a senior carer.',
+    )
     expect(rows().some((row) => row.dataset.closure === 'open')).toBe(true)
     expect(document.querySelector('[data-close-omission]')).toBeNull()
   })

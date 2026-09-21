@@ -1,18 +1,21 @@
 import { useEffect } from 'react'
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { memberById } from '@/data/access/team-store'
 import { staffAkinyemi, staffEze } from '@/data/fixtures/organisation'
 import { SessionProvider } from '@/app/session/SessionProvider'
 import { useSession } from '@/app/session/use-session'
 import { TooltipProvider } from '@/components/primitives'
+import { SignOutDialog } from '@/features/auth/SignOutDialog'
 import { Rail } from './Rail'
 import { NavPill } from './NavPill'
 import { TopBar } from './TopBar'
 
+const pushed = vi.hoisted(() => vi.fn())
 vi.mock('next/navigation', () => ({
   usePathname: () => '/specimens',
-  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  useRouter: () => ({ replace: vi.fn(), push: pushed }),
 }))
 
 function SignedInAs({ id, children }: { id: string; children: React.ReactNode }) {
@@ -95,6 +98,32 @@ describe('the icon rail', () => {
     renderAs(staffEze.id, <Rail />)
     const nav = await screen.findByRole('navigation', { name: 'Main navigation' })
     expect(nav.innerHTML).not.toMatch(/Reports|Compliance|Team/)
+  })
+
+  /*
+   * Signing out asks over the screen rather than going to one: leaving the
+   * screen to be asked whether you want to leave the screen loses what you
+   * were looking at before you have agreed to lose anything. The rail asks and
+   * the dialog the shell mounts beside it answers.
+   */
+  it('asks about signing out over the screen, and does not navigate to it', async () => {
+    const user = userEvent.setup()
+    renderAs(
+      staffEze.id,
+      <>
+        <Rail />
+        <SignOutDialog />
+      </>,
+    )
+    await screen.findByRole('navigation', { name: 'Main navigation' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'Sign out' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByRole('heading', { name: 'Sign out?' })).toBeTruthy()
+    expect(dialog.querySelector('[data-confirm-sign-out]')).not.toBeNull()
+    expect(pushed).not.toHaveBeenCalled()
   })
 })
 

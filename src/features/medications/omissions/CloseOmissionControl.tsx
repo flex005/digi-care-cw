@@ -2,7 +2,7 @@ import { useId, useState } from 'react'
 import type { IsoDateTime } from '@/data/types'
 import { closeOmission, type Omission } from '@/data/access/client'
 import { now } from '@/data/fixtures/clock'
-import { ActLine, Button, Dialog } from '@/components/primitives'
+import { Button, Dialog } from '@/components/primitives'
 import { useSignedIn, useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { DialogSubject, drugInSentence } from './subject'
@@ -134,7 +134,6 @@ export function CloseOmissionControl({
             data-close-reason
           />
         </div>
-        <ActLine kind="not_performed">Nobody is notified.</ActLine>
         {error === '' ? null : (
           <p className={styles.formError} role="alert">
             {error}

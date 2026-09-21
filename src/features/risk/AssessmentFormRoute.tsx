@@ -11,7 +11,6 @@ import { useViewer } from '@/app/session/use-viewer'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { PageHead } from '@/components/layout/PageHead'
 import {
-  ActLine,
   Button,
   Card,
   CardHead,
@@ -22,7 +21,7 @@ import {
   buttonClassName,
 } from '@/components/primitives'
 import { NotYourHome, Settled, StatusPill, Unrecorded } from '@/components/status'
-import { formatDate, pluralise } from '@/lib/format'
+import { formatDate } from '@/lib/format'
 import { MedicationPinStep } from '@/features/medications/MedicationPinStep'
 import { SubjectStrip } from '@/features/notes/composer/SubjectStrip'
 import { PlaceholderBanner } from './PlaceholderBanner'
@@ -31,20 +30,13 @@ import {
   levelFor,
   outstanding,
   runningScore,
-  writtenInterventions,
   type Answers,
   type Intervention,
 } from './assessment-form'
 import { INSTRUMENT_ITEMS, LEVEL_LABEL, bandFor, isScored } from './instrument'
+import { Icon } from '@/components/icon/Icon'
+import { riskIcons } from './risk.icons'
 import styles from './risk-form.module.css'
-
-/** Said at the act: RA-02's push and the manager's notification go nowhere. */
-export const NOTHING_SENT_LINE =
-  'Nothing is sent: no care worker is pushed to, and no manager is told, whatever the band does.'
-
-/** Said where the interventions are asked for, because the record has no field. */
-export const INTERVENTIONS_LINE =
-  'Interventions are not kept: the assessment record both products share holds a level, a score, an author and a review date, and nothing about what anybody decided to do. Adding a field for them is a change to their shared data.'
 
 /**
  * Scoring a risk assessment. CW PRD RA-02, senior carers only.
@@ -121,21 +113,45 @@ export function AssessmentFormRoute() {
     )
 
   return (
-    <Form
-      resident={resource.data}
-      site={activeSite}
-      templateId={templateId}
-      templateName={template.name}
-      done={done}
-      onRecorded={(words) => {
-        setDone(words)
-        setWritten((count) => count + 1)
-      }}
-    />
+    <div className={styles.page}>
+      {/* Above the head and on the left, as the MAR's is: the way out of a
+          form is not one of the things the form offers. It was in the head's
+          action slot, at the right, where the primary act of a screen goes —
+          and the primary act here is scoring, at the foot of the form. */}
+      <Link href={`/residents/${residentId}/risk-assessments`} className={styles.back}>
+        <Icon name={riskIcons.back} size={16} />
+        Back to {resource.data.preferredName}’s assessments
+      </Link>
+      <PageHead
+        title={`${template.name}, ${resource.data.fullLegalName}`}
+        lines={[activeSite.name, 'senior carers score an assessment']}
+      />
+      <AssessmentForm
+        resident={resource.data}
+        site={activeSite}
+        templateId={templateId}
+        templateName={template.name}
+        done={done}
+        onRecorded={(words) => {
+          setDone(words)
+          setWritten((count) => count + 1)
+        }}
+      />
+    </div>
   )
 }
 
-function Form({
+/**
+ * The instrument, the level and the sign-off, wherever they are opened.
+ *
+ * **Split from the route so a record's own Risk assessments tab can open it in
+ * a dialog**, following the care note composer: scoring is done looking at what
+ * is already on the record, and opening it over that record keeps the other
+ * eight assessments behind it. The way out and the page head belong to the
+ * route; `SubjectStrip` is inside the form, so the write surface names who it
+ * is about wherever it is drawn (CLAUDE.md §2).
+ */
+export function AssessmentForm({
   resident,
   site,
   templateId,
@@ -200,20 +216,7 @@ function Form({
   }${scored ? `, score ${running.total} of the placeholder instrument` : ', unscored'}.`
 
   return (
-    <div className={styles.page}>
-      <PageHead
-        title={`${templateName}, ${resident.fullLegalName}`}
-        lines={[site.name, 'senior carers score an assessment']}
-        action={
-          <Link
-            href={`/residents/${resident.id}/risk-assessments`}
-            className={buttonClassName({ variant: 'secondary' })}
-          >
-            Back to the assessments
-          </Link>
-        }
-      />
-
+    <div className={styles.form}>
       <Card>
         <SubjectStrip resident={resident} site={site} />
         <div className={styles.banner}>
@@ -347,6 +350,30 @@ function Form({
         <ul className={styles.interventions}>
           {interventions.map((entry, index) => (
             <li key={index} className={styles.intervention}>
+              {/*
+               * Drawn only where there is more than one, so the last row
+               * cannot be taken away and leave the card with nothing in it,
+               * and so nothing here is a control that refuses to work.
+               */}
+              {interventions.length > 1 ? (
+                <div className={styles.interventionHead}>
+                  <p className={styles.interventionLabel}>
+                    Intervention {index + 1} of {interventions.length}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    onClick={() =>
+                      setInterventions((current) =>
+                        current.filter((_, at) => at !== index),
+                      )
+                    }
+                    data-remove-intervention={index}
+                  >
+                    <Icon name={riskIcons.remove} size={16} />
+                    Remove this intervention
+                  </Button>
+                </div>
+              ) : null}
               <div className={styles.field}>
                 <label className={styles.fieldLabel} htmlFor={`${id}-what-${index}`}>
                   What will be done
@@ -418,7 +445,6 @@ function Form({
           >
             Add another intervention
           </Button>
-          <ActLine kind="not_built">{INTERVENTIONS_LINE}</ActLine>
         </div>
       </Card>
 
@@ -440,15 +466,6 @@ function Form({
               </>
             )}
           </p>
-
-          {writtenInterventions(interventions).length === 0 ? null : (
-            <p className={styles.footState}>
-              {pluralise(writtenInterventions(interventions).length, 'intervention')}{' '}
-              written, and none of them kept.
-            </p>
-          )}
-
-          <ActLine kind="not_performed">{NOTHING_SENT_LINE}</ActLine>
 
           {answer.kind === 'yes' ? (
             <Button

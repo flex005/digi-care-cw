@@ -2,7 +2,6 @@ import { useState } from 'react'
 import {
   Accordion,
   AccordionSection,
-  ActLine,
   AlertDialog,
   Button,
   Checkbox,
@@ -80,26 +79,16 @@ export function PrimitiveGallery() {
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>At the point of the act</h2>
         <p className={styles.sectionNote}>
-          One line, never behind a click. Refusals take their words from the role table.
+          One line, never behind a click, and only for a question the PRD leaves open.
+          An act this reader cannot perform is not drawn at all, so there is no refusal
+          here and no control that refuses.
         </p>
         <div className={styles.stack}>
           <ActPoint
-            answer={viewer.ask('add_interim_medication')}
-            label="Add interim medication"
-            notBuilt="Adding an interim medication is not built."
+            answer={viewer.ask('report_incident')}
+            label="Report an incident"
+            notBuilt="Reporting an incident is not built."
           />
-          <div className={styles.actSpecimen}>
-            <Button variant="secondary">Export as PDF</Button>
-            <ActLine kind="not_built">
-              Export is not built: no file is produced.
-            </ActLine>
-          </div>
-          <div className={styles.actSpecimen}>
-            <Button>Report incident</Button>
-            <ActLine kind="not_performed">
-              Nobody is notified. Tell the senior on duty yourself.
-            </ActLine>
-          </div>
         </div>
       </section>
 

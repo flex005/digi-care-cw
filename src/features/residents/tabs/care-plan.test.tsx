@@ -286,19 +286,24 @@ describe('read, not written', () => {
     }
   })
 
-  it('refuses editing to both roles, with the role table’s reason', async () => {
+  /*
+   * **No edit control, and nothing said about whose job it is.** A manager
+   * writes and finalises the plan, which is true of both roles that sign in
+   * here — and CPLN-01 asks for its absence in as many words: "No Edit button,
+   * no Finalise button, no PIN entry for care workers". The rule is still in
+   * the role table and still tested there.
+   */
+  it('offers neither role an edit control, and repeats no reason for it', async () => {
     for (const staff of [staffEze, staffAkinyemi]) {
       const grant = CARE_ACTS.write_care_plan[signInRoleOf(memberOf(staff.id))]
       if (grant.kind !== 'may_not')
         throw new Error('expected the table to refuse this person')
 
-      // On the care worker's list, so the refusal is the role's and not scope's.
+      // On the care worker's list, so nothing here is scope's doing.
       const resident = residents.find((entry) => entry.id === 'res-adeyemi')!
       const tab = await openTab(staff.id, resident)
-      expect(within(tab).getByRole('button', { name: 'Edit care plan' })).toBeDisabled()
-      expect(tab.querySelector('[data-act-line="refused"]')?.textContent).toBe(
-        grant.reason,
-      )
+      expect(within(tab).queryByRole('button', { name: 'Edit care plan' })).toBeNull()
+      expect(tab.textContent).not.toContain(grant.reason)
       cleanup()
     }
   })

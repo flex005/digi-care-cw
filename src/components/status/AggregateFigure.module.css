@@ -149,3 +149,31 @@
   flex: 0 0 auto;
   margin-left: auto;
 }
+
+/*
+ * **The banner wraps rather than shrinks.** Three things side by side — the
+ * figure, what it is of, and the act — left the caption a 100px column of
+ * single words at 390. The figure and its sentence keep the first line, the
+ * act takes the next one whole.
+ */
+@media (width < 1024px) {
+  .banner {
+    flex-wrap: wrap;
+    padding: var(--space-16);
+  }
+
+  .bannerText {
+    flex: 1 1 200px;
+  }
+
+  .bannerAction {
+    flex: 1 1 100%;
+    margin-inline-start: 0;
+  }
+
+  .bannerAction > button,
+  .bannerAction > a {
+    justify-content: center;
+    width: 100%;
+  }
+}

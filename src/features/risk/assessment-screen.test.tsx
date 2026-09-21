@@ -21,11 +21,7 @@ import { staffAkinyemi, staffEze } from '@/data/fixtures/organisation'
 import { endSession } from '@/data/access/session-losses'
 import { resetMedicationPins } from '@/app/session/medication-pins'
 import { renderSignedIn } from '@/test/render-signed-in'
-import {
-  AssessmentFormRoute,
-  INTERVENTIONS_LINE,
-  NOTHING_SENT_LINE,
-} from './AssessmentFormRoute'
+import { AssessmentFormRoute } from './AssessmentFormRoute'
 import { INSTRUMENT_ITEMS } from './instrument'
 import { PLACEHOLDER_NOTICE } from './instrument'
 
@@ -119,20 +115,38 @@ describe('the form', () => {
     )
   })
 
-  it('says the interventions are not kept, and that nothing is sent', async () => {
+  it('takes off an intervention added by mistake, and keeps the last one', async () => {
+    const user = userEvent.setup()
     await openForm()
-    expect(screen.getByText(INTERVENTIONS_LINE)).toBeInTheDocument()
-    expect(screen.getByText(NOTHING_SENT_LINE)).toBeInTheDocument()
+    const rows = () => document.querySelectorAll('[data-intervention-what]')
+    expect(rows()).toHaveLength(1)
+    // The only row cannot be taken away, so nothing offers to.
+    expect(document.querySelector('[data-remove-intervention]')).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'Add another intervention' }))
+    expect(rows()).toHaveLength(2)
+
+    await user.type(screen.getAllByLabelText('Responsible person')[1]!, 'N. Eze')
+    await user.click(
+      document.querySelector<HTMLElement>('[data-remove-intervention="1"]')!,
+    )
+    expect(rows()).toHaveLength(1)
+    expect(document.querySelector('[data-remove-intervention]')).toBeNull()
   })
 
-  it('refuses a care worker with the role table’s reason', async () => {
+  it('draws no caution under the interventions, and no unavailable act', async () => {
+    await openForm()
+    expect(document.querySelector('[data-act-line="not_built"]')).toBeNull()
+    expect(document.querySelector('[data-act-line="not_performed"]')).toBeNull()
+    expect(document.body.textContent).not.toContain('Interventions are not kept')
+  })
+
+  it('offers a care worker no sign-off at all', async () => {
     await openForm(staffEze.id)
     expect(
-      screen.getByRole('button', { name: 'Sign off this assessment' }),
-    ).toBeDisabled()
-    expect(document.querySelector('[data-act-line="refused"]')?.textContent).toBe(
-      'Scoring a risk assessment is for a senior carer.',
-    )
+      screen.queryByRole('button', { name: 'Sign off this assessment' }),
+    ).toBeNull()
+    expect(document.querySelector('[data-act-line="refused"]')).toBeNull()
   })
 })
 

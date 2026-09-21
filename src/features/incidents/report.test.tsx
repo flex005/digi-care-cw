@@ -20,7 +20,7 @@ import { memberById } from '@/data/access/team-store'
 import { residentScopeFor } from '@/app/session/resident-scope'
 import { residentById } from '@/data/fixtures/residents'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { NOT_NOTIFIED_LINE, ReportIncidentRoute } from './ReportIncidentRoute'
+import { ReportIncidentRoute } from './ReportIncidentRoute'
 
 const push = vi.hoisted(() => vi.fn())
 const navigation = vi.hoisted(() => ({ pathname: '/incidents/new', params: {} }))
@@ -164,9 +164,11 @@ describe('the form', () => {
     await waitFor(() => expect(waiting()).toContain('a time that is not in the future'))
   })
 
-  it('says nothing is sent, where INC-03 says a manager has been notified', async () => {
+  it('claims no notification, where INC-03 says a manager has been notified', async () => {
     await openForm()
-    expect(screen.getAllByText(NOT_NOTIFIED_LINE).length).toBeGreaterThan(0)
+    expect(document.querySelectorAll('[data-act-line]')).toHaveLength(0)
+    expect(document.body.textContent).not.toMatch(/no manager is notified/)
+    expect(document.body.textContent).not.toMatch(/has been notified/)
   })
 })
 
@@ -226,7 +228,7 @@ describe('reporting it', () => {
 
     // And the screen says what it did and did not do.
     expect(await screen.findByText('Not acknowledged')).toBeInTheDocument()
-    expect(screen.getByText(NOT_NOTIFIED_LINE)).toBeInTheDocument()
+    expect(document.body.textContent).not.toMatch(/has been notified/)
   })
 })
 
@@ -251,7 +253,7 @@ describe('the PRD’s silence about whose residents', () => {
     expect(waiting()).toContain('Everything needed is here')
     const question = document.querySelector('[data-act-line="not_stated"]')
     expect(question?.textContent).toMatch(/does not say/)
-    expect(screen.getByRole('button', { name: 'Report this incident' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Report this incident' })).toBeNull()
     expect(reportedThisSession()).toHaveLength(0)
   })
 
@@ -288,9 +290,7 @@ describe('the PRD’s silence about whose residents', () => {
     // Osei has no list at all, and this report is about nobody, so the question
     // never arises.
     expect(waiting()).toContain('Everything needed is here')
-    expect(document.querySelector('[data-act-line]')?.textContent).toBe(
-      NOT_NOTIFIED_LINE,
-    )
+    expect(document.querySelector('[data-act-line]')).toBeNull()
     expect(screen.getByRole('button', { name: 'Report this incident' })).toBeEnabled()
   })
 })

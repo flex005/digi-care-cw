@@ -6,7 +6,6 @@ import { setStanding } from '@/data/access/team-store'
 import { useSession } from '@/app/session/use-session'
 import { setMedicationPin } from '@/app/session/medication-pins'
 import {
-  ActLine,
   Button,
   DigitField,
   PasswordField,
@@ -19,7 +18,7 @@ import { formatDate } from '@/lib/format'
 import { AuthActions, AuthPage, AuthStack, authLinkClass } from './AuthPage'
 import { PasswordRules } from './PasswordRules'
 import { forbiddenWords, unmetRules } from './password-rules'
-import { PIN_CANNOT_CHECK, PIN_RULES, pinReady } from './pin-rules'
+import { PIN_RULES, pinReady } from './pin-rules'
 import { addressFor } from './addresses'
 import { careInvitationFor, careInvitations } from './invitation-people'
 import { authIcons } from './auth.icons'
@@ -50,9 +49,6 @@ export function InvitationIndexRoute() {
       after={backToSignIn}
     >
       <AuthStack>
-        <ActLine kind="not_built">
-          Demonstration: each opens the invitation email.
-        </ActLine>
         <ul className={styles.peopleList}>
           {waiting.map(({ invitation, member, home, expired }) => (
             <li key={member.id}>
@@ -139,7 +135,6 @@ export function InvitationEmailRoute() {
       }
     >
       <AuthStack>
-        <ActLine kind="not_performed">This email is drawn here and never sent.</ActLine>
         <div className={styles.email}>
           <dl className={styles.emailHead}>
             <div>
@@ -227,9 +222,6 @@ export function InvitationSetupRoute() {
             label="Not set up"
             detail={`Ask ${invitation.invitedBy.fullName} to send a new invitation from Team Management.`}
           />
-          <ActLine kind="not_built">
-            Nothing here can send one: it is sent from the Admin build.
-          </ActLine>
         </AuthStack>
       </AuthPage>
     )
@@ -301,7 +293,6 @@ export function InvitationSetupRoute() {
             )
           })}
         </ul>
-        <ActLine kind="not_built">{PIN_CANNOT_CHECK}</ActLine>
 
         <AuthActions>
           <Button
@@ -322,9 +313,6 @@ export function InvitationSetupRoute() {
             Set up account
           </Button>
         </AuthActions>
-        <ActLine kind="not_built">
-          The terms and privacy notice are not written for this build.
-        </ActLine>
       </AuthStack>
     </AuthPage>
   )

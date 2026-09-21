@@ -16,7 +16,6 @@ import { useViewer } from '@/app/session/use-viewer'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { PageHead } from '@/components/layout/PageHead'
 import {
-  ActLine,
   Button,
   Card,
   CardHead,
@@ -30,8 +29,6 @@ import { GoalMeta, GoalStandingBadge, GoalStatement } from './goal-parts'
 import styles from './goals.module.css'
 
 /** Said at the act, because GOAL-02's cross-portal note claims a notification. */
-export const NOTHING_SENT_LINE =
-  'Nothing is sent: no manager is told, and the Family Portal — which is not built — receives nothing.'
 
 /**
  * One goal, and the progress written about it. CW PRD GOAL-02.
@@ -279,8 +276,6 @@ function ProgressNoteForm({
         </span>
       </div>
 
-      <ActLine kind="not_performed">{NOTHING_SENT_LINE}</ActLine>
-
       {answer.kind === 'yes' ? (
         <Button
           size="large"
@@ -291,6 +286,12 @@ function ProgressNoteForm({
           {`Add this note to ${resident.preferredName}’s goal`}
         </Button>
       ) : (
+        /*
+         * Not a refusal notice: where the PRD does not say whether this role
+         * may write about a resident off their list, the question is drawn at
+         * the act and the control stays unavailable rather than guessing
+         * either way. Kept while the "nothing is sent" notices went.
+         */
         <ActPoint
           answer={answer}
           label="Add a progress note"

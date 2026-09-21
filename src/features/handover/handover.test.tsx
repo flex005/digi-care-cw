@@ -23,7 +23,7 @@ import { memberById } from '@/data/access/team-store'
 import { residentScopeFor } from '@/app/session/resident-scope'
 import { resetMedicationPins } from '@/app/session/medication-pins'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { NO_HANDOVER_PUSH_LINE, WHOLE_HOME_LINE, HandoverRoute } from './HandoverRoute'
+import { WHOLE_HOME_LINE, HandoverRoute } from './HandoverRoute'
 
 const navigation = vi.hoisted(() => ({ pathname: '/handover', params: {} }))
 vi.mock('next/navigation', () => ({
@@ -86,7 +86,7 @@ describe('the fixtures reach the states this screen draws', () => {
 })
 
 describe('the board', () => {
-  it('counts the whole home, says so, and says nothing is sent', async () => {
+  it('counts the whole home and says so', async () => {
     await openBoard()
     const open = session()
     const total = residentsBySite(ROSEWOOD).length
@@ -98,7 +98,7 @@ describe('the board', () => {
     expect(banner?.textContent).toContain(String(notReviewed))
     expect(banner?.textContent).toContain(`of ${total} residents living at`)
     expect(screen.getAllByText(WHOLE_HOME_LINE).length).toBeGreaterThan(0)
-    expect(screen.getByText(NO_HANDOVER_PUSH_LINE)).toBeInTheDocument()
+    expect(document.querySelector('[data-act-line]')).toBeNull()
   })
 
   it('shows every resident at the home to a care worker, list or no list', async () => {
@@ -193,7 +193,7 @@ describe('a group with nobody in it', () => {
 })
 
 describe('recording a status', () => {
-  it('needs a choice, needs words for urgent, and says nothing is sent', async () => {
+  it('needs a choice, and needs words for urgent', async () => {
     const { user } = await openBoard()
     const row = rowsShown()[0]!
     const resident = row.dataset.resident!
@@ -205,7 +205,7 @@ describe('recording a status', () => {
 
     await user.click(within(dialog).getByRole('radio', { name: 'Urgent' }))
     expect(confirm).toBeDisabled()
-    expect(dialog.textContent).toMatch(/Nothing is sent: the senior on duty is not/)
+    expect(dialog.querySelector('[data-act-line]')).toBeNull()
 
     await user.type(
       within(dialog).getByLabelText(/What does the incoming shift need to do\?/),
@@ -240,10 +240,10 @@ describe('recording a status', () => {
     if (off === undefined || on === undefined)
       throw new Error('Eze needs a row on and a row off their list')
 
-    // Off the list: the question, quoted, and the control unavailable.
+    // Off the list: the question, quoted, and no control at all.
     const question = off.querySelector('[data-act-line="not_stated"]')
     expect(question?.textContent).toMatch(/does not say/)
-    expect(within(off).getByRole('button', { name: 'Review' })).toBeDisabled()
+    expect(within(off).queryByRole('button', { name: 'Review' })).toBeNull()
 
     // On the list: the same act, live.
     expect(within(on).getByRole('button', { name: 'Review' })).toBeEnabled()
@@ -251,31 +251,27 @@ describe('recording a status', () => {
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
 
-  it('tells a care worker nobody has given a list once, and still shows the board', async () => {
+  it('tells a care worker with no list why, once, and still shows the board', async () => {
     await openBoard(staffOsei.id)
     const said = document.querySelector('[data-no-list]')
-    expect(said?.querySelector('[data-act-line="refused"]')?.textContent).toBe(
-      'Nobody has given you a list of residents yet.',
-    )
-    // Once on the board, not once per row, and the record is still readable.
-    // (The two signature halves carry their own refusal: a care worker cannot
-    // sign either of them, and that is a different act.)
-    const residentsCard = said?.closest('[data-card]')
-    expect(residentsCard?.querySelectorAll('[data-act-line="refused"]')).toHaveLength(1)
+    expect(said?.textContent).toContain('nobody has given you any')
+    // Said once on the board, not once per row, and the record is still readable.
+    expect(document.querySelectorAll('[data-no-list]')).toHaveLength(1)
+    expect(document.querySelectorAll('[data-act-line]')).toHaveLength(0)
     expect(rowsShown().length).toBeGreaterThan(0)
     expect(screen.queryByRole('button', { name: 'Review' })).toBeNull()
   })
 })
 
 describe('the dual signature', () => {
-  it('refuses a care worker with the role table’s reason, both halves', async () => {
+  it('offers a care worker neither half to sign, and no reason either', async () => {
     await openBoard(staffEze.id)
     for (const side of ['outgoing', 'incoming']) {
       const half = document.querySelector<HTMLElement>(`[data-signature="${side}"]`)
-      expect(half?.querySelector('[data-act-line="refused"]')?.textContent).toBe(
-        'Signing a handover is for a senior carer.',
-      )
+      expect(half).toBeTruthy()
+      expect(half?.querySelector('[data-act-line]')).toBeNull()
       expect(half?.querySelector('[data-sign]')).toBeNull()
+      expect(half?.textContent).not.toContain('senior carer')
     }
   })
 

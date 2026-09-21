@@ -276,13 +276,16 @@ export function ResidentRoundCard({
               Nothing is left to record for {resident.fullLegalName} at {roundTime}.
             </p>
           ) : (
-            <>
+            /* What is outstanding and what to do about it, on one line: the
+               act answers the sentence beside it, and stacked under it the
+               button read as the next thing rather than as the answer. */
+            <div className={styles.actRow}>
               {waiting.length === 0 ? null : (
                 <p className={styles.waiting} data-waiting>
                   Waiting on: {waiting.join(' · ')}
                 </p>
               )}
-              <div className={styles.actRow}>
+              <div className={styles.actRowAct}>
                 <Button
                   size="large"
                   disabled={!ready}
@@ -294,7 +297,7 @@ export function ResidentRoundCard({
                   {actLabel}
                 </Button>
               </div>
-            </>
+            </div>
           )}
           {recordedAt === 'not_this_session' ? null : (
             <p className={styles.quiet} role="status">

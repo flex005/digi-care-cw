@@ -13,7 +13,7 @@ import { staffAkinyemi, staffEze } from '@/data/fixtures/organisation'
 import { endSession } from '@/data/access/session-losses'
 import { resetSessionIncidents } from '@/data/access/incident-store'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { NOTHING_SENT_LINE, NO_DETAIL_LINE, IncidentsRoute } from './IncidentsRoute'
+import { NO_DETAIL_LINE, IncidentsRoute } from './IncidentsRoute'
 
 const navigation = vi.hoisted(() => ({ pathname: '/incidents', params: {} }))
 vi.mock('next/navigation', () => ({
@@ -77,9 +77,10 @@ describe('the two findings', () => {
     expect(document.body.textContent).not.toContain('10 incidents')
   })
 
-  it('says nothing is sent', async () => {
+  it('claims nothing about a notification, in either direction', async () => {
     await openList()
-    expect(screen.getByText(NOTHING_SENT_LINE)).toBeInTheDocument()
+    expect(document.querySelector('[data-act-line]')).toBeNull()
+    expect(document.body.textContent).not.toMatch(/no push to a manager/)
   })
 })
 
@@ -160,35 +161,34 @@ describe('the list', () => {
 })
 
 describe('what this reader cannot do', () => {
-  it('refuses a care worker all three, in the role table’s words, drawn once', async () => {
+  it('offers a care worker none of the three, and says nothing about them', async () => {
     await openList(staffEze.id)
-    const refusals = [...document.querySelectorAll('[data-act-line="refused"]')].map(
-      (line) => line.textContent,
-    )
-    expect(refusals).toEqual([
-      'Acknowledging an incident is for a senior carer.',
-      'A manager closes an incident.',
-      'A manager records whether the CQC must be notified.',
-    ])
-    // Not one per row: forty rows of the same refusal is noise.
+    expect(document.querySelectorAll('[data-act-line]')).toHaveLength(0)
     expect(document.querySelector('[data-acknowledge]')).toBeNull()
+    expect(document.body.textContent).not.toMatch(/A manager closes an incident/)
   })
 
-  it('refuses a senior carer closing and the CQC decision, and lets them acknowledge', async () => {
+  it('gives a senior carer the acknowledgement and nothing about the rest', async () => {
     await openList()
-    const refusals = [...document.querySelectorAll('[data-act-line="refused"]')].map(
-      (line) => line.textContent,
-    )
-    expect(refusals).toEqual([
-      'A manager closes an incident.',
-      'A manager records whether the CQC must be notified.',
-    ])
     expect(document.querySelectorAll('[data-acknowledge]')).toHaveLength(2)
+    expect(document.querySelectorAll('[data-act-line]')).toHaveLength(0)
+    expect(document.body.textContent).not.toMatch(/A manager records whether the CQC/)
   })
 
-  it('reports an incident only where the role table says the reader may', async () => {
+  it('opens the report over the list, where the role table says the reader may', async () => {
+    const user = userEvent.setup()
     await openList(staffEze.id)
-    expect(screen.getByRole('link', { name: 'Report an incident' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Report an incident' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(
+      within(dialog).getByRole('heading', {
+        name: 'Report an incident at Rosewood Court',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      await within(dialog).findByRole('radiogroup', { name: 'Who this happened to' }),
+    ).toBeInTheDocument()
   })
 })
 
@@ -202,7 +202,7 @@ describe('acknowledging', () => {
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByRole('heading').textContent).toMatch(/^Acknowledge /)
     expect(dialog.textContent).toMatch(/closing it is a manager’s act/)
-    expect(dialog.textContent).toMatch(/Nobody is notified/)
+    expect(dialog.querySelector('[data-act-line]')).toBeNull()
     await user.click(within(dialog).getByRole('button', { name: 'Acknowledge' }))
 
     await waitFor(() =>

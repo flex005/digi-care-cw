@@ -10,7 +10,6 @@ import { useViewer } from '@/app/session/use-viewer'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { PageHead } from '@/components/layout/PageHead'
 import {
-  ActLine,
   Button,
   Card,
   CardHead,
@@ -31,10 +30,6 @@ import {
   type UploadDraft,
 } from './upload-rules'
 import styles from './documents.module.css'
-
-/** Said where the file would be chosen, because there is no file in this build. */
-export const NO_FILE_LINE =
-  'No file is stored: this build has no server to put one on. What is recorded is that the document exists, what it is, and what is known about it.'
 
 /**
  * Filing a document. Table 3: "Documents — upload", senior carers only, and
@@ -91,19 +86,43 @@ export function UploadDocumentRoute() {
     )
 
   return (
-    <Upload
-      resident={resource.data}
-      site={activeSite}
-      done={done}
-      onFiled={(words) => {
-        setDone(words)
-        setWritten((count) => count + 1)
-      }}
-    />
+    <div className={styles.page}>
+      <PageHead
+        title={`File a document for ${resource.data.preferredName}`}
+        lines={[activeSite.name, 'senior carers file a document']}
+        action={
+          <Link
+            href={`/residents/${residentId}/documents`}
+            className={buttonClassName({ variant: 'secondary' })}
+          >
+            Back to the documents
+          </Link>
+        }
+      />
+      <FileDocumentForm
+        resident={resource.data}
+        site={activeSite}
+        done={done}
+        onFiled={(words) => {
+          setDone(words)
+          setWritten((count) => count + 1)
+        }}
+      />
+    </div>
   )
 }
 
-function Upload({
+/**
+ * The form itself, wherever it is opened.
+ *
+ * **Split from the route so the resident's own Documents tab can open it in a
+ * dialog**, following the care note composer: what differs between a page and
+ * a dialog is the chrome around it and what happens after something is filed,
+ * so those are what the route supplies. The subject travels with the form —
+ * `SubjectStrip` is inside it — because a write surface names who it is about
+ * wherever it is drawn (CLAUDE.md §2).
+ */
+export function FileDocumentForm({
   resident,
   site,
   done,
@@ -154,20 +173,7 @@ function Upload({
   }
 
   return (
-    <div className={styles.page}>
-      <PageHead
-        title={`File a document for ${resident.preferredName}`}
-        lines={[site.name, 'senior carers file a document']}
-        action={
-          <Link
-            href={`/residents/${resident.id}/documents`}
-            className={buttonClassName({ variant: 'secondary' })}
-          >
-            Back to the documents
-          </Link>
-        }
-      />
-
+    <div className={styles.form}>
       <Card>
         <SubjectStrip resident={resident} site={site} />
       </Card>
@@ -218,13 +224,6 @@ function Upload({
               onValueChange={(value) => set({ format: value })}
               options={FORMATS.map((entry) => ({ value: entry, label: entry }))}
             />
-          </div>
-
-          <div className={styles.fileChoice}>
-            <Button variant="secondary" size="large" disabled data-choose-file>
-              Choose a file
-            </Button>
-            <ActLine kind="not_built">{NO_FILE_LINE}</ActLine>
           </div>
         </div>
       </Card>
@@ -294,10 +293,6 @@ function Upload({
               </>
             )}
           </p>
-
-          <ActLine kind="not_performed">
-            Nothing is sent: no manager is told, and nothing leaves this build.
-          </ActLine>
 
           {answer.kind === 'yes' ? (
             <Button

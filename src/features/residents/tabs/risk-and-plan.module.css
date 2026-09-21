@@ -359,3 +359,17 @@
     padding: var(--space-12) var(--space-16);
   }
 }
+
+/*
+ * **Touch targets, below the breakpoint** (CLAUDE.md §7: at least 48px where a
+ * control is navigation or a clinical act). A filter pill and the link into a
+ * record are both navigation, and both measured under 44px on a phone — which
+ * is the WCAG 2.2 floor, let alone what a thumb finds on a moving trolley.
+ */
+@media (width < 1024px) {
+  .rowName {
+    display: flex;
+    align-items: center;
+    min-height: var(--space-48);
+  }
+}

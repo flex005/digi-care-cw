@@ -12,7 +12,7 @@ import { staffAkinyemi, staffEze } from '@/data/fixtures/organisation'
 import { residentDocuments, resetSessionDocuments } from '@/data/access/document-store'
 import { endSession } from '@/data/access/session-losses'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { NO_FILE_LINE, UploadDocumentRoute } from './UploadDocumentRoute'
+import { UploadDocumentRoute } from './UploadDocumentRoute'
 import { EMPTY_UPLOAD, expiryFrom, outstanding } from './upload-rules'
 
 const navigation = vi.hoisted(() => ({
@@ -80,10 +80,11 @@ describe('the rules', () => {
 })
 
 describe('the form', () => {
-  it('says no file is stored, where the file would be chosen', async () => {
+  it('asks for what the document is and offers no file to choose', async () => {
     await openForm()
-    expect(screen.getByRole('button', { name: 'Choose a file' })).toBeDisabled()
-    expect(screen.getByText(NO_FILE_LINE)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Choose a file' })).toBeNull()
+    expect(screen.getByLabelText('Title')).toBeTruthy()
+    expect(document.querySelector('[data-act-line]')).toBeNull()
   })
 
   it('files a document against this resident, in the reader’s name', async () => {
@@ -120,9 +121,10 @@ describe('the form', () => {
     expect(filed()[0]!.expiry.kind).toBe('not_recorded')
   })
 
-  it('refuses a care worker with the role table’s reason', async () => {
+  it('offers a care worker nothing to file with, and no reason either', async () => {
     await openForm(staffEze.id)
-    expect(document.querySelector('[data-act-line="refused"]')?.textContent).toBe(
+    expect(document.querySelector('[data-act-line]')).toBeNull()
+    expect(document.body.textContent).not.toContain(
       'Uploading a document is for a senior carer.',
     )
     expect(screen.queryByRole('button', { name: /^File this for / })).toBeNull()

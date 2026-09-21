@@ -146,7 +146,8 @@ describe('a dose whose window has not opened', () => {
     const quoted = dose.querySelector('[data-act-line="not_stated"]')
     expect(quoted?.textContent).toMatch(/Medications — record Given\/Not Given\/PRN/)
     expect(quoted?.textContent).toMatch(/Medications — countersign controlled drugs/)
-    expect(within(dose).getByRole('button', { name: 'Given' })).toBeDisabled()
+    // The question stands where the answer would be, and no control does.
+    expect(within(dose).queryByRole('button', { name: 'Given' })).toBeNull()
   })
 })
 

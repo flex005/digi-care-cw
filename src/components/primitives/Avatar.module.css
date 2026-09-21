@@ -76,3 +76,18 @@
   font-size: var(--text-display-size);
   line-height: var(--text-display-line);
 }
+
+/*
+ * **A 128px circle is a third of a phone screen.** It is the record head's
+ * check against writing to the wrong record, and at 64px the monogram is still
+ * legible at arm's length while the name, the room and the date of birth — the
+ * rest of that check — get onto the same screen as it.
+ */
+@media (width < 1024px) {
+  .xlarge {
+    width: var(--space-64);
+    height: var(--space-64);
+    font-size: var(--text-h3-size);
+    line-height: var(--text-h3-line);
+  }
+}

@@ -70,3 +70,10 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+
+/* A select is navigation through a list; a thumb needs §7's 48px. */
+@media (width < 1024px) {
+  .trigger {
+    min-height: var(--space-48);
+  }
+}

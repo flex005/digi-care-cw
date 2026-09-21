@@ -14,14 +14,7 @@ import {
 } from '@/data/access/client'
 import { staffLabel } from '@/data/access/team-store'
 import { now } from '@/data/fixtures/clock'
-import {
-  ActLine,
-  Avatar,
-  Button,
-  Dialog,
-  RadioGroup,
-  TextField,
-} from '@/components/primitives'
+import { Avatar, Button, Dialog, RadioGroup, TextField } from '@/components/primitives'
 import { useSignedIn, useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { assertNever } from '@/lib/assert-never'
@@ -222,15 +215,6 @@ export function ReviewNoteControl({
               hint="Required: “Other” is recorded with your words."
               data-other-outcome=""
             />
-          ) : null}
-        </div>
-
-        <div className={styles.dialogLines}>
-          <ActLine kind="not_performed">The note’s author is not notified.</ActLine>
-          {chosen === 'incident_raised' ? (
-            <ActLine kind="not_performed">
-              No incident is created here: this records that one was raised.
-            </ActLine>
           ) : null}
         </div>
 

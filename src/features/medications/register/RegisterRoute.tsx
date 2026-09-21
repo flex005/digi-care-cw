@@ -9,7 +9,6 @@ import type {
   StockCount,
 } from '@/data/types'
 import type { MarRecord } from '@/data/fixtures/medications'
-import type { Answer } from '@/app/session/capabilities'
 import {
   countersignControlledDrug,
   getRegister,
@@ -19,7 +18,6 @@ import { useResource } from '@/data/access/use-resource'
 import { staffLabel } from '@/data/access/team-store'
 import { now } from '@/data/fixtures/clock'
 import {
-  ActLine,
   Button,
   Card,
   CardHead,
@@ -76,10 +74,10 @@ import styles from '../medications.module.css'
 export function RegisterRoute() {
   const viewer = useViewer()
   const answer = viewer.ask('view_controlled_drug_register')
-  return answer.kind === 'yes' ? <Register /> : <RegisterRefused answer={answer} />
+  return answer.kind === 'yes' ? <Register /> : <RegisterRefused />
 }
 
-function RegisterRefused({ answer }: { answer: Answer }) {
+function RegisterRefused() {
   const { activeSite } = useSession()
   return (
     <Card>
@@ -93,11 +91,6 @@ function RegisterRefused({ answer }: { answer: Answer }) {
           {activeSite.name} keeps a controlled drug register: every dose, delivery,
           disposal and stock count, with two signatures. Senior carers keep it.
         </p>
-        <ActPoint
-          answer={answer}
-          label="Open the register"
-          notBuilt="Opening the register is on this page."
-        />
       </div>
     </Card>
   )
@@ -308,11 +301,14 @@ function Found({
               of={`across ${pluralise(residentsWithDrugs, 'resident')} at ${home}`}
             />
           </MetricTiles>
-          <p className={styles.scopeNote}>
-            Counted over every controlled drug prescribed at {home}.
-          </p>
         </div>
       </div>
+      {/* Below the row rather than inside the tile column: in the column it
+          made that side taller than the dark card beside it, and the four
+          cards are one comparison. */}
+      <p className={styles.scopeNote}>
+        Counted over every controlled drug prescribed at {home}.
+      </p>
 
       <AwaitingCard
         waiting={waiting}
@@ -462,6 +458,11 @@ function AwaitingRow({
         <p className={styles.line}>
           Witness 1 has recorded. Awaiting Witness 2 signature.
         </p>
+      </div>
+
+      {/* At the end of the row: the countersignature is what to do about the
+          half-record beside it, not one more line of it. */}
+      <div className={styles.rowActs}>
         <CountersignControl
           entry={entry}
           medication={medication}
@@ -657,7 +658,6 @@ function DrugCard({ drug }: { drug: DrugRegister }) {
             </span>
             .
           </p>
-          <ActLine kind="not_performed">No alert is sent to the manager.</ActLine>
         </div>
       ) : null}
 
@@ -732,6 +732,68 @@ function DrugCard({ drug }: { drug: DrugRegister }) {
               </tbody>
             </table>
           </div>
+
+          {/*
+           * **The same entries as a list, for a screen no table fits.**
+           *
+           * Seven columns is 750px; at 390 the table was a 314px window onto
+           * something twice its width, inside a page that already scrolls
+           * down. Restyling the table itself would have taken its semantics
+           * away — `display: block` drops the implicit roles, and stating them
+           * back is what `jsx-a11y/no-redundant-roles` refuses — so the phone
+           * gets a list that is honestly a list, and the desk keeps a table
+           * that is honestly a table. **Which one shows is CSS alone**
+           * (CLAUDE.md §4), so a capture at a width gets that width's layout.
+           *
+           * Nothing is left out: every column the table has is a line here, in
+           * the order the table has them.
+           */}
+          <ul className={styles.entryList} data-register-entries>
+            {paged.shown.map((entry) => (
+              <li
+                key={`${entry.kind}-${entry.at}`}
+                className={
+                  entry.kind === 'routine_count' && !entry.reconciles
+                    ? styles.entryFlagged
+                    : styles.entry
+                }
+                data-entry={entry.kind}
+              >
+                <p className={styles.entryWhen}>
+                  <span data-numeric>{format.instantDate(entry.at)}</span>
+                  <span data-numeric>{format.time(entry.at)}</span>
+                </p>
+                <p className={styles.entryWhat}>
+                  <WhatHappened entry={entry} unit={medication.stockUnit} />
+                </p>
+                <dl className={styles.entryFacts}>
+                  <div className={styles.entryFact}>
+                    <dt>Quantity</dt>
+                    <dd>
+                      <Quantity entry={entry} unit={medication.stockUnit} />
+                    </dd>
+                  </div>
+                  <div className={styles.entryFact}>
+                    <dt>Running balance</dt>
+                    <dd data-numeric>
+                      {quantityWithUnit(entry.balanceAfter, medication.stockUnit)}
+                    </dd>
+                  </div>
+                  <div className={styles.entryFact}>
+                    <dt>Witness 1</dt>
+                    <dd>{staffLabel(entry.by)}</dd>
+                  </div>
+                  <div className={styles.entryFact}>
+                    <dt>Witness 2</dt>
+                    <dd>
+                      <SecondWitness entry={entry} />
+                    </dd>
+                  </div>
+                </dl>
+              </li>
+            ))}
+          </ul>
+
           <Pager paged={paged} total={entries.length} noun="register entries" />
         </>
       )}

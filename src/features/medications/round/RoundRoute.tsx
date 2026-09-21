@@ -47,9 +47,6 @@ import styles from './round.module.css'
 export const OFF_LIST_LINE =
   'Residents not on your list are not shown: the PRD does not say whether you record their doses.'
 
-export const NO_REMINDER_LINE =
-  'No reminder or alert is sent when a dose goes unrecorded.'
-
 interface RoundData {
   residents: Resident[]
   medications: Medication[]
@@ -100,11 +97,7 @@ export function RoundRoute() {
     [activeSite.id, member.id],
   )
 
-  const head = (
-    <div className={styles.head}>
-      <ActLine kind="not_performed">{NO_REMINDER_LINE}</ActLine>
-    </div>
-  )
+  const head = <div className={styles.head}></div>
 
   if (resource.kind === 'refused') return <NotYourHome refusal={resource} />
 
@@ -209,7 +202,6 @@ export function RoundRoute() {
   return (
     <div className={styles.page}>
       <div className={styles.head}>
-        <ActLine kind="not_performed">{NO_REMINDER_LINE}</ActLine>
         {offList ? <ActLine kind="not_stated">{OFF_LIST_LINE}</ActLine> : null}
       </div>
 

@@ -129,14 +129,30 @@
 }
 
 @media (width < 1024px) {
+  /*
+   * **The three facts on one line, not three.** Room, date of birth and home
+   * stacked took three lines of a screen that has to hold the name, the risk
+   * flags and the tabs; they read as a row of short facts, and the dividers go
+   * because a `border-left` follows an item onto a wrapped line.
+   */
   .facts {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: baseline;
   }
 
   .fact + .fact {
     padding-left: 0;
     border-left: none;
+  }
+
+  /* The photo beside the name rather than above a column of its own. */
+  .identity {
+    gap: var(--space-12) var(--space-16);
+    align-items: flex-start;
+  }
+
+  .who {
+    flex: 1 1 180px;
   }
 }
 
@@ -412,9 +428,34 @@
   border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
 }
 
+/*
+ * The record's context blocks: the risk flags and the three routine cards.
+ * Below the breakpoint they belong to the record's own front page, because
+ * above every tab they were 1,900px a reader scrolled past to reach what they
+ * had opened. CSS alone decides the width half of this; the route decides
+ * which page it is (CLAUDE.md §4).
+ */
+.context {
+  display: contents;
+}
+
+@media (width < 1024px) {
+  .head[data-record-front='false'] .context {
+    display: none;
+  }
+}
+
+/*
+ * **No edge counters on a phone.** They were built for a mouse, which has no
+ * way of moving a row that does not scroll under it; a thumb drags the row
+ * itself. At 390 the two of them took 109px of a 358px strip, which left the
+ * eleven tabs 205px to live in — the counters were the reason the tabs did not
+ * fit, and they told a reader inside the record how many tabs they were not
+ * looking at. CSS alone, never a width read in script (CLAUDE.md §4).
+ */
 @media (width < 1024px) {
   .edge {
-    padding: 0 var(--space-8);
+    display: none;
   }
 }
 
@@ -488,4 +529,25 @@
   color: var(--ink-700);
   font-size: var(--text-body-size);
   line-height: var(--text-body-line);
+}
+
+/*
+ * Who to telephone, on its own line under the name: at the head's right it had
+ * 120px to put a name and an eleven-digit number in.
+ *
+ * **After `.contacts` in the file, not before it.** The first version of this
+ * sat in an existing compact block further up, where the base rule's
+ * `justify-content: flex-end` came later and won on source order — the chips
+ * went full width and stayed pinned to the right anyway.
+ */
+@media (width < 1024px) {
+  .contacts {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+
+  .contacts > * {
+    flex: 1 1 100%;
+  }
 }

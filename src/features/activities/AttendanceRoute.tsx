@@ -19,13 +19,11 @@ import { useViewer } from '@/app/session/use-viewer'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { PageHead } from '@/components/layout/PageHead'
 import {
-  ActLine,
   Avatar,
   Button,
   Card,
   CardHead,
   EmptyState,
-  RadioGroup,
   Select,
   SelectedMark,
   buttonClassName,
@@ -35,14 +33,6 @@ import { assertNever } from '@/lib/assert-never'
 import { pluralise } from '@/lib/format'
 import { countsOf } from './activity-week'
 import styles from './activities.module.css'
-
-/** Said at the act: ACT-02's photo feed and its push notification go nowhere. */
-export const PHOTOS_LINE =
-  'No photo is stored and nothing is sent: the Family Portal is not built, so no family sees anything from here.'
-
-/** Said where the engagement level would be kept, because nothing keeps it. */
-export const ENGAGEMENT_LINE =
-  'Engagement is not kept: the attendance record both products share has no field for it, and adding one is a change to their shared data.'
 
 type Answer =
   | { kind: 'unanswered' }
@@ -360,19 +350,6 @@ function Session({
             onChange={(event) => setSessionNote(event.target.value)}
             data-session-note
           />
-          <ActLine kind="not_built">
-            A note about the session as a whole has nowhere to go: the shared record
-            holds a note per person who joined uninvited, and none about the session.
-            Nothing you write here is kept.
-          </ActLine>
-        </div>
-
-        <div className={styles.field}>
-          <p className={styles.fieldLabel}>Photos</p>
-          <Button variant="secondary" size="large" disabled data-upload-photos>
-            Upload photos (up to 5)
-          </Button>
-          <ActLine kind="not_built">{PHOTOS_LINE}</ActLine>
         </div>
 
         <div className={styles.foot}>
@@ -403,10 +380,6 @@ function Session({
               )}
             </p>
           )}
-
-          <ActLine kind="not_performed">
-            Nothing is sent: the manager’s module is not told, and no family sees this.
-          </ActLine>
 
           <AttendanceAct
             residents={residents}
@@ -577,23 +550,6 @@ function AttendanceRow({
                   data-did-not-attend-note
                 />
               ) : null}
-            </div>
-          ) : null}
-
-          {answer.kind === 'attended' ? (
-            <div className={styles.answerDetail} data-engagement>
-              <RadioGroup
-                legend={`How engaged was ${resident.preferredName}?`}
-                value={undefined}
-                onValueChange={() => undefined}
-                options={[
-                  { value: 'fully', label: 'Fully engaged' },
-                  { value: 'partly', label: 'Partially engaged' },
-                  { value: 'none', label: 'Did not engage' },
-                ]}
-                disabled
-              />
-              <ActLine kind="not_built">{ENGAGEMENT_LINE}</ActLine>
             </div>
           ) : null}
         </div>

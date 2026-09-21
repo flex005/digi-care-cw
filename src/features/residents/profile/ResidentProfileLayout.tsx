@@ -1,6 +1,6 @@
-import { useCallback, type ReactNode } from 'react'
+import { useCallback, useState, type ReactNode } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, usePathname } from 'next/navigation'
 import type { ResidentId } from '@/data/types'
 import { getMedications, getResidentProfile } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
@@ -37,18 +37,28 @@ import styles from './profile.module.css'
  */
 export function ResidentProfileLayout({ children }: { children?: ReactNode }) {
   const params = useParams<{ residentId: string }>()
+  const pathname = usePathname()
   const residentId = params.residentId as ResidentId
+  /* The record's front page, which is the General Information tab's address. */
+  const front = pathname === `/residents/${residentId}`
   const viewer = useViewer()
   const { activeSite } = useSession()
+
+  /* Bumped when a tab writes, so what it wrote is what it then shows. */
+  const [read, setRead] = useState(0)
+  const reload = useCallback(() => setRead((count) => count + 1), [])
 
   const load = useCallback(
     () =>
       Promise.all([getResidentProfile(residentId), getMedications(residentId)]).then(
-        ([profile, medications]): OpenRecord => ({ ...profile, medications }),
+        ([profile, medications]): Omit<OpenRecord, 'reload'> => ({
+          ...profile,
+          medications,
+        }),
       ),
     [residentId],
   )
-  const resource = useResource<OpenRecord>(load, [residentId])
+  const resource = useResource<Omit<OpenRecord, 'reload'>>(load, [residentId, read])
 
   const back = (
     <Link href="/residents" className={styles.back}>
@@ -97,7 +107,7 @@ export function ResidentProfileLayout({ children }: { children?: ReactNode }) {
       )
 
     case 'ready': {
-      const record = resource.data
+      const record: OpenRecord = { ...resource.data, reload }
       const answer = viewer.ask('open_resident_record', record.resident.id)
       if (answer.kind !== 'yes')
         return (
@@ -119,7 +129,7 @@ export function ResidentProfileLayout({ children }: { children?: ReactNode }) {
                   {record.site.name}’s.
                 </p>
               )}
-              <ProfileHeader record={record} />
+              <ProfileHeader record={record} front={front} />
               <TabStrip resident={record.resident} />
               <div className={styles.tab}>{children}</div>
             </div>

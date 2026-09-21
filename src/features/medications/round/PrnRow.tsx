@@ -5,7 +5,7 @@ import { recordPrnOutcomeFor } from '@/data/access/client'
 import { now } from '@/data/fixtures/clock'
 import { useSignedIn, useSiteFormat } from '@/app/session/use-session'
 import { staffLabel } from '@/data/access/team-store'
-import { ActLine, Button, SelectedMark, TextField } from '@/components/primitives'
+import { Button, SelectedMark, TextField } from '@/components/primitives'
 import { Settled, Unrecorded } from '@/components/status'
 import type { PrnAnswer } from './round'
 import styles from './round.module.css'
@@ -97,9 +97,6 @@ export function PrnRow({
             <p className={styles.quiet}>
               Dose given: <span data-numeric>{medication.dose}</span>, as prescribed.
             </p>
-            <ActLine kind="not_built">
-              A dose other than the prescribed one cannot be recorded here.
-            </ActLine>
           </div>
         ) : null}
       </div>
@@ -171,7 +168,6 @@ function PrnGiven({
               Record outcome
             </Button>
           </div>
-          <ActLine kind="not_performed">No reminder is sent after 30 minutes.</ActLine>
         </div>
       )}
     </div>

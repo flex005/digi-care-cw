@@ -42,13 +42,20 @@
   line-height: var(--text-body-sm-line);
 }
 
+/*
+ * `margin-top: auto` puts the fact and the act at the bottom of the card,
+ * which is where they belong on a card stretched to the height of the tiles
+ * beside it — otherwise the rule and the button sat halfway down with empty
+ * colour beneath them. On a card at its own height it adds nothing, so the
+ * `padding-top` is what keeps the rule clear of the words above it.
+ */
 .foot {
   display: flex;
   gap: var(--space-12);
   align-items: center;
   justify-content: space-between;
-  margin-top: var(--space-16);
-  padding-top: var(--space-16);
+  margin-top: auto;
+  padding-top: var(--space-24);
   border-top: 1px solid var(--purple-600);
   color: var(--purple-200);
   font-size: var(--text-body-sm-size);

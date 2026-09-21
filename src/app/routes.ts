@@ -57,7 +57,6 @@ export const ROUTES: RouteDeclaration[] = [
   },
   { path: '/medications/round', screen: 'medicationsRound', inShell: true },
   { path: '/medications/register', screen: 'medicationsRegister', inShell: true },
-  { path: '/medications/interim', screen: 'medicationsInterim', inShell: true },
   { path: '/residents/[residentId]', screen: 'residentGeneral', inShell: true },
   { path: '/residents/[residentId]/needs', screen: 'residentNeeds', inShell: true },
   { path: '/residents/[residentId]/people', screen: 'residentPeople', inShell: true },

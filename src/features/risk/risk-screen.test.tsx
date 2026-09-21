@@ -113,16 +113,16 @@ describe('who may score', () => {
   })
 
   /*
-   * Once, at the head. A refusal repeated down 252 rows is the same refusal 252
-   * times, and it would bury what the rows are for.
+   * Nothing at all: scoring is not this reader's, and an unavailable control
+   * with the reason under it is a thing to read about somebody else's job.
+   * Read-only, not shut out, so the rows are still there to read.
    */
-  it('refuses a care worker once, and never offers Score now on a row', async () => {
+  it('offers a care worker no scoring, and says nothing about whose it is', async () => {
     await openList(staffEze.id)
-    const points = document.querySelectorAll('[data-answer]')
-    expect(points).toHaveLength(1)
-    expect(points[0]?.getAttribute('data-answer')).toBe('not_your_role')
+    expect(document.querySelectorAll('[data-answer]')).toHaveLength(0)
+    expect(document.querySelector('[data-act-line="refused"]')).toBeNull()
     expect(screen.queryByRole('link', { name: 'Score now' })).toBeNull()
-    // Read-only, not shut out: the rows are still there to read.
+    expect(screen.queryByRole('button', { name: /^Score/ })).toBeNull()
     expect(rows().length).toBeGreaterThan(0)
   })
 

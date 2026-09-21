@@ -54,6 +54,10 @@ export function ActionCard({
       </p>
       <p className={styles.of}>{of}</p>
       {detail === undefined ? null : <div className={styles.detail}>{detail}</div>}
+      {/* The fact and the act, both at the bottom of the card: the figure and
+          what it is out of are what the card is for, and the thing to do about
+          it belongs under them rather than floating in the middle of a card
+          that is taller than its words. */}
       <div className={styles.foot}>
         <span>{footLabel}</span>
         <b className={styles.footValue}>{footValue}</b>

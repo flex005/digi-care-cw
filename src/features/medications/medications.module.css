@@ -88,6 +88,15 @@
   min-width: 0;
 }
 
+/*
+ * A row of tiles beside the dark card takes the row's full height, and each
+ * tile takes the row's. Without this the tiles sat at their content height and
+ * the dark card — which stretches — stood taller than the three beside it.
+ */
+.tileColumn > [data-metric-tiles] {
+  flex: 1 1 auto;
+}
+
 .scopeNote {
   color: var(--ink-500);
   font-size: var(--text-caption-size);
@@ -327,12 +336,14 @@
   align-items: center;
 }
 
+/* The acts, at the end of the row and against its right edge. */
 .rowActs {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8) var(--space-16);
-  align-items: center;
-  margin-top: var(--space-4);
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: flex-end;
+  margin-inline-start: auto;
 }
 
 .openLink {
@@ -641,5 +652,144 @@
 
   .table {
     min-width: 720px;
+  }
+}
+
+/*
+ * **On a phone the act takes the width.** A row's act sits at its end on a
+ * desk; at 390 the row stacks anyway, and a pill against one edge under a
+ * paragraph is a target a thumb has to aim for. It fills the line instead.
+ */
+@media (width < 1024px) {
+  .rowActs {
+    flex: 1 1 100%;
+    flex-flow: row wrap;
+    gap: var(--space-8);
+    align-items: center;
+    margin-inline-start: 0;
+  }
+
+  .rowActs > button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
+/* ------------------------------------------------ the register on a phone */
+
+/*
+ * One entry per block, every column the table has, in the table's order. Drawn
+ * only below the breakpoint; the table is drawn only above it. Both are in the
+ * markup and CSS chooses, so a capture at a width gets that width's layout.
+ */
+.entryList {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-16);
+  padding: 0;
+  list-style: none;
+}
+
+.entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-12) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.entry:last-child {
+  border-bottom: none;
+}
+
+/* A count that does not reconcile, marked as the table marks it. */
+.entryFlagged {
+  composes: entry;
+  padding-inline: var(--space-12);
+  border-radius: var(--radius-md);
+  background-color: var(--status-critical-tint);
+}
+
+.entryWhen {
+  display: flex;
+  gap: var(--space-12);
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-semibold);
+}
+
+.entryWhat {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+}
+
+/*
+ * Two facts to a line. One per line made the list four times the table's
+ * height, and a page somebody has to flick through for a minute is its own
+ * kind of unreadable.
+ */
+.entryFacts {
+  display: flex;
+  flex-flow: row wrap;
+  gap: var(--space-12) var(--space-16);
+}
+
+/*
+ * Label over value, two to a line. Label and value on one line looked tidier
+ * in a table and squeezed both into a 70px column here, so "Running balance"
+ * took two lines and "6 tablets" took two more beside it.
+ */
+.entryFact {
+  display: flex;
+  flex: 1 1 45%;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.entryFact dt {
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.entryFact dd {
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+@media (width < 1024px) {
+  .tableScroll {
+    display: none;
+  }
+
+  .entryList {
+    display: flex;
+  }
+}
+
+/*
+ * **Touch targets, below the breakpoint** (CLAUDE.md §7: at least 48px where a
+ * control is navigation or a clinical act). A filter pill and the link into a
+ * record are both navigation, and both measured under 44px on a phone — which
+ * is the WCAG 2.2 floor, let alone what a thumb finds on a moving trolley.
+ */
+@media (width < 1024px) {
+  .pill {
+    min-height: var(--space-48);
+  }
+
+  .rowName {
+    display: flex;
+    align-items: center;
+    min-height: var(--space-48);
   }
 }

@@ -6,7 +6,7 @@ import {
   pinLock,
   type PinCheck,
 } from '@/app/session/medication-pins'
-import { ActLine, Button, DigitField } from '@/components/primitives'
+import { Button, DigitField } from '@/components/primitives'
 import { formatClockTime } from './pin-wording'
 import styles from './MedicationPinStep.module.css'
 
@@ -50,12 +50,6 @@ export function MedicationPinStep({
 
   return (
     <div className={styles.step} data-pin-step={held ? 'held' : 'not_held'}>
-      {held ? null : (
-        <ActLine kind="not_performed">
-          No medication PIN is held for you in this build, so nothing is checked: any
-          four digits confirm.
-        </ActLine>
-      )}
       <p className={styles.signs}>{signs}</p>
       <DigitField
         label="Enter your medication PIN"

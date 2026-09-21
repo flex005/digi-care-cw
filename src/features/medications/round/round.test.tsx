@@ -39,7 +39,7 @@ import { noListYetLine, residentScopeFor } from '@/app/session/resident-scope'
 import { zonedDate } from '@/lib/format'
 import { renderSignedIn } from '@/test/render-signed-in'
 import { DISCREPANCY_LINE } from './DoseRow'
-import { NO_REMINDER_LINE, OFF_LIST_LINE, RoundRoute } from './RoundRoute'
+import { OFF_LIST_LINE, RoundRoute } from './RoundRoute'
 
 const navigation = vi.hoisted(() => ({ pathname: '/medications/round', params: {} }))
 vi.mock('next/navigation', () => ({
@@ -185,7 +185,6 @@ describe('scope', () => {
     expect(shown.length).toBeGreaterThan(0)
     for (const id of shown) expect(list.residents).toContain(id)
     expect(screen.getByText(OFF_LIST_LINE)).toBeInTheDocument()
-    expect(screen.getByText(NO_REMINDER_LINE)).toBeInTheDocument()
   })
 
   it('tells a care worker with no list so, hatched, and shows no round', async () => {
@@ -213,8 +212,7 @@ describe('a controlled drug', () => {
     const line = dose.querySelector('[data-act-line="not_stated"]')
     expect(line?.textContent).toMatch(/Medications — record Given\/Not Given\/PRN/)
     expect(line?.textContent).toMatch(/Medications — countersign controlled drugs/)
-    const given = within(dose).getByRole('button', { name: 'Given' })
-    expect(given).toBeDisabled()
+    expect(within(dose).queryByRole('button', { name: 'Given' })).toBeNull()
     expect(within(dose).queryByRole('button', { name: 'Not given' })).toBeNull()
     expect(card.querySelector('[data-round-blocked]')?.textContent).toMatch(
       /This round cannot be recorded for .+ while the controlled drug is unanswered\./,
@@ -358,7 +356,7 @@ describe('the medication PIN', () => {
     )
   })
 
-  it('accepts any four digits where none is held, and says so first', async () => {
+  it('accepts any four digits where none is held', async () => {
     const { user } = await openRound()
     await atRound(user)
     const castledine = doseOn('res-castledine', () => true)
@@ -368,7 +366,7 @@ describe('the medication PIN', () => {
     )
     await user.click(actFor(card))
     const dialog = await screen.findByRole('dialog')
-    expect(dialog.textContent).toMatch(/No medication PIN is held for you/)
+    expect(dialog.querySelector('[data-act-line]')).toBeNull()
     expect(dialog.textContent).toMatch(/Given: Atorvastatin/)
     await signWith(user, '0000')
     await waitFor(() =>
@@ -459,9 +457,6 @@ describe('PRN', () => {
     )
     const outcome = await screen.findByText('Outcome not recorded yet')
     expect(outcome.closest('[data-state="unrecorded"]')).not.toBeNull()
-    expect(
-      screen.getByText('No reminder is sent after 30 minutes.'),
-    ).toBeInTheDocument()
 
     await user.type(
       screen.getByLabelText('What happened afterwards'),

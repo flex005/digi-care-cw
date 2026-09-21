@@ -33,14 +33,21 @@ import styles from './profile.module.css'
  * acts on next, so it carries the largest figure, and the figure says what it
  * is out of.
  */
-export function ProfileHeader({ record }: { record: OpenRecord }) {
+export function ProfileHeader({
+  record,
+  front,
+}: {
+  record: OpenRecord
+  /** Whether the record's own front page is open, rather than one of its tabs. */
+  front: boolean
+}) {
   const { resident, site, latestNote, dueSoon, medications } = record
   const format = useSiteFormat()
   const gp = resident.gp
   const nextOfKin = resident.importantPeople.nextOfKin
 
   return (
-    <header className={styles.head}>
+    <header className={styles.head} data-record-front={front}>
       <Card>
         <div className={styles.identity}>
           <Avatar photo={resident.photo} name={resident.fullLegalName} size="xlarge" />
@@ -96,54 +103,73 @@ export function ProfileHeader({ record }: { record: OpenRecord }) {
         </div>
       </Card>
 
-      <Card>
-        <CardHead
-          title="Risk flags"
-          subtitle="All five, always shown. Hatched means nobody has recorded it."
-          expand={{ kind: 'link', href: `/residents/${resident.id}/risk-assessments` }}
-        />
-        <BadgeStrip resident={resident} />
-      </Card>
-
-      <div className={styles.routine}>
-        <div className={styles.dueSlot}>
-          <ActionCard
-            kicker={`Medication due · next ${pluralise(MEDICATION_LOOKAHEAD_HOURS, 'hour')}`}
-            figure={formatCount(dueSoon.length)}
-            of={`of ${pluralise(medications.length, 'medicine')} prescribed for ${resident.preferredName}`}
-            detail={dueSoon.length === 0 ? undefined : <DueList due={dueSoon} />}
-            footLabel={dueSoon.length === 0 ? 'Checked against' : 'First window closes'}
-            footValue={
-              dueSoon.length === 0
-                ? `${possessive(resident.preferredName)} current rounds`
-                : firstCloses(dueSoon, format.time)
-            }
-            action={
-              <Link
-                href={`/residents/${resident.id}/medications`}
-                className={buttonClassName({ variant: 'secondary' })}
-              >
-                Open medications
-              </Link>
-            }
+      {/*
+       * **The record's context, and on a phone it belongs to the record's front
+       * page rather than to all eleven tabs.** At 390 these three blocks put
+       * 1,900px of preamble above whatever tab somebody opened — the MAR began
+       * below two full screens of things they had already read. They are drawn
+       * in full at every width on the front page, and one tap away from any
+       * tab. **What travels with a write is the write's own subject strip**
+       * (CLAUDE.md §2), which carries the photograph, the name, the room, the
+       * date of birth and the allergies into every dialog that records
+       * anything — so the check against writing to the wrong record does not
+       * depend on this head being on screen.
+       */}
+      <div className={styles.context}>
+        <Card>
+          <CardHead
+            title="Risk flags"
+            subtitle="All five, always shown. Hatched means nobody has recorded it."
+            expand={{
+              kind: 'link',
+              href: `/residents/${resident.id}/risk-assessments`,
+            }}
           />
+          <BadgeStrip resident={resident} />
+        </Card>
+
+        <div className={styles.routine}>
+          <div className={styles.dueSlot}>
+            <ActionCard
+              kicker={`Medication due · next ${pluralise(MEDICATION_LOOKAHEAD_HOURS, 'hour')}`}
+              figure={formatCount(dueSoon.length)}
+              of={`of ${pluralise(medications.length, 'medicine')} prescribed for ${resident.preferredName}`}
+              detail={dueSoon.length === 0 ? undefined : <DueList due={dueSoon} />}
+              footLabel={
+                dueSoon.length === 0 ? 'Checked against' : 'First window closes'
+              }
+              footValue={
+                dueSoon.length === 0
+                  ? `${possessive(resident.preferredName)} current rounds`
+                  : firstCloses(dueSoon, format.time)
+              }
+              action={
+                <Link
+                  href={`/residents/${resident.id}/medications`}
+                  className={buttonClassName({ variant: 'secondary' })}
+                >
+                  Open medications
+                </Link>
+              }
+            />
+          </div>
+
+          <Card className={styles.routineCard}>
+            <CardHead
+              title="Last care note"
+              expand={{ kind: 'link', href: `/residents/${resident.id}/notes` }}
+            />
+            <LastNote note={latestNote} />
+          </Card>
+
+          <Card className={styles.routineCard}>
+            <CardHead
+              title="Care plan review"
+              expand={{ kind: 'link', href: `/residents/${resident.id}/care-plan` }}
+            />
+            <ReviewBadge state={resident.carePlanReview} emphasis="compact" />
+          </Card>
         </div>
-
-        <Card className={styles.routineCard}>
-          <CardHead
-            title="Last care note"
-            expand={{ kind: 'link', href: `/residents/${resident.id}/notes` }}
-          />
-          <LastNote note={latestNote} />
-        </Card>
-
-        <Card className={styles.routineCard}>
-          <CardHead
-            title="Care plan review"
-            expand={{ kind: 'link', href: `/residents/${resident.id}/care-plan` }}
-          />
-          <ReviewBadge state={resident.carePlanReview} emphasis="compact" />
-        </Card>
       </div>
     </header>
   )

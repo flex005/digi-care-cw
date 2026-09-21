@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { SignOutDialog } from '@/features/auth/SignOutDialog'
 import { MovedClockLine } from './MovedClockLine'
 import { Rail } from './Rail'
 import { SessionExpiry } from './SessionExpiry'
@@ -46,6 +47,9 @@ export function AppShell({ children }: { children?: ReactNode }) {
         <div className={styles.tabbar}>
           <TabBar />
         </div>
+        {/* Mounted once, opened from the rail, the account menu and the
+            profile, so none of them needs to know what signing out costs. */}
+        <SignOutDialog />
       </div>
     </RequireSignIn>
   )

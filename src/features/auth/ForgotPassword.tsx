@@ -3,7 +3,6 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useSession } from '@/app/session/use-session'
 import {
-  ActLine,
   Button,
   PasswordField,
   TextField,
@@ -56,7 +55,6 @@ export function ForgotPasswordRoute() {
           onChange={setAddress}
           autoComplete="username"
         />
-        <ActLine kind="not_performed">No email is sent.</ActLine>
         <AuthActions>
           <Button
             size="large"
@@ -81,9 +79,6 @@ export function ForgotPasswordSentRoute() {
       after={backToSignIn}
     >
       <AuthStack>
-        <ActLine kind="not_performed">
-          Nothing was sent. The link would open the next screen.
-        </ActLine>
         <Link
           href={toHref('/forgot-password/reset', address)}
           className={buttonClassName({ variant: 'secondary', size: 'large' })}
@@ -132,10 +127,6 @@ export function ForgotPasswordResetRoute() {
           autoComplete="new-password"
         />
         <PasswordRules password={password} confirm={confirm} forbidden={forbidden} />
-        <ActLine kind="not_performed">
-          Nothing is saved and no session is ended: any password that meets the rules
-          signs in.
-        </ActLine>
         <AuthActions>
           <Button
             size="large"
@@ -158,7 +149,6 @@ export function ForgotPasswordDoneRoute() {
       data-forgot-step="done"
     >
       <AuthStack>
-        <ActLine kind="not_performed">No confirmation email is sent.</ActLine>
         <Link href="/sign-in" className={buttonClassName({ size: 'large' })}>
           Go to sign in
         </Link>

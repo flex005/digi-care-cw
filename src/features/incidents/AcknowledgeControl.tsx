@@ -3,7 +3,7 @@ import type { Incident, Resident } from '@/data/types'
 import { acknowledgeIncident } from '@/data/access/client'
 import { useSignedIn } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
-import { ActLine, Button, Dialog } from '@/components/primitives'
+import { Button, Dialog } from '@/components/primitives'
 import { assertNever } from '@/lib/assert-never'
 import type { Answer } from '@/app/session/capabilities'
 import { typePhrase } from './incident-words'
@@ -90,9 +90,6 @@ export function AcknowledgeControl({
         }
       >
         <p className={styles.dialogFacts}>{nextWords(answer)}</p>
-        <ActLine kind="not_performed">
-          Nobody is notified: no push to a manager, and no badge anywhere else.
-        </ActLine>
         {error === '' ? null : (
           <p className={styles.formError} role="alert">
             {error}

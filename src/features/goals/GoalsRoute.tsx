@@ -5,9 +5,7 @@ import { getGoalsBySite } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import { now } from '@/data/fixtures/clock'
 import { useSession } from '@/app/session/use-session'
-import { useViewer } from '@/app/session/use-viewer'
 import { ActionCard } from '@/components/layout/ActionCard'
-import { ActPoint } from '@/components/layout/ActPoint'
 import { PageHead } from '@/components/layout/PageHead'
 import {
   Button,
@@ -52,7 +50,6 @@ export const noDateLine = (count: number): string =>
  */
 export function GoalsRoute() {
   const { activeSite } = useSession()
-  const viewer = useViewer()
   const [view, setView] = useState<GoalViewId>('past_target')
   const [at] = useState(() => now().toISOString() as IsoDateTime)
 
@@ -110,7 +107,6 @@ export function GoalsRoute() {
       at={at}
       view={view}
       onView={setView}
-      setOrCloseAnswer={viewer.ask('set_or_close_goal')}
     />
   )
 }
@@ -122,7 +118,6 @@ function Queue({
   at,
   view,
   onView,
-  setOrCloseAnswer,
 }: {
   head: React.ReactNode
   data: { residents: Resident[]; goals: Goal[]; progress: GoalProgressNote[] }
@@ -130,7 +125,6 @@ function Queue({
   at: IsoDateTime
   view: GoalViewId
   onView: (next: GoalViewId) => void
-  setOrCloseAnswer: ReturnType<ReturnType<typeof useViewer>['ask']>
 }) {
   const rows: GoalRow[] = useMemo(() => {
     const byId = new Map(data.residents.map((resident) => [resident.id, resident]))
@@ -191,21 +185,6 @@ function Queue({
        * words rather than on every row: setting, closing and marking a goal
        * achieved are a manager's, and a reader should know the act exists.
        */}
-      <Card>
-        <CardHead
-          title="Changing a goal’s status"
-          subtitle="Open, closed and achieved are somebody else's decision. Drawn here so the record shows whose."
-          expand={{ kind: 'whole' }}
-        />
-        <div className={styles.acts}>
-          <ActPoint
-            answer={setOrCloseAnswer}
-            label="Set or close a goal"
-            notBuilt="Setting and closing goals is not built."
-          />
-        </div>
-      </Card>
-
       <Card>
         <CardHead
           title="Goals"

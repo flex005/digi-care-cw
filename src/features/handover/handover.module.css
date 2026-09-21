@@ -181,7 +181,7 @@
 
 .rowStatus {
   display: flex;
-  flex: 1 1 320px;
+  flex: 1 1 260px;
   flex-direction: column;
   gap: var(--space-8);
   align-items: flex-start;
@@ -213,12 +213,18 @@
  * spans the whole row and reads as a footnote under the record rather than as
  * the answer at the act.
  */
+
+/*
+ * At the end of the row, not under the status. The 380px basis was sized for a
+ * refusal line that is no longer drawn, and it was wide enough to wrap the act
+ * onto its own line under the words it acts on.
+ */
 .rowAct {
   display: flex;
-  flex: 0 1 380px;
+  flex: 0 0 auto;
   flex-direction: column;
   gap: var(--space-8);
-  align-items: flex-start;
+  align-items: flex-end;
   margin-left: auto;
 }
 
@@ -312,4 +318,40 @@
   font-size: var(--text-body-sm-size);
   line-height: var(--text-body-sm-line);
   font-weight: var(--weight-semibold);
+}
+
+/*
+ * **On a phone the act takes the width.** A row's act sits at its end on a
+ * desk; at 390 the row stacks anyway, and a pill against one edge under a
+ * paragraph is a target a thumb has to aim for. It fills the line instead.
+ */
+@media (width < 1024px) {
+  .rowAct {
+    flex: 1 1 100%;
+    align-items: stretch;
+    margin-left: 0;
+  }
+
+  .rowAct > button {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+/*
+ * **Touch targets, below the breakpoint** (CLAUDE.md §7: at least 48px where a
+ * control is navigation or a clinical act). A filter pill and the link into a
+ * record are both navigation, and both measured under 44px on a phone — which
+ * is the WCAG 2.2 floor, let alone what a thumb finds on a moving trolley.
+ */
+@media (width < 1024px) {
+  .pill {
+    min-height: var(--space-48);
+  }
+
+  .rowName {
+    display: flex;
+    align-items: center;
+    min-height: var(--space-48);
+  }
 }

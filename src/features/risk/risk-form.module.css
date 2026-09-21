@@ -1,3 +1,25 @@
+/* The way out of the form: above it and on the left, as the MAR's is. */
+.back {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--space-40);
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.back:hover {
+  background-color: var(--purple-50);
+}
+
 /* Scoring a risk assessment. Flex throughout, never grid. */
 
 .page {
@@ -175,6 +197,28 @@
   padding: var(--space-16);
   border-radius: var(--radius-lg);
   background-color: var(--bg-surface-sunken);
+}
+
+/* The form's own column, the same on the page and inside a dialog. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+.interventionHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.interventionLabel {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  font-weight: var(--weight-medium);
+  line-height: var(--text-body-sm-line);
 }
 
 .interventionActs {

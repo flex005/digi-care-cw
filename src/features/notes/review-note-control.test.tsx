@@ -120,25 +120,18 @@ describe('the review control', () => {
     })
   })
 
-  it('says nobody is told, and that no incident is created when one is said to be raised', async () => {
+  it('claims no notification, whatever the outcome chosen', async () => {
     renderSignedIn(
       staffAkinyemi.id,
       <Harness onChanged={vi.fn()} />,
       'site-rosewood-court',
     )
     const dialog = await openDialog()
-    const performed = () =>
-      [...dialog.querySelectorAll('[data-act-line="not_performed"]')].map(
-        (line) => line.textContent,
-      )
-    expect(performed()).toEqual(['The note’s author is not notified.'])
+    expect(dialog.querySelectorAll('[data-act-line]')).toHaveLength(0)
     await userEvent.click(
       within(dialog).getByRole('radio', { name: 'Incident raised' }),
     )
-    expect(performed()).toEqual([
-      'The note’s author is not notified.',
-      'No incident is created here: this records that one was raised.',
-    ])
+    expect(dialog.querySelectorAll('[data-act-line]')).toHaveLength(0)
     expect(screen.queryByText(/has been notified|was sent|we have told/i)).toBeNull()
   })
 

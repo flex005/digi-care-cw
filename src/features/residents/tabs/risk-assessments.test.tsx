@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { waitFor, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { axe } from 'vitest-axe'
 import type { Resident } from '@/data/types'
 import { RISK_ASSESSMENT_TEMPLATES } from '@/data/types'
@@ -10,6 +11,7 @@ import { CARE_ACTS, signInRoleOf } from '@/app/session/capabilities'
 import { memberById } from '@/data/access/team-store'
 import { renderProfileTab } from '@/test/render-signed-in'
 import { riskAssessmentGaps } from '@/features/residents/profile/record-gaps'
+import { INSTRUMENT_ITEMS } from '@/features/risk/instrument'
 import { RiskAssessmentsTab } from './RiskAssessmentsTab'
 
 /**
@@ -233,10 +235,11 @@ describe('scoring is asked of the role table', () => {
     )
     expect(carriedOut.length).toBeGreaterThan(0)
     for (const row of carriedOut) {
+      // It opens over the record rather than at a second address, so the act
+      // is a button on the row and not a link away from it.
       const act = row.querySelector('[data-score]')
-      expect(act?.getAttribute('href')).toBe(
-        `/residents/${NEVER_ASSESSED_FALLS.id}/risk-assessments/${row.getAttribute('data-template')}`,
-      )
+      expect(act?.tagName).toBe('BUTTON')
+      expect(act?.getAttribute('data-score')).toBe(row.getAttribute('data-template'))
       expect(act?.textContent).toBe(
         row.getAttribute('data-assessed') === 'assessed' ? 'Re-score' : 'Score',
       )
@@ -249,20 +252,81 @@ describe('scoring is asked of the role table', () => {
       expect(row.querySelector('[data-score]')).toBeNull()
   })
 
-  it('gives the care worker the disabled act with the role table’s reason, once', async () => {
-    const tab = await openTab(staffEze.id, NEVER_ASSESSED_FALLS)
-    expect(
-      within(tab).getByRole('button', { name: 'Score an assessment' }),
-    ).toBeDisabled()
+  /*
+   * Scoring opens over the record it is about: the level standing now and the
+   * other eight assessments stay behind it, which a second page took away.
+   */
+  it('opens the instrument over the record, with the subject named', async () => {
+    const user = userEvent.setup()
+    const tab = await openTab(staffAkinyemi.id, NEVER_ASSESSED_FALLS)
 
-    // Asked of the table by person, never by naming a role.
+    const act = tab.querySelector<HTMLElement>('[data-score="falls"]')
+    if (act === null) throw new Error('Falls offers no scoring')
+    await user.click(act)
+
+    const dialog = await screen.findByRole('dialog')
+    expect(
+      within(dialog).getByRole('heading', {
+        name: `Falls Risk, ${NEVER_ASSESSED_FALLS.fullLegalName}`,
+      }),
+    ).toBeInTheDocument()
+    // The write surface names who it is about wherever it is drawn.
+    expect(dialog.querySelector('[data-subject-strip]')).not.toBeNull()
+    expect(
+      within(dialog).getByRole('button', { name: 'Add another intervention' }),
+    ).toBeInTheDocument()
+  })
+
+  /*
+   * The sign-off asks for the medication PIN in a dialog of its own, opened
+   * from inside this one. Nested, it is the failure that would only show in the
+   * product: a confirmation that cannot be reached is a form that cannot be
+   * signed.
+   */
+  it('reaches the medication PIN step from inside the dialog', async () => {
+    const user = userEvent.setup()
+    const tab = await openTab(staffAkinyemi.id, NEVER_ASSESSED_FALLS)
+    await user.click(tab.querySelector<HTMLElement>('[data-score="falls"]')!)
+
+    const dialog = await screen.findByRole('dialog')
+    for (const item of INSTRUMENT_ITEMS) {
+      const choice = dialog.querySelector<HTMLElement>(`[data-choice="${item.id}:0"]`)
+      if (choice === null) throw new Error(`No choice for ${item.id}`)
+      await user.click(choice)
+    }
+
+    const signOff = within(dialog).getByRole('button', {
+      name: 'Sign off this assessment',
+    })
+    await waitFor(() => expect(signOff).toBeEnabled())
+    await user.click(signOff)
+
+    /*
+     * Radix hides the outer dialog from the accessibility tree while the inner
+     * one is open, so the count stays at one and the sign-off is what it names.
+     */
+    const signOffDialog = await screen.findByRole('dialog')
+    expect(within(signOffDialog).getByRole('heading').textContent).toMatch(
+      /^Sign off Falls Risk for /,
+    )
+    expect(
+      within(signOffDialog).getByLabelText('Enter your medication PIN'),
+    ).toBeInTheDocument()
+  })
+
+  it('gives the care worker nothing to score with, and no reason either', async () => {
+    const tab = await openTab(staffEze.id, NEVER_ASSESSED_FALLS)
+
+    // The table still refuses them; the screen simply draws nothing about it.
     const grant = CARE_ACTS.score_risk_assessment[signInRoleOf(memberOf(staffEze.id))]
     if (grant.kind !== 'may_not')
       throw new Error('expected the table to refuse this person')
-    expect(tab.querySelector('[data-act-line="refused"]')?.textContent).toBe(
-      grant.reason,
-    )
-    expect(tab.querySelectorAll('[data-act-line]')).toHaveLength(1)
+
+    expect(
+      within(tab).queryByRole('button', { name: 'Score an assessment' }),
+    ).toBeNull()
+    expect(tab.querySelectorAll('[data-act-line]')).toHaveLength(0)
+    expect(tab.textContent).not.toContain(grant.reason)
     for (const row of tab.querySelectorAll('[data-template]'))
       expect(row.querySelectorAll('a, button, input, textarea')).toHaveLength(0)
   })

@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { STAFF_ROLE_NAMES } from '@/data/types'
 import { useSession } from '@/app/session/use-session'
-import { ActLine, Button, PasswordField, TextField } from '@/components/primitives'
+import { Button, PasswordField, TextField } from '@/components/primitives'
 import { AuthActions, AuthPage, AuthStack, authLinkClass } from './AuthPage'
 import { forbiddenWords, unmetRules } from './password-rules'
 import {
@@ -154,9 +154,6 @@ export function SignInRoute() {
               This address is locked until {hhmm(refusal.until)}, after five attempts
               that were not recognised.
             </p>
-            <ActLine kind="not_performed">
-              No alert email is sent, and no manager is told.
-            </ActLine>
           </div>
         ) : null}
 
@@ -166,18 +163,11 @@ export function SignInRoute() {
           </Button>
         </AuthActions>
 
-        <div className={styles.compactOnly}>
-          <ActLine kind="not_built">
-            Face ID and fingerprint sign-in are not available here.
-          </ActLine>
-        </div>
+        <div className={styles.compactOnly}></div>
       </AuthStack>
 
       <div className={styles.people} data-who-list>
         <p className={styles.peopleTitle}>Who would you like to sign in as?</p>
-        <ActLine kind="not_built">
-          Demonstration: fills in an address and a password that meets the rules.
-        </ActLine>
         <ul className={styles.peopleList}>
           {people.map((member) => {
             const fill = primaryAddress(member, sites)

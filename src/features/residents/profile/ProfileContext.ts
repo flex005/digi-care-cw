@@ -16,6 +16,15 @@ import type { Medication } from '@/data/types'
 export interface OpenRecord extends ResidentProfile {
   /** Everything prescribed, for what the medication figure is out of. */
   medications: Medication[]
+  /**
+   * Read the record again, from the same address.
+   *
+   * A tab that opens a write in a dialog — a consent decision, a document —
+   * is looking at what it just changed. Without this it would go on showing
+   * the answer it loaded with, which in this record is the difference between
+   * "never sought" and a decision somebody has now made.
+   */
+  reload: () => void
 }
 
 export const ProfileContext = createContext<OpenRecord | undefined>(undefined)

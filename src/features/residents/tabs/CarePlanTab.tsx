@@ -125,13 +125,14 @@ export function CarePlanTab() {
               for them is still below.
             </p>
           ) : null}
+          {/*
+           * No "Edit care plan" here. A manager writes and finalises the plan,
+           * which is true of both roles that sign in, so the control was an
+           * act neither reader could ever perform — and CPLN-01 asks for its
+           * absence in as many words: "No Edit button, no Finalise button, no
+           * PIN entry for care workers". The rule stays in `capabilities.ts`.
+           */}
           <div className={styles.acts}>
-            <ActPoint
-              answer={viewer.ask('write_care_plan', resident.id)}
-              label="Edit care plan"
-              notBuilt="Editing a care plan is not built."
-              residentName={resident.preferredName}
-            />
             {/*
              * Conducting a review is a different act from writing the plan:
              * it is the meeting, and it records which parts were still gaps.

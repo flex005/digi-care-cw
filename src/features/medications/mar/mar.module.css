@@ -619,15 +619,45 @@
 /* ---------------------------------------------------------------- compact */
 
 @media (width < 1024px) {
+  /*
+   * **7.5rem, not 9.5.** The medicine column is sticky, so whatever it takes
+   * is taken from every day the reader can see at once: at 9.5rem a 390px
+   * screen showed the name and two rounds. The name wraps instead, which costs
+   * height once rather than width on every column.
+   */
   .medicationHead,
   .medicationCell {
-    width: 9.5rem;
-    min-width: 9.5rem;
-    padding-left: var(--space-16);
+    width: 7.5rem;
+    min-width: 7.5rem;
+    padding-left: var(--space-12);
   }
 
   .medicationColumn {
-    width: 9.5rem;
+    width: 7.5rem;
+  }
+
+  /*
+   * **`min-width: 420px` on a 358px screen is 62px of overflow**, and it put
+   * the whole page into horizontal scroll — the one thing a chart that scrolls
+   * inside its own card must not do, because then two things scroll sideways
+   * and neither is the chart. The group wraps freely here and reads from the
+   * left, like everything else on the page.
+   */
+  .controlsSide {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    min-width: 0;
+    margin-left: 0;
+    text-align: left;
+  }
+
+  .controls {
+    gap: var(--space-16);
+  }
+
+  /* The range and the export are the acts; on a phone they take the width. */
+  .controlsSide > button {
+    flex: 1 1 auto;
   }
 
   .fact {
@@ -637,5 +667,52 @@
 
   .factName {
     flex: none;
+  }
+
+  /*
+   * **The legend two to a line, and its notes off.** Ten entries at one a line
+   * with a sentence each put the chart three screens below the card it is in —
+   * a key to a chart nobody had reached yet. The swatch and its name are what
+   * a reader checks a glyph against; the sentence is on the cell itself, which
+   * opens when it is tapped.
+   */
+  .legendItem {
+    flex: 1 1 45%;
+    min-width: 0;
+  }
+
+  .legendNote {
+    display: none;
+  }
+
+  /*
+   * **The row's total stops being sticky here, and gets narrower.**
+   *
+   * Two sticky columns on a 358px window left 108px for the chart between
+   * them: one day of rounds and a sliver of the next. The rule they were
+   * written for — a total that scrolls away is a total nobody reads — is a
+   * desk rule, and on a phone it costs the thing the total is about. It sits
+   * at the end of its row, where scrolling right reaches it, and every row
+   * ends in the same place.
+   */
+
+  /*
+   * `right: auto`, not `position: static`. The header cell is sticky twice —
+   * `.grid thead th` pins it to the top, `.totalHead` pins it to the right —
+   * and the top rule is a descendant selector, so it outranks a class and the
+   * cell stayed sticky whatever this said about `position`. The measured tell
+   * was a "This week" header at x=262 with its own column at x=892. Releasing
+   * the inline offset stops the horizontal stick and leaves the vertical one,
+   * which is the one still worth having.
+   */
+  .totalHead,
+  .totalCell {
+    right: auto;
+    width: 7rem;
+    min-width: 7rem;
+  }
+
+  .totalColumn {
+    width: 7rem;
   }
 }

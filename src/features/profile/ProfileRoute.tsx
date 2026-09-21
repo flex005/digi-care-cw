@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { useState } from 'react'
 import { STAFF_ROLE_NAMES } from '@/data/types'
 import { useSession, useSignedIn, useSiteFormat } from '@/app/session/use-session'
@@ -11,7 +10,8 @@ import {
 import { addressFor } from '@/features/auth/addresses'
 import { forbiddenWords } from '@/features/auth/password-rules'
 import { PasswordRules } from '@/features/auth/PasswordRules'
-import { PIN_CANNOT_CHECK, PIN_RULES } from '@/features/auth/pin-rules'
+import { PIN_RULES } from '@/features/auth/pin-rules'
+import { askToSignOut } from '@/features/auth/SignOutDialog'
 import { authIcons } from '@/features/auth/auth.icons'
 import { Icon } from '@/components/icon/Icon'
 import { ActPoint } from '@/components/layout/ActPoint'
@@ -22,24 +22,19 @@ import {
   Button,
   Card,
   CardHead,
+  Dialog,
   DigitField,
   PasswordField,
   Switch,
-  buttonClassName,
 } from '@/components/primitives'
 import { pluralise } from '@/lib/format'
 import {
-  CURRENT_PASSWORD_UNCHECKED,
-  PASSWORD_NOT_CHANGED,
-  PIN_CHANGED_THIS_SESSION,
   PIN_LOCK_IS_SHARED,
-  PIN_NOT_HELD,
   outstandingPassword,
   passwordReady,
   pinReadyToSubmit,
 } from './credentials'
 import {
-  NOTHING_IS_SENT,
   NOTIFICATIONS,
   PREFERENCE_QUESTION,
   canBeTurnedOff,
@@ -82,10 +77,6 @@ export const DEVICE_LINE =
 export const SHARED_DEVICE_LINE =
   'What the mode describes already happens: every sign-out here clears everything, because every record this session wrote is in this tab and nowhere else.'
 
-/** Said at the sessions list, which cannot be complete. */
-export const ONE_SESSION_LINE =
-  'Only this tab can be listed: nothing in this build holds a session, so a session on another device would not appear here and its absence is not evidence that there is none.'
-
 export function ProfileRoute() {
   const { member, at } = useSignedIn()
   const { sites, activeSite } = useSession()
@@ -106,13 +97,14 @@ export function ProfileRoute() {
           pluralise(theirs.length, 'home'),
         ]}
         action={
-          <Link
-            href="/sign-out"
-            className={buttonClassName({ variant: 'destructive', size: 'large' })}
+          <Button
+            variant="destructive"
+            size="large"
+            onClick={askToSignOut}
             data-sign-out-link
           >
             Sign out
-          </Link>
+          </Button>
         }
       />
 
@@ -129,10 +121,6 @@ export function ProfileRoute() {
               name={member.ref.fullName}
               size="xlarge"
             />
-            <Button variant="secondary" size="small" disabled data-choose-photo>
-              Add a photograph
-            </Button>
-            <ActLine kind="not_built">{NO_PHOTO_LINE}</ActLine>
           </div>
 
           <dl className={styles.fields}>
@@ -206,7 +194,6 @@ export function ProfileRoute() {
           expand={{ kind: 'whole' }}
         />
         <NotificationTable />
-        <ActLine kind="not_performed">{NOTHING_IS_SENT}</ActLine>
         <ActLine kind="not_stated">{PREFERENCE_QUESTION}</ActLine>
       </Card>
 
@@ -216,24 +203,20 @@ export function ProfileRoute() {
           subtitle="Drawn on both layouts, where PROF-01 asks for them on the phone"
           expand={{ kind: 'whole' }}
         />
+        {/*
+         * **Named, not drawn.** Scope puts all three of these out of this
+         * product, and a switch nobody can move is a control that refuses —
+         * so each is a sentence saying what it would do and that it is not
+         * here. CLAUDE.md, Scope.
+         */}
         <div className={styles.switches}>
           <div className={styles.deviceRow} data-device="biometric">
-            <Switch
-              label="Sign in with a fingerprint or face"
-              checked={false}
-              onCheckedChange={() => undefined}
-              disabled
-            />
-            <ActLine kind="not_built">{DEVICE_LINE}</ActLine>
+            <p className={styles.deviceName}>Sign in with a fingerprint or face</p>
+            <p className={styles.said}>{DEVICE_LINE}</p>
           </div>
           <div className={styles.deviceRow} data-device="shared">
-            <Switch
-              label="This is a shared device"
-              checked={false}
-              onCheckedChange={() => undefined}
-              disabled
-            />
-            <ActLine kind="not_built">{SHARED_DEVICE_LINE}</ActLine>
+            <p className={styles.deviceName}>This is a shared device</p>
+            <p className={styles.said}>{SHARED_DEVICE_LINE}</p>
           </div>
         </div>
       </Card>
@@ -252,22 +235,21 @@ export function ProfileRoute() {
                 Signed in {format.dateTime(at)} · {activeSite.name}
               </p>
             </div>
-            <Link
-              href="/sign-out"
-              className={buttonClassName({ variant: 'secondary', size: 'small' })}
+            <Button
+              variant="secondary"
+              size="small"
+              onClick={askToSignOut}
               data-end-session
             >
               End this session
-            </Link>
+            </Button>
           </li>
         </ul>
         {/* **No hatch here.** A session on another device is not a care record
             somebody failed to write, and spending the one signal that means
             "nobody has recorded this" on a device list would blunt it. The
             words carry the whole claim instead. */}
-        <div className={styles.noOthers}>
-          <ActLine kind="not_built">{ONE_SESSION_LINE}</ActLine>
-        </div>
+        <div className={styles.noOthers}></div>
       </Card>
     </div>
   )
@@ -292,64 +274,91 @@ function PasswordCard({
   const [confirm, setConfirm] = useState('')
   const [done, setDone] = useState(false)
 
+  const [open, setOpen] = useState(false)
+
   const waiting = outstandingPassword(current, next, confirm, forbidden)
   const ready = passwordReady(current, next, confirm, forbidden)
 
+  const clear = () => {
+    setCurrent('')
+    setNext('')
+    setConfirm('')
+  }
+
+  /*
+   * **The three fields are in a dialog, and the card says what they are for.**
+   * Settings is a screen somebody reads down; two password forms and a PIN
+   * form open on it put three sets of empty boxes between the reader and
+   * everything else, and none of them is what they came for.
+   */
   return (
     <Card>
-      <CardHead
-        title="Change your password"
-        subtitle="The same rules the account was set up under"
-        expand={{ kind: 'whole' }}
-      />
+      <div className={styles.cardHeadRow}>
+        <div className={styles.cardHeading}>
+          <CardHead
+            title="Change your password"
+            subtitle="The same rules the account was set up under"
+            expand={{ kind: 'whole' }}
+          />
+        </div>
+        <Button
+          size="large"
+          onClick={() => {
+            clear()
+            setOpen(true)
+          }}
+          data-open-password
+        >
+          Change password
+        </Button>
+      </div>
       {done ? (
         <p className={styles.said} data-password-done>
           The rules are met, {firstName}. Nothing was saved.
         </p>
       ) : null}
-      <div className={styles.form}>
-        <PasswordField
-          label="Current password"
-          value={current}
-          onChange={setCurrent}
-          autoComplete="current-password"
-        />
-        <ActLine kind="not_built">{CURRENT_PASSWORD_UNCHECKED}</ActLine>
-        <PasswordField
-          label="New password"
-          value={next}
-          onChange={setNext}
-          autoComplete="new-password"
-        />
-        <PasswordField
-          label="Confirm new password"
-          value={confirm}
-          onChange={setConfirm}
-          autoComplete="new-password"
-        />
-        <PasswordRules password={next} confirm={confirm} forbidden={forbidden} />
-        {waiting.length > 0 ? (
-          <p className={styles.waiting} data-password-waiting>
-            Still waiting for {waiting.join(', ')}.
-          </p>
-        ) : null}
-        <ActLine kind="not_performed">{PASSWORD_NOT_CHANGED}</ActLine>
-        <div>
-          <Button
-            size="large"
-            disabled={!ready}
-            onClick={() => {
-              setDone(true)
-              setCurrent('')
-              setNext('')
-              setConfirm('')
-            }}
-            data-change-password
-          >
-            Change password
-          </Button>
+      <Dialog open={open} onOpenChange={setOpen} title="Change your password">
+        <div className={styles.form}>
+          <PasswordField
+            label="Current password"
+            value={current}
+            onChange={setCurrent}
+            autoComplete="current-password"
+          />
+          <PasswordField
+            label="New password"
+            value={next}
+            onChange={setNext}
+            autoComplete="new-password"
+          />
+          <PasswordField
+            label="Confirm new password"
+            value={confirm}
+            onChange={setConfirm}
+            autoComplete="new-password"
+          />
+          <PasswordRules password={next} confirm={confirm} forbidden={forbidden} />
+          {waiting.length > 0 ? (
+            <p className={styles.waiting} data-password-waiting>
+              Still waiting for {waiting.join(', ')}.
+            </p>
+          ) : null}
+          <div className={styles.formAct}>
+            <Button
+              size="large"
+              disabled={!ready}
+              onClick={() => {
+                setDone(true)
+                clear()
+                setOpen(false)
+              }}
+              data-change-password
+            >
+              Save new password
+            </Button>
+          </div>
         </div>
-      </div>
+      </Dialog>
     </Card>
   )
 }
@@ -393,74 +402,100 @@ function PinCard({ staffId }: { staffId: Parameters<typeof hasChosenPin>[0] }) {
     setConfirm('')
   }
 
+  const [open, setOpen] = useState(false)
+
   return (
     <Card>
-      <CardHead
-        title="Change your medication PIN"
-        subtitle="Four digits, and the same PIN signs a dose, a handover and a risk assessment"
-        expand={{ kind: 'whole' }}
-      />
+      <div className={styles.cardHeadRow}>
+        <div className={styles.cardHeading}>
+          <CardHead
+            title="Change your medication PIN"
+            subtitle="Four digits, and the same PIN signs a dose, a handover and a risk assessment"
+            expand={{ kind: 'whole' }}
+          />
+        </div>
+        <Button
+          size="large"
+          onClick={() => {
+            setCurrent('')
+            setNext('')
+            setConfirm('')
+            setOpen(true)
+          }}
+          data-open-pin
+        >
+          Change PIN
+        </Button>
+      </div>
       {said === undefined ? null : (
         <p className={styles.said} data-pin-said>
           {said}
         </p>
       )}
-      <div className={styles.form}>
-        {held ? (
-          <>
-            <DigitField
-              label="Current medication PIN"
-              length={4}
-              value={current}
-              onValueChange={setCurrent}
-              masked
-            />
-            <ActLine kind="not_performed">{PIN_LOCK_IS_SHARED}</ActLine>
-          </>
-        ) : (
-          <ActLine kind="not_built">{PIN_NOT_HELD}</ActLine>
-        )}
-        <DigitField
-          label="New medication PIN"
-          length={4}
-          value={next}
-          onValueChange={setNext}
-          masked
-        />
-        <DigitField
-          label="Confirm new medication PIN"
-          length={4}
-          value={confirm}
-          onValueChange={setConfirm}
-          masked
-        />
-        {/* A mark as well as the colour: colour is never the sole carrier of
+      <Dialog open={open} onOpenChange={setOpen} title="Change your medication PIN">
+        <div className={styles.form}>
+          {held ? (
+            <>
+              <DigitField
+                label="Current medication PIN"
+                length={4}
+                value={current}
+                onValueChange={setCurrent}
+                masked
+              />
+              {/* Not a notice about this build: it is one PIN, and the lock is
+                the same lock wherever it is entered. */}
+              <p className={styles.said}>{PIN_LOCK_IS_SHARED}</p>
+            </>
+          ) : null}
+          <DigitField
+            label="New medication PIN"
+            length={4}
+            value={next}
+            onValueChange={setNext}
+            masked
+          />
+          <DigitField
+            label="Confirm new medication PIN"
+            length={4}
+            value={confirm}
+            onValueChange={setConfirm}
+            masked
+          />
+          {/* A mark as well as the colour: colour is never the sole carrier of
             whether a rule is met. The same treatment as the password rules and
             the account setup screen, which is where these three came from. */}
-        <ul className={styles.ruleList} data-pin-rules>
-          {PIN_RULES.map((rule) => {
-            const met = rule.met(next, confirm)
-            return (
-              <li
-                key={rule.id}
-                className={styles.rule}
-                data-rule={rule.id}
-                data-met={met}
-              >
-                <Icon name={met ? authIcons.met : authIcons.unmet} size={16} />
-                {rule.says}
-              </li>
-            )
-          })}
-        </ul>
-        <ActLine kind="not_built">{PIN_CANNOT_CHECK}</ActLine>
-        <ActLine kind="not_performed">{PIN_CHANGED_THIS_SESSION}</ActLine>
-        <div>
-          <Button size="large" disabled={!ready} onClick={change} data-change-pin>
-            Change PIN
-          </Button>
+          <ul className={styles.ruleList} data-pin-rules>
+            {PIN_RULES.map((rule) => {
+              const met = rule.met(next, confirm)
+              return (
+                <li
+                  key={rule.id}
+                  className={styles.rule}
+                  data-rule={rule.id}
+                  data-met={met}
+                >
+                  <Icon name={met ? authIcons.met : authIcons.unmet} size={16} />
+                  {rule.says}
+                </li>
+              )
+            })}
+          </ul>
+          <div className={styles.formAct}>
+            <Button
+              size="large"
+              disabled={!ready}
+              onClick={() => {
+                change()
+                setOpen(false)
+              }}
+              data-change-pin
+            >
+              Save new PIN
+            </Button>
+          </div>
         </div>
-      </div>
+      </Dialog>
     </Card>
   )
 }
@@ -476,38 +511,72 @@ function NotificationTable() {
   const [, redraw] = useState(0)
 
   return (
-    <div className={styles.scroll}>
-      <table className={styles.table}>
-        <caption className={styles.caption}>
-          {NOTIFICATIONS.length} notifications, in the PRD’s own order, with what each
-          one can be turned off
-        </caption>
-        <thead>
-          <tr>
-            <th scope="col">Notification</th>
-            <th scope="col">Channel</th>
-            <th scope="col">When</th>
-            <th scope="col">Who it reaches</th>
-            <th scope="col">Turning it off</th>
-          </tr>
-        </thead>
-        <tbody>
-          {NOTIFICATIONS.map((kind) => (
-            <tr key={kind.id} data-notification={kind.id}>
-              <th scope="row" className={styles.rowHead}>
-                {kind.what}
-              </th>
-              <td>{kind.channel}</td>
-              <td>{kind.when}</td>
-              <td>{kind.reaches}</td>
-              <td>
-                <OffSwitch kind={kind} onChange={() => redraw((n) => n + 1)} />
-              </td>
+    <>
+      <div className={styles.scroll}>
+        <table className={styles.table} data-notification-table>
+          <caption className={styles.caption}>
+            {NOTIFICATIONS.length} notifications, in the PRD’s own order, with what each
+            one can be turned off
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Notification</th>
+              <th scope="col">Channel</th>
+              <th scope="col">When</th>
+              <th scope="col">Who it reaches</th>
+              <th scope="col">Turning it off</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {NOTIFICATIONS.map((kind) => (
+              <tr key={kind.id} data-notification={kind.id}>
+                <th scope="row" className={styles.rowHead}>
+                  {kind.what}
+                </th>
+                <td>{kind.channel}</td>
+                <td>{kind.when}</td>
+                <td>{kind.reaches}</td>
+                <td>
+                  <OffSwitch kind={kind} onChange={() => redraw((n) => n + 1)} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/*
+       * **The same twelve as a list, for a screen no five-column table fits.**
+       * At 390 the table was 650px inside a 314px window. Restyling the table
+       * would take its semantics with it, so the phone gets a list that is
+       * honestly a list and the desk keeps the table; CSS chooses (CLAUDE.md
+       * §4). Every row and every column is in both.
+       */}
+      <ul className={styles.kindList} data-notification-list>
+        {NOTIFICATIONS.map((kind) => (
+          <li className={styles.kind} key={kind.id} data-notification={kind.id}>
+            <p className={styles.kindWhat}>{kind.what}</p>
+            <dl className={styles.kindFacts}>
+              <div className={styles.kindFact}>
+                <dt>Channel</dt>
+                <dd>{kind.channel}</dd>
+              </div>
+              <div className={styles.kindFact}>
+                <dt>When</dt>
+                <dd>{kind.when}</dd>
+              </div>
+              <div className={styles.kindFact}>
+                <dt>Who it reaches</dt>
+                <dd>{kind.reaches}</dd>
+              </div>
+            </dl>
+            <div className={styles.kindAct}>
+              <OffSwitch kind={kind} onChange={() => redraw((n) => n + 1)} />
+            </div>
+          </li>
+        ))}
+      </ul>
+    </>
   )
 }
 

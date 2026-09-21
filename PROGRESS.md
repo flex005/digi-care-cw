@@ -791,3 +791,109 @@ The swatch is also aligned to the first line of its words rather than centred on
 The cell is `inline-flex` now, so the `<td>`'s own `text-align: center` centres it and nothing has to reach into the box from outside. Measured after: every legend entry has its swatch flush at the item's left edge with the same 8px gap to the words, and the grid's cells centre on 375, 425, 476 under headers at 374, 425, 476.
 
 **The doses were also pinned to the top of their rows.** A row is as tall as the medication beside it — name, dose, tags — and the square sat at the top of that, level with nothing. `vertical-align: middle`: 23px above and 24px below in an 81px row.
+
+---
+
+## Where an act sits, four screens at a time (19/09/2026)
+
+Four small changes with one rule behind them: **the act goes at the right of the card's head, and the way out goes above the card on the left.** Under the head an act reads as a footnote to the subtitle; in the head's action slot the way *out* reads as the thing the screen is for — which on the assessment form is scoring, at the foot of it.
+
+- Scoring a risk assessment: "Back to Ada's assessments" moved from the head's action slot to a pill above the head, the shape the MAR now uses.
+- A resident's documents: "File a document" moved from under the findings, where it read as a fourth finding, to the right of the head.
+- The care plan: "Edit care plan" is gone — and **CPLN-01 asked for that in as many words**, "No Edit button, no Finalise button, no PIN entry for care workers". That is the second screen today where the PRD had already said not to draw a control the build was drawing. The first was the Needs tab. Both were added to carry a refusal, and then carrying the refusal became the reason they existed.
+- Consent: the head stopped announcing "Recording a decision is on each consent type below" to somebody who may record one. The control is a few lines below and in view; the sentence was a signpost to the thing beside it.
+
+The two screen tests that covered the removed controls now assert the stronger thing — that the tab draws no such control and repeats none of the role table's reason.
+
+---
+
+## Taking the refusals out (19/09/2026)
+
+The design owner asked for everything to do with manager cautions, greyed-out buttons and lines explaining that the build is not connected to a backend, a family portal or an admin panel. Surveyed first: **68 `ActLine`s (22 not_built, 35 not_performed, 3 not_stated, 8 refused), 33 `ActPoint`s across 29 files, 53 disabled controls.** Two-thirds of it turned out to be one edit.
+
+**`ActPoint` was the lever.** It drew a disabled `Button` plus the line for whichever answer the role table gave, so every screen that asked the table got the refusal for free — and narrowing it to "draw the PRD's open question and nothing else" took out thirty-odd unavailable controls across twenty-eight screens in one file. The rest was per-file: 65 `ActLine`s, six always-disabled controls, and the constants that fed them.
+
+**The one that can mislead rather than merely declutter is `not_performed`**, and it was flagged before cutting. "Nothing is sent: no manager is told" is the line whose removal leaves a screen that could be read as a screen that sends. It is in `docs/DEPARTURES.md` in full instead — the deliverable is read by developers, and the place a developer looks for what the real thing must do is that file, not a caption inside a rectangle.
+
+Two kinds of disabled control stayed, and the distinction is what makes the rest defensible: **a submit button waiting on its own form**, and **a dose before its round window opens**. Neither says anything about what this product cannot do; both are about what has not happened yet, and both become live without the reader going anywhere.
+
+**The sweep found one screen that was only a refusal.** Add interim's entire content was the role table's reason — neither role adds an interim medication — so the tab, the route and the screen went with it. `check-nav-reach` still passes at 13 items.
+
+Three mechanical failures worth writing down, all of the same shape: **a JSX element removed from inside a conditional leaves the conditional behind.** `{settingUp ? (\n) : null}` is a syntax error, and it happened five times — in `CodeStep`, `MedicationPinStep`, `OmissionsRoute`, `CareNotesRoute` and `ReviewNoteControl`. The typechecker caught every one, which is the point: the script that did the removal could not have known, and did not have to.
+
+**One removal went to the wrong occurrence.** Deleting `const viewer = useViewer()` from `CareNotesRoute` took the first one in the file, which belonged to a different component, and the typecheck named five call sites that had lost their binding. Replacing an exact string that occurs twice is the same defect as a pattern that matches too much (§8, the fifth entry): assert the count, or address the occurrence.
+
+53 tests across 22 files then asserted the thing that had just been removed. Every one was rewritten to assert the new truth rather than deleted, and most got a stronger claim than they had: not "the refusal says X" but "nothing draws a control and the reason appears nowhere on the screen".
+
+## Writing over the record, not at a second address (19/09/2026)
+
+Filing a document, recording a consent decision and scoring a risk assessment all opened a page. Each is now a dialog over the record it is about, following `NoteComposer`: the route keeps the page head and the way out, the form keeps the fields, the role question and the save, `SubjectStrip` travels inside the form. The addresses stay and still work.
+
+**A tab that writes had no way to re-read the record.** The Consent tab reads `resident.consents` from the profile context, which the layout loads once; a decision recorded in a dialog would have left "never sought" on screen beside it. `OpenRecord` gained `reload()`. In this record that is the difference between an absence and a record, which is the whole invariant.
+
+**A dialog inside a dialog was worth a test, and the test was wrong before the code was.** Signing off an assessment opens the medication PIN step in its own dialog. Asserting two dialogs failed — Radix hides the outer one from the accessibility tree while the inner is open, so the count stays at one. The behaviour was right; the assertion assumed a tree Radix deliberately does not build.
+
+Interventions can now be removed one at a time, drawn only where there is more than one row, so the last one cannot be taken away and nothing there is a control that refuses.
+
+---
+
+## Acts at the end of the row, and four more dialogs (20/09/2026)
+
+Nine corrections in one pass, and they turned out to be two rules.
+
+**The first is the row-level twin of a rule already written down.** "The act goes at the right of the card's head" was settled four screens at a time last week; the same thing inside a list row had never been said, so five lists had grown the opposite habit — the act inside the content column, under the words it acts on. Care notes, handover, omissions, the register and the round's doses all moved. The shape that keeps it there is the same in each: `flex: 0 0 auto` and an auto inline-start margin, so the content keeps the width it needs and the act takes only its own.
+
+**The handover's was diagnosable rather than a matter of taste.** Its act column carried `flex: 0 1 380px` — sized for a refusal line the build stopped drawing in the last pass — which was wide enough that the row wrapped it underneath the status. The layout had been correct for content that no longer existed.
+
+**`ActionCard` was build-wide, so it was the one worth measuring.** The foot fact and the act now share a line and wrap to two where the card is too narrow. Measured after: on Omissions they are one line with the act flush at the foot's right edge; on the register the button is long enough to wrap, which is the designed behaviour rather than a miss.
+
+**The four figures cards are one height by construction, not by luck.** `align-items: stretch` was already on the row and on the tiles, and the tiles still sat at their content height — because the tile row itself did not grow inside its column. One rule (`flex: 1 1 auto` on the tiles) plus moving the scope note out of that column, and the register measures 255px on all four.
+
+**The second rule is the one from last week, applied to what was left.** Five more acts opened a page; they open a dialog now. The correction is the one that was actually wrong rather than merely inconvenient: it replaced the button with the form *in place*, which pushed the note being corrected off the top of the screen — the only thing a correction is written against.
+
+**The documents one had a defect behind it.** "Upload a document" on the home's library was a link to `/residents`: it did not open a form at all, it sent the reader to find a person, open their record, find the Documents tab and file it there, with nothing bringing them back. The dialog asks who the document is about and draws no form until it has an answer, which is the same question the old route asked by navigation, asked in place — and it refuses the wrong-subject failure before a field exists.
+
+**A nested dialog measured as one, and the assertion was what was wrong.** Scoring an assessment opens the PIN step in its own dialog; asserting two `role="dialog"` elements failed, because Radix hides the outer one from the accessibility tree while the inner is open. Written down here because it is the second time this week that a test encoded a DOM the library deliberately does not build.
+
+Every placement in this pass was checked by measuring the elements in the running build — right edges against their row's, tops against the content beside them — rather than by looking at a screenshot and agreeing with it.
+
+---
+
+## The card foot, and a page that was asking the wrong way (20/09/2026)
+
+**The `ActionCard` foot went back.** Putting the fact and the act on one line was reaching for the right thing by the wrong means: what was actually wrong is that on a card stretched to the height of the tiles beside it, the rule and the button sat halfway down with empty colour underneath. `margin-top: auto` on the foot says that directly and keeps the shape the card always had. Measured: the Omissions card is 390px and the button's underside is 24px clear of the card's, which is the card's own padding rather than a number anybody chose.
+
+**Signing out was a page, and the page was the defect.** Leaving the screen to be asked whether you want to leave the screen loses what you were looking at before you have agreed to lose anything — and "Stay signed in" then put you on the home page, not back where you were. It asks over the screen now, from the rail, the account menu and the profile's two ways in; `/sign-out` stays as the same question at its own address, and both render one `SignOutConfirmation`.
+
+**Two things worth writing down came out of it.**
+
+The dialog is opened by a module-level counter, the shape `SavedNoteToast` already uses. The first version started `answered` at 0, so **a dialog mounted after a question had been asked opened on it** — which showed up as the next test in the file finding the page hidden behind a modal nobody had opened. It is not a test artefact: a sign-in after a sign-out mounts a second shell, and it would have opened on the first shell's question. `useState(() => asked)` starts each dialog even with what has already been asked.
+
+**`check-session-losses` earned its keep.** The three `*Holdings` calls moved from `SignOutRoute.tsx` into the new file, and the guard failed by name on all three on the first run — which is exactly the half of it that exists to catch a store falling out of the list. The fix was to point the guard at the file that now composes the list; the alternative, that nobody noticed a sign-out had stopped warning about a resident's drafts, is the failure it was written for.
+
+The rail's new test was broken on purpose before it was trusted: the click was changed back to a navigation, the mutation confirmed in the file, and the test failed on the missing dialog. Reversed by hand, not by `git checkout` (§8).
+
+---
+
+## The phone, surveyed before it was changed (20/09/2026)
+
+The build had **twenty** compact rules in it. That is the measure of the problem: a desk layout narrowed, not a phone layout designed.
+
+**The survey came first.** All 24 screens at 390 wide, each asked four questions: does the page scroll sideways, how tall is it, what overflows the viewport, and how many controls are under 44px. It named things no screenshot would have:
+
+- The MAR's `.controlsSide` carried `min-width: 420px` on a 358px screen — **62px of overflow that put the whole page into horizontal scroll**, which is the one thing a chart that scrolls inside its own card must not do, because then two things scroll sideways and neither is the chart.
+- The resident record's tab strip had **205px for eleven tabs**, because the two "N more" counters were taking 109px of 358 to say how many tabs did not fit. The counters were the reason the tabs did not fit.
+- The MAR chart began at **y=1,936** — two full screens below the top of the page it is the whole point of.
+- 33 controls under 44px on the residents list, 28 on medications, 22 on the round.
+
+**The biggest change is the one about where a record's context belongs.** `ProfileHeader` drew the identity, the risk flags and the three routine cards above all eleven tabs. On a phone that is 1,900px of preamble in front of whatever somebody opened. Below the breakpoint they are the front page's, and the identity card and tab strip stay everywhere. What made this safe to do rather than merely tempting is that the wrong-subject check does not live here: every dialog that writes draws `SubjectStrip`, with the photograph, name, room, date of birth and allergies, which is what CLAUDE.md §2 actually asks for.
+
+**Two tables became lists, and the a11y lint decided how.** The first attempt was the standard one — `display: block` on the table elements with the roles written back on — and `jsx-a11y/no-redundant-roles` refused it, correctly: that technique trades real semantics for a stated imitation of them. So each screen carries both renderings and CSS picks, which is what §4 wants anyway. The register's list is honestly a list; the desk's table is honestly a table.
+
+**A sticky rule that was right at 1440 and wrong at 390.** "A total that scrolls away is a total nobody reads" gave the MAR two sticky columns, which on a 358px window left 108px of chart between them. Unsticking the total was a three-line change that took two attempts, and the second one is the entry worth keeping:
+
+**`position: static` on a class loses to `position: sticky` on a descendant selector.** `.grid thead th` pins the header to the top; `.totalHead` pins it to the right. Overriding `position` in the compact block did nothing to the header — a class cannot outrank `.grid thead th` — so the cell stayed stuck horizontally while its own column scrolled away from it. The tell was measured, not seen: the "This week" header at x=262 with its column at x=892. Releasing `right` instead of fighting `position` stops the horizontal stick and leaves the vertical one, which is the half still worth having. **When an override does nothing, read what else sets the property before changing the value again.**
+
+**A fix whose probe could not see it.** The switch grows its hit area with a `::after` overlay, so the button's own box stays 24px and the survey went on counting it as a short target. Hit-tested instead — `elementFromPoint` at 14px above and below its centre, both landing on the switch — after the first probe returned `none` at every offset because the element was below the fold and nothing was there to hit. A measurement that cannot fail is not a measurement.
+
+**What got worse, and is reported rather than buried.** The register is 39,913px on a phone against the table's 24,103. A list costs about 65% more height than a table, and buys a screen that can be read at all. It is the one number this pass moved the wrong way.
