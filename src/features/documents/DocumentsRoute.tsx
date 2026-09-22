@@ -23,12 +23,7 @@ import {
   Select,
   buttonClassName,
 } from '@/components/primitives'
-import {
-  AggregateFigure,
-  NotYourHome,
-  StatusPill,
-  Unrecorded,
-} from '@/components/status'
+import { AggregateFigure, NotYourHome, Unrecorded } from '@/components/status'
 import { Icon } from '@/components/icon/Icon'
 import { listName } from '@/features/residents/list-name'
 import { documentsIcons } from './documents.icons'
@@ -207,7 +202,7 @@ export function DocumentsRoute() {
       <Card>
         <CardHead
           title="By category"
-          subtitle={`All ${pluralise(library.categories.length, 'category', 'categories')}, in the order an emergency needs them.`}
+          subtitle={`All ${pluralise(library.categories.length, 'category', 'categories')}, most in need of attention first.`}
           expand={{ kind: 'whole' }}
         />
         <ul className={styles.rows}>
@@ -230,57 +225,90 @@ export function DocumentsRoute() {
  * A category holding nothing still renders, with what belongs in it — the empty
  * headings are the finding, not an omission to tidy away.
  */
+/**
+ * One category, as the Admin build draws it: the name, then the three counts
+ * as a figure over its own label, then what nobody has decided about.
+ *
+ * **Every figure is drawn, including the zeroes.** A zero is a finding, not a
+ * gap (CLAUDE.md §1) — "0 expired" is a claim somebody can act on, and the
+ * version that hid it left a reader unable to tell a category with nothing
+ * wrong from a category the row had stopped talking about. Four columns in the
+ * same place on every row is also what makes the column scannable: the eye
+ * runs down "expired" without reading a word.
+ *
+ * **The colour is on the ink, never the fill.** A figure in `--status-caution`
+ * fails contrast (§4), and the caution fill is drawn by `Toast` alone.
+ *
+ * **The hatch is the one thing that is conditional**, because hatching a zero
+ * would claim a gap the record says is not there. Where nobody has left
+ * anything undecided, the row says so as a plain figure like the others.
+ */
 function CategoryRow({ category }: { category: CategorySummary }) {
   const { counts } = category
   return (
     <li className={styles.row} data-category={category.id}>
-      <div className={styles.rowWhat}>
-        <p className={styles.rowTitle}>{category.label}</p>
-        <p className={styles.rowMeta}>It holds {category.holds}.</p>
+      <p className={styles.rowTitle}>{category.label}</p>
+
+      <div className={styles.rowFigures}>
+        <Figure value={counts.total} label="on file" what="total" />
+        <Figure
+          value={counts.expired}
+          label="expired"
+          what="expired"
+          tone={counts.expired > 0 ? 'critical' : undefined}
+        />
+        <Figure
+          value={counts.expiring}
+          label="expiring within 30 days"
+          what="expiring"
+          tone={counts.expiring > 0 ? 'caution' : undefined}
+        />
       </div>
-      <div className={styles.rowCounts}>
-        <p className={styles.onFile} data-on-file>
-          <span data-numeric>{formatCount(counts.total)}</span> on file
-        </p>
-        <div className={styles.findings}>
-          {counts.expired > 0 ? (
-            <StatusPill
-              tone="critical"
-              label={`${formatCount(counts.expired)} expired`}
-            />
-          ) : null}
-          {counts.expiring > 0 ? (
-            <StatusPill
-              tone="caution"
-              label={`${formatCount(counts.expiring)} expiring within 30 days`}
-            />
-          ) : null}
-          {counts.notRecorded > 0 ? (
-            <Unrecorded
-              variant="chip"
-              label={`${formatCount(counts.notRecorded)} with no expiry recorded`}
-              detail={NO_EXPIRY_RECORDED}
-            />
-          ) : null}
-          {counts.total > 0 &&
-          counts.expired === 0 &&
-          counts.expiring === 0 &&
-          counts.notRecorded === 0 ? (
-            /* A plain sentence, never a green mark: nothing is positive for
-               being unremarkable, and every document here carries a decision
-               somebody made. */
-            <p className={styles.settledLine}>
-              Every one carries an expiry decision, and none has lapsed
-            </p>
-          ) : null}
-          {counts.total === 0 ? (
-            <p className={styles.settledLine} data-empty-category>
-              Nothing is filed here
-            </p>
-          ) : null}
-        </div>
+
+      <div className={styles.rowGap} data-not-recorded>
+        {counts.notRecorded > 0 ? (
+          <Unrecorded
+            variant="chip"
+            label={`${formatCount(counts.notRecorded)} with no expiry recorded`}
+            detail={NO_EXPIRY_RECORDED}
+          />
+        ) : (
+          <Figure value={0} label="with no expiry recorded" what="not_recorded" />
+        )}
       </div>
     </li>
+  )
+}
+
+/** A count over the words it is a count of, which is the column's own label. */
+function Figure({
+  value,
+  label,
+  what,
+  tone,
+}: {
+  value: number
+  label: string
+  what: string
+  /** Only where the figure is a finding; a zero is drawn plain. */
+  tone?: 'critical' | 'caution'
+}) {
+  return (
+    <p className={styles.figure} data-figure={what}>
+      <span
+        className={
+          tone === 'critical'
+            ? styles.figureCritical
+            : tone === 'caution'
+              ? styles.figureCaution
+              : styles.figureValue
+        }
+        data-numeric
+      >
+        {formatCount(value)}
+      </span>
+      <span className={styles.figureLabel}>{label}</span>
+    </p>
   )
 }
 

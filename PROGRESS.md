@@ -915,3 +915,15 @@ What differed came to six things, and **the CW PRD sided with the Admin build on
 **And the calendar surfaced an old one.** `document-library.test.ts` pinned `TODAY = '2026-09-18'` while every expiry in the fixtures is `daysAgo`/`daysAhead` of the fixture clock. By the 22nd a document one day inside the window was three days past it, one figure moved from expiring to expired, and the assertion failed on a tree nobody had touched. Confirmed it predated this work by stashing the change and watching it fail anyway. This is the §8 entry this repo already carries, found a second time in a second file: **the tell is a test that reads fixtures built from `now()` and asserts against a date typed by hand.**
 
 Verified by walking the three screens at 1440 and 390: the link resolves, the queue draws 24 expired rows with its claim carrying both the filter and the denominator, the viewer renders the sample with the banner above it and names the two records that rely on Okafor's DNAR form, and neither width scrolls sideways.
+
+## The category rows, drawn as the Admin draws them (22/09/2026)
+
+A screenshot of the Admin's table, and "design it like that". The shape is four figures in four fixed columns — name, on file, expired, expiring within 30 days, and the hatched chip — with the figure over its own label. Ours had been three status pills that appeared only when their count was above zero.
+
+**The pills were the wrong primitive twice over.** A pill is a state somebody recorded; these are counts. And drawing one only when it is non-zero means a row with nothing wrong looks like a row that stopped talking — which is the invariant this product exists for, read the other way round. A zero is a finding, and "0 expired" is a claim a reader can act on.
+
+Two rules bent the copy slightly and both are worth stating. The figures are coloured on `--status-critical-ink` and `--status-caution-ink` rather than the fills, because text in a fill colour fails contrast and the caution fill is `Toast`'s alone. And the hatched chip stays conditional, because hatching a zero claims a gap the record says is not there.
+
+**The screen was telling a lie I had introduced two commits earlier.** The card's subtitle still read "in the order an emergency needs them" after the rows had moved to urgency order. Caught by looking at the rendered screen rather than the diff. The test that now covers it asserts the order *and* the sentence, because a heading claiming one order over a list in another is a screen telling a reader something it is not doing.
+
+Measured after: the three figure columns start at 479, 684 and 889 on every one of the seven rows — one set of values, not seven.

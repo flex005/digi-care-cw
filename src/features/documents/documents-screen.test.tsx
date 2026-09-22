@@ -62,12 +62,16 @@ describe('the categories', () => {
     expect(document.querySelectorAll('[data-category]')).toHaveLength(7)
   })
 
+  /** The figure and its own label, read as one, whichever column it is in. */
+  const figureIn = (row: HTMLElement, what: string) =>
+    row.querySelector(`[data-figure="${what}"]`)?.textContent ?? ''
+
   it('draws DOC-01’s three rows with DOC-01’s own counts', async () => {
     await openList()
     const health = category('health_clinical')
-    expect(within(health).getByText(/109/)).toBeTruthy()
-    expect(within(health).getByText(/10 expired/)).toBeTruthy()
-    expect(within(health).getByText(/5 expiring within 30 days/)).toBeTruthy()
+    expect(figureIn(health, 'total')).toBe('109on file')
+    expect(figureIn(health, 'expired')).toBe('10expired')
+    expect(figureIn(health, 'expiring')).toBe('5expiring within 30 days')
     expect(within(health).getByText(/21 with no expiry recorded/)).toBeTruthy()
 
     const plans = category('assessments_care_planning')
@@ -75,6 +79,44 @@ describe('the categories', () => {
 
     const consents = category('consent_records')
     expect(within(consents).getByText(/4 with no expiry recorded/)).toBeTruthy()
+  })
+
+  /*
+   * The order is the finding, and the subtitle says which order it is. A
+   * heading claiming one order over a list in another is a screen telling a
+   * reader something it is not doing.
+   */
+  it('orders the rows by what needs attention soonest, and says so', async () => {
+    await openList()
+    const urgency = [...document.querySelectorAll('[data-category]')].map((row) => {
+      const of = (what: string) =>
+        Number(row.querySelector(`[data-figure="${what}"] [data-numeric]`)?.textContent)
+      return of('expired') + of('expiring')
+    })
+    expect(urgency).toEqual([...urgency].sort((a, b) => b - a))
+    expect(screen.getByText(/most in need of attention first/)).toBeTruthy()
+  })
+
+  /*
+   * A zero is a finding, not a gap. Every row carries all four figures in the
+   * same place, so a category with nothing wrong is distinguishable from a
+   * category the row stopped talking about — and the eye can run down one
+   * column without reading a word.
+   */
+  it('draws all four figures on every row, zeroes included', async () => {
+    await openList()
+    for (const entry of DOCUMENT_CATEGORIES) {
+      const row = category(entry.id)
+      for (const what of ['total', 'expired', 'expiring']) {
+        expect(
+          row.querySelector(`[data-figure="${what}"]`),
+          `${entry.id}/${what}`,
+        ).not.toBeNull()
+      }
+      // The fourth is a figure or the hatch, and exactly one of the two.
+      const gap = row.querySelector('[data-not-recorded]')
+      expect(gap?.textContent, entry.id).toMatch(/with no expiry recorded/)
+    }
   })
 
   /*
@@ -89,19 +131,21 @@ describe('the categories', () => {
     expect(hatched).toHaveLength(1)
     expect(hatched[0]?.textContent).toMatch(/21 with no expiry recorded/)
 
-    const expired = within(health)
-      .getByText(/10 expired/)
-      .closest('[data-tone]')
-    expect(expired?.getAttribute('data-tone')).toBe('critical')
-    expect(expired?.getAttribute('data-state')).toBe('recorded')
+    // The expired count is a finding somebody recorded, so it never hatches.
+    const expired = health.querySelector('[data-figure="expired"]')
+    expect(expired?.textContent).toBe('10expired')
+    expect(expired?.closest('[data-state="unrecorded"]')).toBeNull()
   })
 
-  it('says a category holds nothing rather than leaving the heading out', async () => {
+  it('lists every category, including the ones holding nothing', async () => {
     await openList()
+    expect(document.querySelectorAll('[data-category]')).toHaveLength(
+      DOCUMENT_CATEGORIES.length,
+    )
     for (const entry of DOCUMENT_CATEGORIES) {
       const row = category(entry.id)
-      expect(row.textContent).toMatch(/It holds /)
-      expect(row.textContent).toMatch(/on file/)
+      expect(row.textContent, entry.id).toContain(entry.label)
+      expect(row.textContent, entry.id).toMatch(/on file/)
     }
   })
 })

@@ -156,26 +156,74 @@
   margin-top: var(--space-16);
 }
 
-.rowWhat {
-  display: flex;
-  flex: 1 1 260px;
-  flex-direction: column;
-  gap: var(--space-4);
-  min-width: 0;
-}
-
 .rowTitle {
+  flex: 1 1 200px;
+  min-width: 0;
   color: var(--ink-900);
   font-size: var(--text-body-size);
   line-height: var(--text-body-line);
   font-weight: var(--weight-semibold);
 }
 
-.rowCounts {
+/*
+ * The three counts, each in the same place on every row, which is what makes
+ * a column scannable: the eye runs down "expired" without reading a word.
+ * They share the space between the name and the gap chip rather than sitting
+ * in a column of their own, so the row reads left to right as one sentence.
+ */
+.rowFigures {
   display: flex;
-  flex: 1 1 320px;
+  flex: 2 1 340px;
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-24);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.figure {
+  display: flex;
+  flex: 1 1 100px;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: 2px;
+  min-width: 0;
+}
+
+.figureValue,
+.figureCritical,
+.figureCaution {
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-bold);
+}
+
+.figureValue {
+  color: var(--ink-900);
+}
+
+/*
+ * The ink, never the fill. A figure in `--status-critical` or
+ * `--status-caution` fails contrast against the surface (CLAUDE.md §4), and
+ * the caution fill is drawn by `Toast` alone.
+ */
+.figureCritical {
+  color: var(--status-critical-ink);
+}
+
+.figureCaution {
+  color: var(--status-caution-ink);
+}
+
+.figureLabel {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* What nobody has decided, at the end of the row and the width of a chip. */
+.rowGap {
+  display: flex;
+  flex: 0 1 300px;
+  justify-content: flex-end;
   min-width: 0;
 }
 
@@ -358,5 +406,20 @@
     justify-content: center;
     width: 100%;
     border: 1.5px solid var(--border-strong);
+  }
+}
+
+/*
+ * On a phone the row stacks, and what nobody has decided reads from the same
+ * left edge as everything above it rather than hanging off the right.
+ */
+@media (width < 1024px) {
+  .rowGap {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+
+  .figure {
+    flex: 1 1 40%;
   }
 }
