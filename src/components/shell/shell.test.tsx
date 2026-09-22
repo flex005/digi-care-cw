@@ -8,6 +8,10 @@ import { SessionProvider } from '@/app/session/SessionProvider'
 import { useSession } from '@/app/session/use-session'
 import { TooltipProvider } from '@/components/primitives'
 import { SignOutDialog } from '@/features/auth/SignOutDialog'
+import { AppList } from './AppSwitcher'
+import { NotificationsSummary } from './NotificationsMenu'
+import { DIGI_APPS, NOT_IN_THIS_BUILD } from '@/app/digi-apps'
+import { NOTHING_IS_SENT, NOTIFICATIONS } from '@/features/profile/notification-table'
 import { Rail } from './Rail'
 import { NavPill } from './NavPill'
 import { TopBar } from './TopBar'
@@ -124,6 +128,51 @@ describe('the icon rail', () => {
     expect(within(dialog).getByRole('heading', { name: 'Sign out?' })).toBeTruthy()
     expect(dialog.querySelector('[data-confirm-sign-out]')).not.toBeNull()
     expect(pushed).not.toHaveBeenCalled()
+  })
+})
+
+/**
+ * The bell and the grid, which the Admin build's bar carries and this one now
+ * does. The hazard they bring is a bell that implies somebody sent something:
+ * nothing in this build sends anything, and the menu has to say so where a
+ * reader expects an inbox.
+ *
+ * **What the menus say is tested here; that they open is tested in a browser.**
+ * Radix opens on `pointerdown` and both triggers carry a tooltip, which jsdom
+ * cannot drive — a probe that fired `click()` reported both menus shut in
+ * Chrome too, and the same probe with a real pointer sequence opened both. The
+ * instrument was wrong, not the component, so the bodies are read directly and
+ * the opening is left to the library that owns it.
+ */
+describe('the bell and the grid', () => {
+  it('draws both triggers, and no count on the bell', async () => {
+    renderAs(staffEze.id, <TopBar />)
+    const bell = await screen.findByRole('button', { name: 'Notifications' })
+    // A number on a bell says somebody sent you that many things.
+    expect(bell.textContent).toBe('')
+    expect(screen.getByRole('button', { name: 'diGi apps' })).toBeTruthy()
+  })
+
+  it('says how many notifications are on, and that nothing is sent', () => {
+    render(<NotificationsSummary />)
+    const said = screen.getByText(/notifications this product defines/)
+    expect(said.textContent).toContain(String(NOTIFICATIONS.length))
+    expect(screen.getByText(NOTHING_IS_SENT)).toBeInTheDocument()
+  })
+
+  it('lists the diGi family, and offers none of them as a control', () => {
+    render(<AppList />)
+    const rows = [...document.querySelectorAll('[data-app]')]
+    expect(rows.map((row) => row.getAttribute('data-app'))).toEqual(
+      DIGI_APPS.map((app) => app.name),
+    )
+
+    // Exactly one is this one, and the others say so in visible text rather
+    // than by being drawn as controls that refuse.
+    expect(rows.filter((row) => row.textContent?.includes('This app'))).toHaveLength(1)
+    expect(screen.getAllByText(NOT_IN_THIS_BUILD)).toHaveLength(DIGI_APPS.length - 1)
+    for (const row of rows)
+      expect(within(row as HTMLElement).queryByRole('menuitem')).toBeNull()
   })
 })
 

@@ -18,6 +18,7 @@ import IconAlertNotification_Alert02 from '@/assets/icons-generated/alert-notifi
 import IconAlertNotification_AlertDiamond from '@/assets/icons-generated/alert-notification/alert-diamond.svg?react'
 import IconAlertNotification_InformationCircle from '@/assets/icons-generated/alert-notification/information-circle.svg?react'
 import IconAlertNotification_Notification01 from '@/assets/icons-generated/alert-notification/notification-01.svg?react'
+import IconAlertNotification_Notification02 from '@/assets/icons-generated/alert-notification/notification-02.svg?react'
 import IconArrowsRound_ArrowUpRight01Round from '@/assets/icons-generated/arrows-round/arrow-up-right-01-round.svg?react'
 import IconArrowsSharp_ArrowDown01Sharp from '@/assets/icons-generated/arrows-sharp/arrow-down-01-sharp.svg?react'
 import IconArrowsSharp_ArrowLeft01Sharp from '@/assets/icons-generated/arrows-sharp/arrow-left-01-sharp.svg?react'
@@ -43,6 +44,7 @@ import IconMedia_Mic01 from '@/assets/icons-generated/media/mic-01.svg?react'
 import IconMedical_GivePill from '@/assets/icons-generated/medical/give-pill.svg?react'
 import IconMedical_Medicine01 from '@/assets/icons-generated/medical/medicine-01.svg?react'
 import IconMedical_Stethoscope from '@/assets/icons-generated/medical/stethoscope.svg?react'
+import IconMoreMenu_More02 from '@/assets/icons-generated/more-menu/more-02.svg?react'
 import IconMoreMenu_MoreHorizontal from '@/assets/icons-generated/more-menu/more-horizontal.svg?react'
 import IconNoteTask_Note01 from '@/assets/icons-generated/note-task/note-01.svg?react'
 import IconNoteTask_Note03 from '@/assets/icons-generated/note-task/note-03.svg?react'
@@ -53,7 +55,7 @@ import IconUsers_UserMultiple from '@/assets/icons-generated/users/user-multiple
 import IconUsers_UserSwitch from '@/assets/icons-generated/users/user-switch.svg?react'
 
 /**
- * Only the 41 icons actually used in source. Importing all of them
+ * Only the 43 icons actually used in source. Importing all of them
  * would compile every icon in the set into the bundle.
  *
  * Partial because it is keyed by the full IconName union. A missing entry
@@ -71,6 +73,7 @@ export const iconRegistry: Partial<
   'alert-notification/alert-diamond': IconAlertNotification_AlertDiamond,
   'alert-notification/information-circle': IconAlertNotification_InformationCircle,
   'alert-notification/notification-01': IconAlertNotification_Notification01,
+  'alert-notification/notification-02': IconAlertNotification_Notification02,
   'arrows-round/arrow-up-right-01-round': IconArrowsRound_ArrowUpRight01Round,
   'arrows-sharp/arrow-down-01-sharp': IconArrowsSharp_ArrowDown01Sharp,
   'arrows-sharp/arrow-left-01-sharp': IconArrowsSharp_ArrowLeft01Sharp,
@@ -96,6 +99,7 @@ export const iconRegistry: Partial<
   'medical/give-pill': IconMedical_GivePill,
   'medical/medicine-01': IconMedical_Medicine01,
   'medical/stethoscope': IconMedical_Stethoscope,
+  'more-menu/more-02': IconMoreMenu_More02,
   'more-menu/more-horizontal': IconMoreMenu_MoreHorizontal,
   'note-task/note-01': IconNoteTask_Note01,
   'note-task/note-03': IconNoteTask_Note03,

@@ -348,6 +348,16 @@ The addresses that had one still work and are unchanged.
 
 **And one pre-existing failure the calendar surfaced rather than this work.** `document-library.test.ts` pinned `TODAY` to 18/09/2026 while every expiry in the fixtures is `daysAgo` or `daysAhead` of the fixture clock. On the 22nd a document one day inside the 30-day window had become three days past it, and an assertion failed on a tree nobody had touched. The day now comes from the same clock the fixtures were built against, which is the §8 entry this file already carries about dates written into tests.
 
+## The bell and the app switcher (22/09/2026)
+
+**Asked for as "the notification and the menu icon on the admin nav bar should be on the careworker build too".** Both are in the top bar now, in the Admin's own arrangement — between the home and the account avatar — and neither is a copy of what is there.
+
+**The Admin's bell is a button with no handler and `alertCount={0}` hard-coded.** Copied across, that is an affordance that does nothing, which is the one thing the chrome in this build may not be, and it is what was swept out of every screen two days ago. **So the bell here carries no count and opens something true**: how many of the twelve notifications the CW PRD's Appendix D defines are on for this reader, the standing fact that nothing is sent, and the way to the preferences that own it.
+
+A count was considered and refused twice over. A number on a bell says somebody sent you that many things, and nothing in this build sends anything. A count drawn from records instead — doses past their window, notes waiting for review — would be a second way of saying what the screens already say, computed somewhere else and free to disagree with them. **A reader who presses a bell expecting an inbox is told, in the place they expected the inbox, that there is nothing to send them.** That is better than an absence they have to work out for themselves.
+
+**The app switcher lists the diGi family and offers none of it.** The apps come from `digi-apps.ts`, which holds the rule that matters: only apps the documents name, because a launcher is exactly the surface that invites a plausible-looking list and each invented sibling would be a fictional product sitting in real chrome. The Admin draws each as a disabled menu item; this build does not draw controls that refuse, so each is a line of text saying what it is and whether it is this one.
+
 ## Questions for the PRD's author
 
 **Which notifications cannot be turned off (PROF-01 against Appendix D).** PROF-01 names four as the safety-critical ones that cannot be disabled: the medication round due, the medication window closing, the account locked and the session expiring. Appendix D's own "Can turn off?" column refuses six — those four plus a care note not written for four hours and a controlled drug discrepancy — and calls only the first two safety critical. The two lists agree about the four and disagree about two more, and about what "safety critical" covers. Drawn as written, with the question quoted at the preferences; `notification-table.test.ts` asserts the disagreement, so correcting either document fails a test by name rather than leaving the screen quietly wrong.

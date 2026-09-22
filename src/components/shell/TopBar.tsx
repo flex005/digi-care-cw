@@ -15,6 +15,8 @@ import {
 } from '@/components/primitives'
 import { useSession, useSignedIn } from '@/app/session/use-session'
 import { NavPill } from './NavPill'
+import { AppSwitcher } from './AppSwitcher'
+import { NotificationsMenu } from './NotificationsMenu'
 import { shellIcons } from './nav.icons'
 import styles from './TopBar.module.css'
 
@@ -74,6 +76,16 @@ export function TopBar() {
             <span className={styles.siteName}>{activeSite.name}</span>
           </span>
         )}
+
+        {/*
+         * The bell and the grid, as the Admin build's bar carries them, and
+         * both go somewhere. The Admin's bell is a button with no handler and
+         * a count hard-coded to zero; copied straight across that is an
+         * affordance that does nothing, which is the one thing the chrome in
+         * this build may not be.
+         */}
+        <NotificationsMenu />
+        <AppSwitcher />
 
         <DropdownMenu>
           <DropdownMenuTrigger

@@ -927,3 +927,15 @@ Two rules bent the copy slightly and both are worth stating. The figures are col
 **The screen was telling a lie I had introduced two commits earlier.** The card's subtitle still read "in the order an emergency needs them" after the rows had moved to urgency order. Caught by looking at the rendered screen rather than the diff. The test that now covers it asserts the order *and* the sentence, because a heading claiming one order over a list in another is a screen telling a reader something it is not doing.
 
 Measured after: the three figure columns start at 479, 684 and 889 on every one of the seven rows — one set of values, not seven.
+
+## The bell, the grid, and a fix for something that was not broken (22/09/2026)
+
+Both controls went in easily. What took the afternoon was believing a test.
+
+Neither menu opened in jsdom. The failure was chased into the `Tooltip` primitive, which really does drop the props an `asChild` parent hands it — `Tooltip` takes `content`, `children` and `side` and ignores the rest, so a `DropdownMenuTrigger asChild` wrapping it loses its own handler. That looked like the answer, and it was changed.
+
+The menus still did not open. A check in a real browser, driven with `element.click()`, agreed they were shut — which felt like confirmation and was the opposite. **Radix opens a menu on `pointerdown`.** The same check driven with the pointer sequence the component actually listens for opened both menus, with the right contents, and had been doing so the whole time. The `Tooltip` change was reverted: it was a speculative fix to a real-but-unrelated shortcoming, made because a broken probe said the component was broken.
+
+Two tells were available before any of that. The trigger already carried `aria-haspopup="menu"` in the dumped HTML, so the composition was reaching the element — whatever was wrong, it was not that the trigger had been lost. And the account menu sits two inches away with no tooltip and works; running the same probe against it would have shown the probe failing on a control known to be fine. That is now a §8 entry: **make the probe fire what the component listens for, and confirm the probe can pass at all.**
+
+The tests ended up split: what the menus *say* is read directly from `NotificationsSummary` and `AppList`, and *that they open* is left to Radix and checked in a browser. Pretending jsdom can drive a tooltip-wrapped pointer-driven trigger would have meant a test that passes for the wrong reason.

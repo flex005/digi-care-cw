@@ -196,6 +196,10 @@ export const NAV_ITEMS: NavItem[] = [
 
 export const shellIcons = {
   more: 'more-menu/more-horizontal',
+  /** The bell, which opens what this product would notify you about. */
+  notifications: 'alert-notification/notification-02',
+  /** The grid beside it: the diGi family this product belongs to. */
+  appSwitcher: 'more-menu/more-02',
   expand: 'arrows-round/arrow-up-right-01-round',
   siteSwitcher: 'arrows-sharp/arrow-down-01-sharp',
   signOut: 'login-logout/logout-01',
