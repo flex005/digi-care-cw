@@ -247,7 +247,24 @@ function CategoryRow({ category }: { category: CategorySummary }) {
   const { counts } = category
   return (
     <li className={styles.row} data-category={category.id}>
-      <p className={styles.rowTitle}>{category.label}</p>
+      {/*
+       * **The count is not the end of the road.** The row says a category
+       * holds 109 documents; the name opens the 109. Without it a reader who
+       * wanted the clinical letter had to know whose record it was on and go
+       * there instead, which is what a library exists to save them.
+       *
+       * The name carries the link rather than the whole row: the row holds
+       * four figures and a hatched chip, and a link wrapped round all of it
+       * would read every one of them out as part of its own name.
+       */}
+      <Link
+        href={`/documents/category/${category.id}`}
+        className={styles.categoryLink}
+        data-open-category={category.id}
+      >
+        {category.label}
+        <Icon name={documentsIcons.open} size={16} />
+      </Link>
 
       <div className={styles.rowFigures}>
         <Figure value={counts.total} label="on file" what="total" />

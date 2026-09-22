@@ -148,6 +148,24 @@ describe('the categories', () => {
       expect(row.textContent, entry.id).toMatch(/on file/)
     }
   })
+
+  /*
+   * A count is not the end of the road: the row says a category holds 109
+   * documents, and the name opens the 109. Without it a reader who wanted a
+   * clinical letter had to know whose record it was on.
+   */
+  it('opens every category from its own name', async () => {
+    await openList()
+    for (const entry of DOCUMENT_CATEGORIES) {
+      const link = category(entry.id).querySelector(
+        `[data-open-category="${entry.id}"]`,
+      )
+      expect(link?.getAttribute('href'), entry.id).toBe(
+        `/documents/category/${entry.id}`,
+      )
+      expect(link?.textContent, entry.id).toContain(entry.label)
+    }
+  })
 })
 
 describe('who may file a document', () => {

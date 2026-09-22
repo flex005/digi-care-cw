@@ -358,6 +358,18 @@ A count was considered and refused twice over. A number on a bell says somebody 
 
 **The app switcher lists the diGi family and offers none of it.** The apps come from `digi-apps.ts`, which holds the rule that matters: only apps the documents name, because a launcher is exactly the surface that invites a plausible-looking list and each invented sibling would be a fictional product sitting in real chrome. The Admin draws each as a disabled menu item; this build does not draw controls that refuse, so each is a line of text saying what it is and whether it is this one.
 
+## Into a category, and into a file (22/09/2026)
+
+**The count was the end of the road.** The library said Health and clinical holds 109 documents and stopped there; a reader who wanted the clinical letter had to know whose record it was on and go to that resident instead, which is the thing a library exists to save them. A category's name now opens the documents in it, at `/documents/category/[categoryId]`, and each one opens the viewer.
+
+- **The name carries the link, not the row.** The row holds four figures and a hatched chip, and a link wrapped round all of it would read every one of them out as part of its own name.
+- **The screen repeats the row's four figures**, counted over the same documents, so the count somebody followed is the count they find.
+- **Ordered by urgency**, like everything else that lists documents here: expired, then expiring, then what nobody has decided, then the rest.
+- **Read-only for both roles**, because opening a document is reading one.
+- **An empty category says what it is for and is not a gap.** Nothing in the record says a document ought to be filed there; the resident tab's expected-but-empty state is where that claim belongs.
+
+**Built in both products**, because the same gap was in both and the library is one idea about one home. The Admin build gets the same screen in its own conventions — grid rows, its page head, its router — at the same address.
+
 ## Questions for the PRD's author
 
 **Which notifications cannot be turned off (PROF-01 against Appendix D).** PROF-01 names four as the safety-critical ones that cannot be disabled: the medication round due, the medication window closing, the account locked and the session expiring. Appendix D's own "Can turn off?" column refuses six — those four plus a care note not written for four hours and a controlled drug discrepancy — and calls only the first two safety critical. The two lists agree about the four and disagree about two more, and about what "safety critical" covers. Drawn as written, with the question quoted at the preferences; `notification-table.test.ts` asserts the disagreement, so correcting either document fails a test by name rather than leaving the screen quietly wrong.

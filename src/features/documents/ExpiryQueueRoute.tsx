@@ -144,7 +144,7 @@ export function ExpiryQueueRoute() {
   )
 }
 
-interface QueueRow {
+export interface QueueRow {
   document: DocumentRecord
   finding: ExpiryFinding
   subject: string
@@ -275,8 +275,11 @@ function Queue({
 /**
  * **A document added this session has no type to sample and nothing filed
  * behind it**, so it says so rather than opening a page about nothing.
+ *
+ * Shared with the category library, so the two lists offer a way in on the
+ * same terms: there is one rule about which documents can be opened.
  */
-function OpenDocument({ document }: { document: DocumentRecord }) {
+export function OpenDocument({ document }: { document: DocumentRecord }) {
   if (document.file.kind === 'not_retrievable')
     return (
       <p className={styles.notRetrievable} data-action="not_retrievable">

@@ -416,6 +416,13 @@ const SCREENS = {
       ),
     { ssr: false },
   ),
+  documentCategory: dynamic(
+    () =>
+      import('@/features/documents/CategoryLibraryRoute').then(
+        (module) => module.CategoryLibraryRoute,
+      ),
+    { ssr: false },
+  ),
   documentViewer: dynamic(
     () =>
       import('@/features/documents/DocumentViewerRoute').then(
