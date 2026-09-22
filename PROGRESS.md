@@ -897,3 +897,21 @@ The build had **twenty** compact rules in it. That is the measure of the problem
 **A fix whose probe could not see it.** The switch grows its hit area with a `::after` overlay, so the button's own box stays 24px and the survey went on counting it as a short target. Hit-tested instead — `elementFromPoint` at 14px above and below its centre, both landing on the switch — after the first probe returned `none` at every offset because the element was below the fold and nothing was there to hit. A measurement that cannot fail is not a measurement.
 
 **What got worse, and is reported rather than buried.** The register is 39,913px on a phone against the table's 24,103. A list costs about 65% more height than a table, and buys a screen that can be read at all. It is the one number this pass moved the wrong way.
+
+---
+
+## Documents, brought level with the Admin build (22/09/2026)
+
+**The instruction was "exactly like the one on the admin", and the first useful thing was to find out what that meant.** Read both builds side by side before touching anything. What already matched was most of it: the three findings never summed, all seven categories always listed, the coverage figure and its wording, the hatch treatment, the broken-reference row. Ours was clearly derived from theirs.
+
+What differed came to six things, and **the CW PRD sided with the Admin build on every one** — which turned the job from "copy their design" into "close a gap we had recorded as a decision". DOC-01 names the "Expiry tracking >" link in as many words, and its care-worker story is access to clinical letters and DNAR forms during care delivery, which needs a viewer. Our DEPARTURES said "no such screen exists in this build, and a link to one would be a dead affordance" — sound about the link, wrong about the conclusion. The answer to a link with no screen is the screen.
+
+**The role table needed checking before any of it.** Table 3 makes a care worker read-only on documents; opening one is reading. So the viewer and the queue are both roles', and the only senior-carer act on the module stays filing.
+
+**The ordering change is the one that is a design argument rather than a port.** The home library was ordered "as an emergency needs them", which is right for one resident's library, where a reader is looking for a document they can name. On the home's library nobody is looking for a category — they are looking for what has gone out of date, and a fixed order puts the same heading first every day of the year. The test for it asserts the property (each category's expired-plus-expiring is not greater than the one before it) rather than a list of ids, so it cannot be satisfied by a coincidence of today's fixtures.
+
+**A defect fell out of the reading.** The home library drew a "Filing a document" card to a care worker: a head, a subtitle, and nothing underneath, because the `ActPoint` inside it stopped rendering when the refusal sweep landed two days ago. The sweep's own rule covers it — a control neither reader can use is not drawn, and neither is the furniture built to hold it — but the sweep only removed controls, not the cards built around them. Worth checking the other screens for the same shape.
+
+**And the calendar surfaced an old one.** `document-library.test.ts` pinned `TODAY = '2026-09-18'` while every expiry in the fixtures is `daysAgo`/`daysAhead` of the fixture clock. By the 22nd a document one day inside the window was three days past it, one figure moved from expiring to expired, and the assertion failed on a tree nobody had touched. Confirmed it predated this work by stashing the change and watching it fail anyway. This is the §8 entry this repo already carries, found a second time in a second file: **the tell is a test that reads fixtures built from `now()` and asserts against a date typed by hand.**
+
+Verified by walking the three screens at 1440 and 390: the link resolves, the queue draws 24 expired rows with its claim carrying both the filter and the denominator, the viewer renders the sample with the banner above it and names the two records that rely on Okafor's DNAR form, and neither width scrolls sideways.

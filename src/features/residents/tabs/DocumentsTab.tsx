@@ -3,12 +3,15 @@ import type { CategoryState, DocumentRecord, IsoDate, LibraryRow } from '@/data/
 import { getResidentDocuments } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import { dueSoonDays } from '@/data/access/settings-store'
+import Link from 'next/link'
 import { Button, Card, CardHead, Dialog, EmptyState } from '@/components/primitives'
+import { Icon } from '@/components/icon/Icon'
 import { NotYourHome, Unrecorded } from '@/components/status'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { useViewer } from '@/app/session/use-viewer'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
 import { FileDocumentForm } from '@/features/documents/UploadDocumentRoute'
+import { documentsIcons } from '@/features/documents/documents.icons'
 import { assertNever } from '@/lib/assert-never'
 import { formatCount, pluralise } from '@/lib/format'
 import { BrokenReference, ExpiryChip, FileFactsText, FiledBy } from './DocumentParts'
@@ -27,9 +30,12 @@ import styles from './consent-and-documents.module.css'
  * All seven always listed, iterated from the constant. A library showing only
  * the categories it holds tells a reader there are four kinds of document.
  *
- * **Nothing opens.** There is no document viewer in this build, so a row
- * states its facts (what it is, when it expires, who filed it) and offers no
- * link that would lead nowhere. **Filing one is the senior carer's act**, drawn
+ * **A row opens the document.** DOC-01's care worker story is "so that I can
+ * access clinical letters, DNAR forms and other reference documents during
+ * care delivery", and opening one is reading, which Table 3 gives both roles.
+ * A row that cannot be opened says which of the two reasons it is: the record
+ * claims a document the library cannot produce, or it was added this session
+ * and has nothing filed behind it. **Filing one is the senior carer's act**, drawn
  * once at the head from Phase 8 — it is about the file rather than about any
  * row, so it does not belong on one — and a care worker meets the role table's
  * refusal in the same place.
@@ -362,6 +368,14 @@ function Row({ row, today }: { row: LibraryRow; today: IsoDate }) {
         <div className={styles.expiryCell}>
           <BrokenReference reference={row.reference} />
         </div>
+        {/*
+         * Never a link that fails when it is pressed. This row is the record
+         * claiming a document exists that the library cannot produce, which is
+         * a finding rather than a fault in the viewer.
+         */}
+        <p className={styles.notRetrievable} data-action="cannot_open">
+          Cannot open, not on file
+        </p>
       </div>
     )
   }
@@ -390,6 +404,30 @@ function DocumentRow({
       <p className={styles.filedCell} data-filed>
         <FiledBy staff={document.filedBy} on={document.filedOn} />
       </p>
+
+      {/*
+       * **A document whose record is real opens; one added this session does
+       * not.** The viewer shows a representative sample of the type and says
+       * so above the page, which is honest about a build with no file storage
+       * and is worth opening for what it carries beside the page: what points
+       * at this document, and what would break without it. A document added
+       * this session has no type to sample and nothing filed behind it.
+       */}
+      {document.file.kind === 'not_retrievable' ? (
+        <p className={styles.notRetrievable} data-action="not_retrievable">
+          Not retrievable: added this session
+        </p>
+      ) : (
+        <Link
+          href={`/documents/${document.id}`}
+          className={styles.openLink}
+          data-action="open"
+          aria-label={`Open ${document.title}`}
+        >
+          Open
+          <Icon name={documentsIcons.open} size={16} />
+        </Link>
+      )}
     </div>
   )
 }

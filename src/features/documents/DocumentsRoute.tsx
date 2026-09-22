@@ -12,7 +12,7 @@ import { useResource } from '@/data/access/use-resource'
 import { useSession, useSiteFormat } from '@/app/session/use-session'
 import { now } from '@/data/fixtures/clock'
 import { useViewer } from '@/app/session/use-viewer'
-import { ActPoint } from '@/components/layout/ActPoint'
+import Link from 'next/link'
 import { PageHead } from '@/components/layout/PageHead'
 import {
   Button,
@@ -21,6 +21,7 @@ import {
   Dialog,
   EmptyState,
   Select,
+  buttonClassName,
 } from '@/components/primitives'
 import {
   AggregateFigure,
@@ -28,7 +29,9 @@ import {
   StatusPill,
   Unrecorded,
 } from '@/components/status'
+import { Icon } from '@/components/icon/Icon'
 import { listName } from '@/features/residents/list-name'
+import { documentsIcons } from './documents.icons'
 import { FileDocumentForm } from './UploadDocumentRoute'
 import { zonedDate } from '@/lib/format'
 import { formatCount, pluralise } from '@/lib/format'
@@ -88,19 +91,35 @@ export function DocumentsRoute() {
         'the residents’ documents and the home’s own',
       ]}
       action={
-        uploadAnswer.kind === 'yes' ? (
-          /* DOC-01 puts the act top right. It opens over this library rather
-             than sending the reader to the residents list to find their way
-             back: a document belongs to somebody, so the dialog asks who
-             first and draws nothing else until it has an answer. */
-          <FileForSomebody
-            site={activeSite}
-            onFiled={(words) => {
-              setDone(words)
-              setFiled((count) => count + 1)
-            }}
-          />
-        ) : undefined
+        /*
+         * DOC-01 puts both of these top right: "Expiry tracking >" and
+         * "Upload a document (Senior Carer and above only)". The queue is
+         * every reader's — it is a read — and filing is the senior carer's.
+         *
+         * Uploading opens over this library rather than sending the reader to
+         * the residents list to find their way back: a document belongs to
+         * somebody, so the dialog asks who first and draws nothing else until
+         * it has an answer.
+         */
+        <>
+          <Link
+            href="/documents/expiry"
+            className={buttonClassName({ variant: 'secondary', size: 'large' })}
+            data-expiry-link
+          >
+            Expiry tracking
+            <Icon name={documentsIcons.open} size={16} />
+          </Link>
+          {uploadAnswer.kind === 'yes' ? (
+            <FileForSomebody
+              site={activeSite}
+              onFiled={(words) => {
+                setDone(words)
+                setFiled((count) => count + 1)
+              }}
+            />
+          ) : null}
+        </>
       }
     />
   )
@@ -184,24 +203,6 @@ export function DocumentsRoute() {
           </div>
         ) : null}
       </Card>
-
-      {uploadAnswer.kind === 'yes' ? null : (
-        <Card>
-          <CardHead
-            title="Filing a document"
-            subtitle="Who may put a document on file, and record what is known about it."
-            expand={{ kind: 'whole' }}
-          />
-          {/* Once, at the head: filing is about the file, not about a row. */}
-          <div className={styles.acts}>
-            <ActPoint
-              answer={uploadAnswer}
-              label="Upload a document"
-              notBuilt="Filing a document is not built."
-            />
-          </div>
-        </Card>
-      )}
 
       <Card>
         <CardHead

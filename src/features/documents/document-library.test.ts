@@ -1,12 +1,23 @@
 import { describe, expect, it } from 'vitest'
-import type { DocumentRecord, IsoDate, StaffRef } from '@/data/types'
+import type { DocumentRecord, IsoDate, IsoDateTime, StaffRef } from '@/data/types'
 import { documentsForSite } from '@/data/fixtures/documents'
+import { now } from '@/data/fixtures/clock'
 import { staffAkinyemi } from '@/data/fixtures/organisation'
+import { zonedDate } from '@/lib/format'
 import { DOCUMENT_CATEGORIES } from '@/features/residents/tabs/documents/categories'
 import { sharePercent, siteLibrary, withAnExpiryDecision } from './document-library'
 
 const ROSEWOOD = 'site-rosewood-court' as const
-const TODAY = '2026-09-18' as IsoDate
+
+/*
+ * **From the clock the fixtures were built against, not a date typed here.**
+ * Every expiry in the library is `daysAgo` or `daysAhead` of that instant, so
+ * a pinned day drifts away from them: this file held 18/09/2026 and on the
+ * 22nd a document filed one day ahead of the window had become three days
+ * past it, which moved one document from expiring to expired and failed an
+ * assertion on a tree nobody had touched. CLAUDE.md §8.
+ */
+const TODAY: IsoDate = zonedDate(now().toISOString() as IsoDateTime, 'Europe/London')
 
 const document = (
   expiry: DocumentRecord['expiry'],
@@ -59,9 +70,24 @@ describe('the home’s library', () => {
 
   it('lists all seven categories, including the empty ones', () => {
     const library = siteLibrary(documentsForSite(ROSEWOOD), TODAY)
-    expect(library.categories.map((entry) => entry.id)).toEqual(
-      DOCUMENT_CATEGORIES.map((entry) => entry.id),
+    expect([...library.categories.map((entry) => entry.id)].sort()).toEqual(
+      [...DOCUMENT_CATEGORIES.map((entry) => entry.id)].sort(),
     )
+  })
+
+  /*
+   * The order is the finding. Alphabetical, or the order an emergency needs
+   * them, would put the same category first every day of the year — which
+   * tells a reader nothing they did not know before opening the screen.
+   */
+  it('orders the categories by what needs attention soonest', () => {
+    const library = siteLibrary(documentsForSite(ROSEWOOD), TODAY)
+    const urgency = library.categories.map(
+      (entry) => entry.counts.expired + entry.counts.expiring,
+    )
+    expect([...urgency]).toEqual([...urgency].sort((a, b) => b - a))
+    // And the head of the list is a category with something wrong in it.
+    expect(urgency[0]).toBeGreaterThan(0)
   })
 
   it('counts each document into exactly one category, and the parts sum to the whole', () => {

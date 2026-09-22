@@ -132,6 +132,8 @@ export const ROUTES: RouteDeclaration[] = [
   },
   { path: '/consent', screen: 'consentList', module: 'consent', inShell: true },
   { path: '/documents', screen: 'documents', module: 'documents', inShell: true },
+  { path: '/documents/expiry', screen: 'documentExpiry', inShell: true },
+  { path: '/documents/[documentId]', screen: 'documentViewer', inShell: true },
   { path: '/profile', screen: 'profile', module: 'profile', inShell: true },
   { path: '/specimens', screen: 'specimens', module: 'specimens', inShell: true },
 ]

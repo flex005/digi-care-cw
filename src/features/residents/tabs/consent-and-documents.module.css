@@ -311,6 +311,40 @@
   border-top: 1px solid var(--border-subtle);
 }
 
+/* The way into a document, at the end of its row. */
+.openLink {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: var(--space-4);
+  align-items: center;
+  min-height: var(--space-48);
+  margin-inline-start: auto;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-pill);
+  color: var(--purple-600);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.openLink:hover {
+  background-color: var(--purple-50);
+}
+
+/*
+ * Never a link that fails when it is pressed: a row says which of the two
+ * reasons it cannot be opened, and offers nothing to press.
+ */
+.notRetrievable {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  text-align: right;
+}
+
 .list > li:first-child .documentRow {
   border-top: none;
 }
@@ -403,5 +437,21 @@
   .rowAct > button {
     justify-content: center;
     width: 100%;
+  }
+}
+
+/* On a phone the way in takes the row's own line, and its width. */
+@media (width < 1024px) {
+  .openLink {
+    flex: 1 1 100%;
+    justify-content: center;
+    margin-inline-start: 0;
+    border: 1.5px solid var(--border-strong);
+  }
+
+  .notRetrievable {
+    flex: 1 1 100%;
+    margin-inline-start: 0;
+    text-align: left;
   }
 }

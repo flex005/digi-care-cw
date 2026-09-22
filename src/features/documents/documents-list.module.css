@@ -238,3 +238,125 @@
     min-height: var(--space-48);
   }
 }
+
+/* ------------------------------------------------------- expiry tracking */
+
+/* The way out, above the head and on the left, as everywhere else. */
+.back {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  align-self: flex-start;
+  min-height: var(--space-40);
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--purple-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin-top: var(--space-16);
+}
+
+.plain {
+  margin-top: var(--space-16);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/*
+ * One document to a row: what it is, who it belongs to, what its expiry
+ * decision says, and the way into it.
+ */
+.queueRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+  align-items: center;
+  padding-block: var(--space-12);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.rows > li:last-child .queueRow {
+  border-bottom: none;
+}
+
+.queueAbout {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.queueSubject {
+  flex: 0 1 180px;
+  min-width: 0;
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.queueState {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.queueAct {
+  display: flex;
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+}
+
+.openLink {
+  display: inline-flex;
+  gap: var(--space-4);
+  align-items: center;
+  min-height: var(--space-48);
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-pill);
+  color: var(--purple-600);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.openLink:hover {
+  background-color: var(--purple-50);
+}
+
+/*
+ * Never a link that fails when it is pressed. A document added this session
+ * has no type to sample and nothing filed behind it, so the row says that
+ * rather than offering a way in that leads nowhere.
+ */
+.notRetrievable {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+@media (width < 1024px) {
+  .queueSubject,
+  .queueState {
+    flex: 1 1 100%;
+  }
+
+  .queueAct {
+    flex: 1 1 100%;
+    margin-inline-start: 0;
+  }
+
+  .openLink {
+    justify-content: center;
+    width: 100%;
+    border: 1.5px solid var(--border-strong);
+  }
+}

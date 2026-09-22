@@ -409,6 +409,20 @@ const SCREENS = {
       ),
     { ssr: false },
   ),
+  documentExpiry: dynamic(
+    () =>
+      import('@/features/documents/ExpiryQueueRoute').then(
+        (module) => module.ExpiryQueueRoute,
+      ),
+    { ssr: false },
+  ),
+  documentViewer: dynamic(
+    () =>
+      import('@/features/documents/DocumentViewerRoute').then(
+        (module) => module.DocumentViewerRoute,
+      ),
+    { ssr: false },
+  ),
   profile: dynamic(
     () =>
       import('@/features/profile/ProfileRoute').then((module) => module.ProfileRoute),

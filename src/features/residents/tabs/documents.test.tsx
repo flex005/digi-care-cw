@@ -185,13 +185,34 @@ describe("a resident's library", () => {
     }
   })
 
-  it('offers nothing to open, because nothing opens in this build', async () => {
+  /*
+   * DOC-01's care worker story is access to clinical letters and DNAR forms
+   * during care delivery, and opening one is reading, which Table 3 gives
+   * both roles. What must never appear is a way in that fails when it is
+   * pressed: a broken reference and a document added this session each say
+   * which of the two they are, and offer nothing to press.
+   */
+  it('opens a document on file, and says why the other two rows cannot', async () => {
     const { container } = openAs(staffAkinyemi, okafor)
     const panel = await panelOf(container)
 
-    for (const category of panel.querySelectorAll<HTMLElement>('[data-category]')) {
-      expect(within(category).queryByRole('link')).toBeNull()
-      expect(within(category).queryByRole('button')).toBeNull()
+    for (const row of panel.querySelectorAll<HTMLElement>('[data-row="document"]')) {
+      const id = row.getAttribute('data-document')
+      const open = row.querySelector('[data-action="open"]')
+      const notRetrievable = row.querySelector('[data-action="not_retrievable"]')
+      // Exactly one of the two, never both and never neither.
+      expect(Boolean(open) !== Boolean(notRetrievable), String(id)).toBe(true)
+      if (open !== null) expect(open.getAttribute('href')).toBe(`/documents/${id}`)
+      expect(within(row as HTMLElement).queryByRole('button')).toBeNull()
+    }
+
+    for (const row of panel.querySelectorAll<HTMLElement>(
+      '[data-row="referenced_not_on_file"]',
+    )) {
+      expect(row.querySelector('[data-action="cannot_open"]')?.textContent).toBe(
+        'Cannot open, not on file',
+      )
+      expect(within(row).queryByRole('link')).toBeNull()
     }
   })
 })

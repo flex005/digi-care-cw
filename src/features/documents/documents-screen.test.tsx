@@ -116,6 +116,19 @@ describe('who may file a document', () => {
   })
 
   /*
+   * DOC-01 puts "Expiry tracking >" top right beside the upload, and it is a
+   * read, so both roles get it.
+   */
+  it('offers expiry tracking to both roles, from the top of the library', async () => {
+    for (const staff of [staffAkinyemi, staffEze]) {
+      const { unmount } = await openList(staff.id)
+      const link = document.querySelector('[data-expiry-link]')
+      expect(link?.getAttribute('href'), staff.id).toBe('/documents/expiry')
+      unmount()
+    }
+  })
+
+  /*
    * DOC-01 puts the act top right, and a document belongs to somebody — so the
    * dialog asks who before it draws a form, and draws no form until it has an
    * answer (CLAUDE.md §2).

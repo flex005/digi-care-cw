@@ -30,23 +30,45 @@ export interface CategorySummary {
 }
 
 export interface SiteLibrary {
-  /** All seven categories, always, in the order an emergency needs them. */
+  /** All seven categories, always, ordered by what needs attention soonest. */
   categories: CategorySummary[]
   /** Every document at the home: the residents' and the home's own. */
   counts: ExpiryCounts
 }
 
+/**
+ * **Ordered by urgency, never alphabetically or by filing order**, because the
+ * order is the finding. The order an emergency needs them is the right order
+ * for one resident's library, where a reader is looking for a document they
+ * can name; it is the wrong order here, where nobody is looking for a
+ * category — they are looking for what has gone out of date. Alphabetical
+ * would put Assessments first every day of the year, which tells a reader
+ * nothing they did not know before opening the screen.
+ *
+ * Expired and expiring decide it together, because both are findings about a
+ * date somebody recorded. What nobody has decided breaks the tie, and the
+ * label breaks that, so the order is stable from one load to the next.
+ */
 export function siteLibrary(documents: DocumentRecord[], today: IsoDate): SiteLibrary {
+  const categories = DOCUMENT_CATEGORIES.map((category) => ({
+    id: category.id,
+    label: category.label,
+    holds: category.holds,
+    counts: countExpiry(
+      documents.filter((document) => document.category === category.id),
+      today,
+    ),
+  }))
+
   return {
-    categories: DOCUMENT_CATEGORIES.map((category) => ({
-      id: category.id,
-      label: category.label,
-      holds: category.holds,
-      counts: countExpiry(
-        documents.filter((document) => document.category === category.id),
-        today,
-      ),
-    })),
+    categories: categories.sort((a, b) => {
+      const urgency =
+        b.counts.expired + b.counts.expiring - (a.counts.expired + a.counts.expiring)
+      if (urgency !== 0) return urgency
+      if (b.counts.notRecorded !== a.counts.notRecorded)
+        return b.counts.notRecorded - a.counts.notRecorded
+      return a.label.localeCompare(b.label)
+    }),
     counts: countExpiry(documents, today),
   }
 }
