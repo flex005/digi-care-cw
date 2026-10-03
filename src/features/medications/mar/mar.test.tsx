@@ -1,4 +1,41 @@
-import { describe, expect, it, vi } from 'vitest'
+import { vi } from 'vitest'
+
+/**
+ * **The clock is pinned, before anything imports the fixtures.**
+ *
+ * `clock.ts` reads `?at=` once at module load and uses it for `GENERATED_AT`
+ * as well as `now()`, so this pins the record the fixtures generate *and* the
+ * instant the chart draws at — one instant, not two that could disagree.
+ *
+ * It is pinned because one assertion here was date-dependent without a date
+ * being written down. The chart clips both ranges to the last day the record
+ * holds, which is "today": on the 3rd of a month the week-to-date is six
+ * columns and the month-to-date is three, so "the month shows more than the
+ * week" — true for most of a month — is false on days 1 to 7. The suite went
+ * red on the first of October with nothing changed, which is the third time
+ * this repository has met the date-dependent family (CLAUDE.md §8).
+ *
+ * 16/09/2026 at 20:20 BST: mid-month, so a month-to-date is always longer than
+ * a week-to-date, and twenty minutes into the 20:00 round, which is the shape
+ * `report.test.tsx` already pins to.
+ *
+ * **Written with a `Z` offset, and that is not cosmetic.** `?at=` is read with
+ * `URLSearchParams`, which decodes `+` as a space, so `20:20:00+01:00` arrives
+ * as `20:20:00 01:00`, `new Date()` returns Invalid Date, and `clock.ts` drops
+ * the override and uses the real clock — silently, because an unparseable
+ * value is indistinguishable from no value. The first version of this pin did
+ * exactly that and the test went on failing with the same two numbers, which
+ * is what proved the pin inert rather than the dates wrong.
+ */
+vi.hoisted(() => {
+  window.history.replaceState(
+    null,
+    '',
+    '/residents/res-okafor/medications/mar?at=2026-09-16T19:20:00Z',
+  )
+})
+
+import { describe, expect, it } from 'vitest'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { axe } from 'vitest-axe'
 import type { MarCellState, Resident, ResidentId, StaffId } from '@/data/types'
@@ -24,8 +61,9 @@ import { MarChartRoute } from './MarChartRoute'
  * that the months offered are the months the record holds, and that nothing on
  * the page can change a record.
  *
- * The fixtures are generated against the moment the suite runs, so each test
- * finds its record in the fixtures first and pages to that record's month.
+ * The fixtures are generated against the instant pinned above, and each test
+ * still finds its record in the fixtures first and pages to that record's
+ * month rather than assuming where it is.
  */
 
 const navigation = vi.hoisted(() => ({
