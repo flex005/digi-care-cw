@@ -406,6 +406,114 @@ export type IncidentSubject =
   | { kind: 'resident'; residentId: ResidentId }
   | { kind: 'no_resident_involved'; recordedBy: StaffRef }
 
+/**
+ * A photograph or a video somebody attached when they reported it.
+ *
+ * **Live for this session and nowhere else, and the screen says so where the
+ * evidence is.** There is no backend here, so the file sits on an object URL
+ * that dies with the tab. Every write in this build is the same, and the one
+ * thing this must not do is imply otherwise: a reader who believes a
+ * photograph of a bruise is filed somewhere will not take another one. It is
+ * said as a statement of fact beside the list, not as a caution — the 19/09
+ * sweep took those out.
+ *
+ * **This is the first file control in the build that is real.** A disabled
+ * "Choose a file" and a line explaining that nothing is stored were removed
+ * from `UploadDocumentRoute` in that sweep, because a control that does
+ * nothing is not drawn here. An object URL is a live capability: the thumbnail
+ * renders and the reader sees what they attached.
+ *
+ * **An empty list is not a gap and never takes the hatch** (§1). "No
+ * photographs attached" is not "nobody looked at whether there were
+ * photographs" — it is an incident with nothing to attach, which is most of
+ * them. Hatching it would put the hatch on nearly every incident in the
+ * product and make it texture, which is the one thing §1 forbids by name.
+ *
+ * Stamped like every other act on this type. A photograph with no name against
+ * it is a photograph nobody can ask about.
+ */
+export interface IncidentEvidence {
+  id: string
+  kind: 'photo' | 'video'
+  /** As the file was named on the device it came off. */
+  fileName: string
+  /** Bytes, so the screen can say how big a thing it is holding. */
+  size: number
+  /** An object URL. Alive for this session only. */
+  url: string
+  attached: IncidentAct
+}
+
+/**
+ * Whether anybody has said this one needs attention now.
+ *
+ * **Not a duplicate of the unacknowledged queue.** Every incident already
+ * starts `reported_not_acknowledged` and already leads the log, so a plain
+ * "tell the manager" toggle would restate a signal the product already sends —
+ * and this build has a rule against exactly that: no screen may claim a
+ * notification was sent (§6). What is missing is *urgency*: somebody saying
+ * this one is not like the other nine waiting, with a reason attached.
+ *
+ * **The reason is required, not optional beside the member.** "Needs attention
+ * now" with nothing behind it tells somebody to hurry and not what about, and
+ * this build already refuses that shape — a flagged care note needs its reason,
+ * an urgent handover needs words before it can be recorded.
+ *
+ * **`ordinary` is a recorded negative, which is only true because the form
+ * asks.** §1 is explicit that a recorded negative is not an unrecorded value:
+ * it looks settled, not unfinished. So urgency is a question with two answers
+ * and never a checkbox somebody can walk past — an unticked box would be a
+ * default nobody chose, which is the fallback §1 names as the bug this product
+ * exists to prevent. That is also why there is no unrecorded member: the
+ * fixtures are a depiction rather than a migration, so there is no record here
+ * that predates the question, and a member only a fixture could hold is a state
+ * the product cannot reach.
+ *
+ * **`stood_down` answers a raise rather than deleting it.** Going back to
+ * `ordinary` would have erased the fact that somebody raised this and what they
+ * said, leaving the record unable to tell "nobody thought this urgent" from
+ * "somebody did and was overruled". So the member keeps `raised` and `because`
+ * in full and adds the second judgement beside them: Amara raised this because
+ * X, Chidi stood it down because Y. `ordinary` therefore still means exactly
+ * what it meant before — nobody raised it — and no record already on file
+ * changes meaning.
+ *
+ * **Neither of these roles stands one down, and the member ships anyway.**
+ * Reviewing somebody else's clinical judgement is a manager's act, like
+ * closing, so no control for it is drawn — the state renders in full and the
+ * screen says who does take it, through `mayNot`. The member exists so the
+ * record can say what happened, which is not the same question as who can do
+ * it here.
+ *
+ * **It is a decision, not a gap**, so it renders quietly and in full and never
+ * takes the hatch (§1). A stood-down incident is a complete record.
+ *
+ * **`worded` is a second act, and it is the member easiest to drop.** With one
+ * act, rewording had to choose between recording who first raised the alarm and
+ * who stands behind the words on screen now. It also reset the only timestamp
+ * there was, so an urgency raised six hours ago and reworded a minute ago read
+ * as a minute old — the screen understating how long something urgent had been
+ * sitting. On a first raise the two are the same act, and the screen says it
+ * once rather than twice.
+ */
+export type IncidentUrgency =
+  | { kind: 'ordinary' }
+  | {
+      kind: 'needs_attention_now'
+      raised: IncidentAct
+      because: string
+      /** Who wrote the wording that is there now. Equals `raised` at first. */
+      worded: IncidentAct
+    }
+  | {
+      kind: 'stood_down'
+      /** Kept in full. Standing down answers a judgement, it does not erase one. */
+      raised: IncidentAct
+      because: string
+      stoodDown: IncidentAct
+      why: string
+    }
+
 export interface Incident {
   id: IncidentId
   siteId: SiteId
@@ -422,6 +530,11 @@ export interface Incident {
 
   /** What the reporter did and who they told, at the time. */
   response: ImmediateResponse
+
+  /** Photographs and video attached to the report. Empty is not a gap. */
+  evidence: IncidentEvidence[]
+  /** Whether anybody said this one cannot wait its turn. */
+  urgency: IncidentUrgency
 
   status: IncidentStatus
   injuries: InjuryMap

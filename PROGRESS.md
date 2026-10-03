@@ -949,3 +949,329 @@ The library counted and stopped. "Health and clinical: 109 on file" was a fact w
 **Built in both products, and the Admin's needed a layout fix the CW's did not.** Their row is CSS grid with three columns; adding the way-in made a fourth child, which fell into an implicit second row and stretched the link across the width of the title above it — a control that reads as belonging to the whole row rather than to the document on it. The CW's row is flex with an auto margin and absorbed the extra child without noticing. Caught by looking at the rendered screen, not the diff.
 
 **A browser probe that kept signing itself out.** Driving the Admin build meant signing in first, and `Page.navigate` to `/documents` afterwards bounced straight back to `/sign-in` every time: the session is in memory, so a page load is a sign-out. Navigating in-app — clicking the rail's own link — is what a reader does anyway. Worth remembering for any future probe against either build.
+
+---
+
+## Proposal: media evidence and urgency on a reported incident (03/10/2026)
+
+**Nothing is built. This is the §10 restatement, and three of the four items below are
+§9 stop-and-asks in their own right** — `IncidentUrgency` is a status union, evidence
+changes the shape of a fixture type, and both change fixture facts the Admin build
+shares.
+
+The Admin build has added four members to its incident record. Three are proposed
+here; one is explicitly refused.
+
+### What is not proposed, and why that is right
+
+**`FamilyTold` stays out.** This build sets `response.family` to `{ kind: 'not_yet' }`
+at report time, and the comment at `ReportIncidentRoute.tsx:280` is correct: that is
+what is true the moment a report is written, it is the unfinished member, and it can
+only ever under-claim. Deciding whether a family is told is a manager's act taken
+later. Adding a reporter-time decision would let a care worker record an answer to a
+question nobody has asked them, which is the Evidence Invariant run backwards —
+inventing a decision rather than failing to record one. **No change.**
+
+> **Correction, 03/10/2026, before building: the premise above is wrong about the
+> Admin build, and the conclusion is right anyway.** This section was written as
+> though the Admin asks its reporter about the family, so that refusing it here was a
+> departure from that build. It does not. `FamilyTold` opens on `{ kind: 'not_decided' }`
+> — a real third state for nobody having considered it — and its own docblock argues
+> that somebody choosing not to tell the family is a decision with a name on it while
+> nobody having considered it is a gap. That is the same argument as the one above,
+> reached independently. So the two builds agree, `recordFamilyDecision` there is a
+> manager's act taken later exactly as this section says it should be, and there was
+> never a divergence to justify. **The decision holds. The comparison offered in
+> support of it was false, and a false reason is worse than none**, because it reads
+> as a decision somebody checked (§8, on a departure that was a claim about a document
+> nobody had read).
+
+### 1. Media evidence
+
+**The shape.** A list on the incident, each entry carrying what it is (`photo` or
+`video`), the file name as it came off the device, its size, an object URL, and an
+`IncidentAct` saying who attached it and when. The Admin's `IncidentEvidence` is a
+reasonable shape and I would not vary it without reason, because the two products
+describe one home.
+
+**Where this build differs from the Admin, and it is the whole design.** This build
+removed a file chooser once already. `UploadDocumentRoute` had a disabled "Choose a
+file" button and a line saying no file is stored; both went in the 19/09 sweep,
+because a control that does nothing is not drawn here. **Evidence is the first thing
+in this build that would make a file control real** — an object URL is live, the
+thumbnail renders, and the reader can see what they attached. That is a genuine
+capability, not a stub, and it is the reason this is worth building rather than
+restating.
+
+**It is live for the session and nowhere else**, and the screen says so where the
+evidence is, not in a caution line — the sweep removed those. The honest wording is a
+statement of fact beside the list: the originals on the device are the only lasting
+copy. This is the same register as the document viewer's sample banner, which works.
+
+**§1 — what the unrecorded case is.** `evidence: []` is **not** a gap and must not be
+hatched. "No photographs attached" is not "nobody looked at whether there were
+photographs" — it is an incident with nothing to attach, which is most of them. The
+Admin's generator agrees: every generated incident carries `evidence: []` with the
+comment *"No invented evidence."* Hatching the empty list would put the hatch on
+almost every incident in the product and make it texture, which §1 forbids by name.
+**Empty renders as plain words or as nothing at all.**
+
+### 2. Urgency
+
+**The shape.** `IncidentUrgency` — `ordinary`, `needs_attention_now` with a required
+reason, `stood_down`. **The required reason is the point**: "needs attention now" with
+nothing behind it tells somebody to hurry and not what about, and this build already
+refuses that pattern elsewhere (a flagged care note needs its reason; an urgent
+handover status needs words before it can be recorded).
+
+**Why this and not "alert the manager".** Every incident already reaches a manager
+unacknowledged — that is what `reported_not_acknowledged` means and what the
+incidents list leads on. A "tell the manager" toggle would restate a signal the
+product already sends, and this build has a rule against exactly that: no screen may
+claim a notification was sent. What only the person who was there can say is that
+this one is not like the other nine waiting.
+
+**§1 — and here I want to argue it rather than assert it.** The question is whether
+"nobody said whether this is urgent" is a state at all.
+
+- **If the form asks, `ordinary` is a recorded negative**, and §1 is explicit that a
+  recorded negative is not an unrecorded value: it looks settled, not unfinished. So
+  the form must *ask* — the flag is a question with two answers, not a checkbox whose
+  unticked state means nothing in particular.
+- **So there is no unrecorded member, and that is the right answer**, but only
+  because of the sentence above. If the flag were an optional control somebody could
+  walk past, `ordinary` would be a default nobody chose, which is the fallback §1
+  names as the bug this product exists to prevent.
+- **The fixtures are a depiction, not a migration.** The Admin generates `ordinary`
+  for all but two pinned incidents. There is no historical data here that predates
+  the question, so no `not_asked` member is needed and none should be added — an
+  extra union member that only fixtures could ever hold is a state the product cannot
+  reach.
+
+**How it renders.** Not a RAG colour: urgency is not harm, and the severity scale
+already owns harm. Not amber either — §6 reserves amber for findings. A marked
+incident needs to be findable in a list of forty, so the likely answer is a pill in
+the caution *ink and tint* with the reason beside it, which is what the status pill
+already does and what `check-caution-carriers` permits. **An ordinary incident is
+drawn with nothing**, because nothing is what it is.
+
+**`stood_down` is probably out of scope.** Standing one down is reviewing somebody
+else's judgement — a manager's act, like closing. The reporter's half is raising it.
+I would build `ordinary | needs_attention_now` and leave the third member unbuilt
+rather than draw a control neither role can use.
+
+### 3. Export — posed as a question, not designed
+
+Table 3 gives these roles reporting and acknowledging, not review. An export is a
+read act on a record the reporter wrote, and the role table has a reach for exactly
+that shape — `records_you_wrote`, which `correct_care_note` already uses.
+
+**But I am not proposing it, because three things need deciding first and none is
+mine to settle:**
+
+1. **Should a care worker have it at all?** A PDF of an incident is a document that
+   leaves the building. The product has no file storage and no server; "export" here
+   would mean a browser print or a generated file in the tab.
+2. **What is it for?** If the answer is "so the manager can read it", that is the
+   unacknowledged queue's job and the export restates it.
+3. **Does the PRD say anything?** Table 3 has no export row for incidents that I
+   found. If it is silent, §1's treatment of silence applies — it is drawn as a
+   question for the PRD's author, not resolved by whoever builds it.
+
+**Recommendation: leave it out of this phase** and decide it separately. If it is
+wanted, `records_you_wrote` is the reach.
+
+### What the guards and the review would do
+
+**`check-figma-export` — the one that could change the design, and I cannot answer it
+from this repository.** The guard itself checks four things: grid, `url(#…)`, fonts,
+breakpoints. Evidence trips none of them. **The guard passing is not the question.**
+The question is what the importer does with an `<img>` or a `<video>`, and
+`docs/FIGMA-HANDOFF.md` in the Admin build does not say, because it was never tested —
+its twelve specimens cover SVG references only.
+
+What is near-certain on reasoning: **a `blob:` URL is scoped to the tab that created
+it**, so an importer reading the page in any other context resolves nothing, and an
+evidence thumbnail arrives empty. An empty box where a photograph was is the
+`url(#…)` failure again — a gap that looks like a value.
+
+**That doc's own closing line is "This page has been wrong twice", and both times from
+inference rather than experiment.** So the honest answer is: **run a probe specimen
+through the importer before designing the thumbnail.** If `<img>` with a blob does not
+survive, the design changes — evidence becomes a named, counted list with file name,
+size and who attached it, and the thumbnail is a screen-only affordance. That is a
+better outcome discovered first than a worse one discovered after.
+
+**`check-session-losses`.** Evidence is session state and the guard would see it, but
+only if it is held the way the guard reads. Evidence belongs in `incident-store.ts`,
+which already exports `incidentHoldings()` and is already in `SOURCES`. Adding a line
+to that function — "photographs and video you attached", counted — satisfies both
+halves: the holdings export is reached by the loss list, and `resetSessionIncidents()`
+already runs on sign-out. **Object URLs must be revoked there too**, which the guard
+cannot check and review must.
+
+**Capabilities.** Neither item needs a new act. Attaching evidence and flagging
+urgency are both part of reporting, which `report_incident` already governs —
+`may('not_stated_beyond_your_list')` for a care worker, `may('your_list')` for a
+senior carer. Splitting them out would create acts Table 3 has no rows for. **If the
+design owner wants attaching to be separately refusable, that is a new row in the PRD
+first**, not a new entry in `capabilities.ts`.
+
+**Seven states, both roles, 1440 and 390.** The states that will bite:
+
+- **Empty** is the common case and has to look deliberate, not broken.
+- **390 wide** is where thumbnails fail. The compact rules set in the mobile pass give
+  every control 48px and stretch acts to the width; a row of thumbnails fights both.
+  A single-column list with a small preview is likelier than a gallery.
+- **Read-only** — an acknowledged incident's evidence is read by a senior carer who
+  did not attach it, and there is no removal act for them.
+- **Stale** — an object URL from a previous session is dead. The screen must say that
+  rather than render a broken image.
+
+### What I would need approved before building
+
+1. The two type changes — `evidence` and `urgency` on `Incident` (§9).
+2. The fixture change — `urgency: { kind: 'ordinary' }` generated, `evidence: []`
+   always, matching the Admin so the two products do not disagree about one home (§9).
+3. A decision on the Figma probe: run it first, or accept the thumbnail may not
+   survive and design the list form now.
+4. The export: in, out, or asked of the PRD.
+5. Whether `stood_down` is built or left unbuilt.
+
+---
+
+## Proposal: the MAR test that fails on days 1–7 (03/10/2026)
+
+**Separate from the above and not to be bundled with it.**
+
+`mar.test.tsx` → *"switches to the month without moving the record"* fails today with
+`expected 3 to be greater than 6`. Diagnosed in `docs/BUILD_AUDIT.md` §7: the chart
+clips both views to the record's last date, which is today, so on the 3rd of a month
+the week-to-date is 6 columns and the month-to-date is 3. The assertion that the month
+shows more columns than the week **is false on days 1–7 of every month**. The product
+is correct; the test carries a date-dependent assumption.
+
+It means `npm run verify` is red in the first week of every month, so §10's "verify
+before a phase is reported" cannot be satisfied in that window.
+
+**Preferred fix: pin the clock, which this repo already has a seam for.**
+`clock.ts` reads `?at=` once at module load and uses it for `GENERATED_AT` as well as
+`now()`, so pinning the URL pins the fixture generation and the view together.
+`report.test.tsx:4` already does this in a `vi.hoisted` block. Pinning `mar.test.tsx`
+to a fixed mid-month instant makes the whole file deterministic and fixes the cause
+rather than the symptom.
+
+**The risk, and it must be checked before committing:** other tests in that file may
+assume "today", and pinning the file could move them. If pinning destabilises it, the
+fallback is to replace the count comparison with the property it was a proxy for —
+that the switch really happened — by asserting every column drawn falls inside the
+named month. The label assertion beside it (`/^Month of /`) already proves the switch;
+the count was never the interesting half.
+
+**This is the third time this repository has met this failure** (incident form dates,
+`document-library.test.ts`, now this), and the first two are already a §8 entry. The
+new variant is worth noting when it is fixed: **no date is written down here — the
+*assumption* is date-dependent**, which the existing entry's tell ("a test that reads
+`now()` and asserts against something typed by hand") does not catch.
+
+---
+
+### Noted from the Admin build, 03/10/2026
+
+Two of `BUILD_AUDIT.md` §8's open questions are answered, and both change what that
+file says:
+
+- **Its terminology work is finished and live.** Nine terms plus an organisation type,
+  each declaring six forms explicitly — singular, plural, both sentence-initial forms
+  and two possessives — because deriving them produces "next of kins" and "person
+  supporteds". Chosen at setup, changeable in settings. **So the divergence is live
+  today**: one organisation can read "Service User" there and "Resident" here. This
+  build has ~5,300 occurrences of a hardcoded word and no mechanism. It is a phase of
+  work, and it is now a real inconsistency rather than a latent one.
+- **Its permission table was corrected on 02/10** to match Table 3 on four rows: a care
+  worker's risk assessments, consents and Family Portal, and a senior carer's
+  compliance and reports. Two rows remain divergent because four permission levels
+  cannot express "progress notes but not goals" or "acknowledge, a manager closes".
+  **Table 3 is unchanged**, and this build's `capabilities.ts` needs no edit — which is
+  the point of holding the rules in one file that no screen reads around.
+
+---
+
+## Phase 21: evidence and urgency on an incident, the types and the record (03/10/2026)
+
+Built: the two type changes, the fixtures, the two store write paths. **No screens** —
+those are the next step, and there is nothing to look at in the running build yet
+except that nothing broke.
+
+**Three members across, one refused, one decided against.** `docs/DEPARTURES.md` has
+the account under 03/10/2026, including the export, which is not built here by
+decision rather than by silence.
+
+**Two defects found while building, both in code written this phase.**
+
+**A write that reads its caller's copy of the record loses its own last answer.**
+`attachEvidence` built the new list as `[...incident.evidence, entry]`, where
+`incident` is whatever the caller handed in — and a screen will hand in the record it
+is rendering, which may be the fixture. So attaching a second photograph produced "the
+fixture's empty list plus one" and the first photograph vanished. A test attaching
+twice caught it in a minute. **The same shape was on `raiseUrgency` and had no symptom
+at all**: it read `incident.urgency`, so a reword from a stale copy would have found
+`ordinary` there, treated it as a first raise, and re-stamped `raised` — destroying the
+original raise, which is the one thing `worded` exists to protect. Every test and every
+future caller that happened to pass the patched record back in would have passed. Both
+now ask the store what it holds, through `withIncidentEdits`, which is already the
+screens' reader: one overlay, one owner. **The tell is a write whose new value is built
+from a parameter rather than from the store's own state**, and the one to look for is
+the sibling with no symptom.
+
+**Two acts in one session always share a timestamp, and a test asserted otherwise.**
+The reword test moved the system clock an hour and expected `worded.at` to differ from
+`raised.at`. It cannot: `now()` returns the instant the record was generated against and
+does not tick (CLAUDE.md §6), and `vi.setSystemTime` moves a clock the fixtures do not
+read. So within a session `worded` differs from `raised` **by author and never by
+time**, and the differing-timestamp case exists only in the pinned fixture, raised an
+hour after the fall and reworded an hour after that. The test now asserts what the build
+can actually do, and says in a comment why the obvious assertion is wrong — it would
+have passed only by accident. Adjacent to §8's entry on dates written into tests, from
+the other direction: there a literal stood still while the clock moved, here the clock
+stands still and a test expected it to move.
+
+**Two pinned urgency entries, not three, and this differs from the brief.** The brief
+asked for two `needs_attention_now` fixtures plus one `stood_down`. The Admin build has
+**one** of each: `inc-901` raised and reworded, `inc-903` raised and stood down — its
+own comment says "set on two of these", meaning two entries carry an urgency, one per
+non-ordinary member. Matching it exactly is what the one-home rule requires, since an
+incident's urgency is a fact about Rosewood Court rather than a screen decision, so a
+second raised entry here would be a fact this build asserts and the Admin denies. **The
+first-raise case where `raised` and `worded` are the same act therefore has no fixture**,
+and is reached through `raiseUrgency` instead, which is where it comes from in the
+product. If a second raised incident is wanted it has to land in both builds.
+
+**The populated evidence state cannot be reached by a fixture**, and that is right
+rather than a gap: an object URL is alive for the tab that made it, so a fixture cannot
+hold one. Its tests attach through `incident-store` with `URL.createObjectURL` stubbed.
+**The seven-state review's Populated case has to be reached by attaching a real file by
+hand** — it cannot be reviewed off the fixtures, and recording it as reviewed from an
+empty list would be recording a state nobody saw.
+
+**One value in the write path that nobody chose, named where it is.**
+`client.ts`'s report path writes `urgency: { kind: 'ordinary' }` because the form does
+not ask yet. The type's own docblock says `ordinary` is a recorded negative *because the
+form asks*, so until the screens land this is a default rather than an answer — the
+shape §1 calls the bug this product exists to prevent. It is in one place, with a
+comment saying so, and the step that adds the question has one line to replace.
+
+**Ten mutations, each in compiling code and each caught**: the stood-down fixture
+rendered as ordinary; the raised fixture with no reason; `worded` collapsed onto
+`raised` in the fixture and again in the store; the store accepting an empty reason;
+the store re-raising something stood down; a second attachment overwriting the first;
+object URLs dropped rather than revoked; anything accepted as evidence; the sign-out
+list no longer naming the files. Three needed redoing because the first attempt broke
+the typecheck rather than the logic — an excess-property error, a lost narrowing, and
+an unused binding — and a mutation that does not compile tests nothing.
+
+**Nothing indexes `incidents` numerically**, before or after. The array is sorted by
+`occurredAt`, so its order moves with the clock; in the Admin build three test files
+took their subject as `incidents[0]` and broke the day a fixture gained a stood-down
+urgency, which is this change. Every subject here is selected by the property under
+test.

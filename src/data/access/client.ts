@@ -933,6 +933,22 @@ export function reportIncident(input: {
     },
     notification: { kind: 'not_yet_decided' },
     reviewFlags: [],
+    /*
+     * **Nothing attached, and nobody has answered the urgency question yet.**
+     *
+     * `evidence: []` is final and correct: a report is written before anybody
+     * chooses a file, and attaching runs through `attachEvidence` afterwards.
+     *
+     * `urgency` is not final. The type's docblock says `ordinary` is a
+     * recorded negative *because the form asks*, and the form does not ask
+     * yet — the screens are the next step. Until it does, this is the one
+     * value in the write path that nobody chose, which is the shape §1 calls
+     * the bug this product exists to prevent. It is written here, in one
+     * place, rather than spread through the form, so the step that adds the
+     * question has one line to replace with the reporter's answer.
+     */
+    evidence: [],
+    urgency: { kind: 'ordinary' },
     origin: { kind: 'reported' },
   })
 

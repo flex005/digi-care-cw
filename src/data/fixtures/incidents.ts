@@ -6,6 +6,7 @@ import type {
   IncidentLocation,
   IncidentSeverityId,
   IncidentTypeId,
+  IncidentUrgency,
   ImmediateResponse,
   IsoDateTime,
   ManagerReview,
@@ -513,6 +514,24 @@ for (let index = 0; index < 34; index += 1) {
             }
           : { kind: 'not_yet_decided' },
     reviewFlags: closed ? flagsFor(type, closedAt, manager, daysBack > 10) : [],
+    /*
+     * **No invented evidence.** A generated incident carrying a photograph
+     * would be a fixture asserting that somebody stood in a corridor and took
+     * one, and an object URL cannot be generated anyway: it is alive for the
+     * tab that made it. Empty is also the honest common case — most incidents
+     * have nothing to attach — and §1 says plainly that it is not a gap, so it
+     * is never hatched. The populated state is reached by attaching a real
+     * file, through `incident-store`, and nowhere else.
+     */
+    evidence: [],
+    /*
+     * **`ordinary` means nobody raised it, and it says so because the form
+     * asks.** A recorded negative is not an unrecorded value (§1). Two
+     * incidents in the queue below are pinned to the other members, because a
+     * state no fixture reaches is a state three screens render and nobody
+     * sees.
+     */
+    urgency: { kind: 'ordinary' },
     origin: { kind: 'reported' },
   })
 }
@@ -538,6 +557,18 @@ const unacknowledged: {
   daysBack: number
   hour: number
   reporter: StaffRef
+  /**
+   * Set on two of these, because otherwise no fixture reaches either member
+   * and every screen that renders one is dead in the running product — the
+   * feature reads as unbuilt. The same facts as the Admin build's, because the
+   * two products describe one home and an incident's urgency is a fact about
+   * the home rather than a screen decision.
+   *
+   * **A literal, never a draw.** This file generates from one seeded stream,
+   * so swapping a literal for a literal shifts nothing, while an `rng` call
+   * here would move every fixture after it.
+   */
+  urgency?: (occurredAt: Date) => IncidentUrgency
 }[] = [
   {
     id: UNACKNOWLEDGED_INCIDENT,
@@ -547,6 +578,19 @@ const unacknowledged: {
     daysBack: 5,
     hour: 3,
     reporter: staffNwosu,
+    /*
+     * Raised and still unacknowledged: somebody said this cannot wait and
+     * nobody has picked it up. Reworded an hour after the raise, so the two
+     * acts differ and the screen has a case where it must print both rather
+     * than one twice.
+     */
+    urgency: (occurredAt) => ({
+      kind: 'needs_attention_now',
+      raised: act(staffNwosu, after(occurredAt, 1)),
+      because:
+        'She was on the floor for an unknown time and is on anticoagulants. Nobody has examined her properly yet.',
+      worded: act(staffNwosu, after(occurredAt, 2)),
+    }),
   },
   {
     id: 'inc-902' as IncidentId,
@@ -565,6 +609,20 @@ const unacknowledged: {
     daysBack: 1,
     hour: 14,
     reporter: staffNwosu,
+    /*
+     * Raised and answered. The raise is kept in full beside the stand-down,
+     * which is the whole point of the member: the record says who raised it
+     * and why, and who overruled that and why, rather than losing the first
+     * half. Neither role here stands one down, so this is a state a reader
+     * meets and never writes.
+     */
+    urgency: (occurredAt) => ({
+      kind: 'stood_down',
+      raised: act(staffHalloran, after(occurredAt, 0.5)),
+      because: 'The trolley was left across a fire door on a floor with two wanderers.',
+      stoodDown: act(staffOkonkwo, after(occurredAt, 3)),
+      why: 'The door was clear within ten minutes and the night senior confirmed it. Logged for the walkaround, not for tonight.',
+    }),
   },
   {
     id: 'inc-904' as IncidentId,
@@ -608,6 +666,9 @@ for (const entry of unacknowledged) {
     review: emptyReview,
     notification: { kind: 'not_yet_decided' },
     reviewFlags: [],
+    // No invented evidence. The urgency is the entry's where it pins one.
+    evidence: [],
+    urgency: entry.urgency?.(occurredAt) ?? { kind: 'ordinary' },
     origin: { kind: 'reported' },
   })
 }
@@ -658,6 +719,9 @@ export const NO_LOCATION_RECORDED = 'inc-931' as IncidentId
     review: emptyReview,
     notification: { kind: 'not_yet_decided' },
     reviewFlags: [],
+    // No invented evidence, and `ordinary` means nobody raised it.
+    evidence: [],
+    urgency: { kind: 'ordinary' },
     origin: { kind: 'reported' },
   })
 }
@@ -708,6 +772,9 @@ export const NO_LOCATION_RECORDED = 'inc-931' as IncidentId
       reason: 'No allegation of abuse and no harm requiring notification.',
     },
     reviewFlags: flagsFor('injury_unexplained', closedAt, staffOkonkwo, false),
+    // No invented evidence, and `ordinary` means nobody raised it.
+    evidence: [],
+    urgency: { kind: 'ordinary' },
     origin: { kind: 'reported' },
   })
 }
@@ -765,6 +832,9 @@ export const FLAG_STILL_IN_TIME = 'inc-941' as IncidentId
     },
     notification: { kind: 'not_yet_decided' },
     reviewFlags: [],
+    // No invented evidence, and `ordinary` means nobody raised it.
+    evidence: [],
+    urgency: { kind: 'ordinary' },
     origin: { kind: 'reported' },
   })
 }
@@ -818,6 +888,9 @@ export const FLAG_STILL_IN_TIME = 'inc-941' as IncidentId
     // and can still do on time, which is a different thing to show than one
     // already missed.
     reviewFlags: flagsFor('fall_witnessed', closedAt, staffOkonkwo, false),
+    // No invented evidence, and `ordinary` means nobody raised it.
+    evidence: [],
+    urgency: { kind: 'ordinary' },
     origin: { kind: 'reported' },
   })
 }
@@ -889,6 +962,9 @@ export const FLAG_REVIEW_OVERDUE = 'inc-942' as IncidentId
     // and it stays past them once somebody does it — lateness is derived from
     // the completion against the deadline, so the work cannot erase it.
     reviewFlags: flagsFor('fall_witnessed', closedAt, staffOkonkwo, false),
+    // No invented evidence, and `ordinary` means nobody raised it.
+    evidence: [],
+    urgency: { kind: 'ordinary' },
     origin: { kind: 'reported' },
   })
 }
@@ -959,6 +1035,9 @@ const brennan = residents.find(
     // regulatory question was never asked.
     notification: { kind: 'not_yet_decided' },
     reviewFlags: flagsFor('choking', closedAt, staffOkonkwo, true),
+    // No invented evidence, and `ordinary` means nobody raised it.
+    evidence: [],
+    urgency: { kind: 'ordinary' },
     origin: { kind: 'reported' },
   })
 }
@@ -1020,6 +1099,9 @@ const brennan = residents.find(
       decided: act(staffOkonkwo, after(occurredAt, 30)),
     },
     reviewFlags: flagsFor('safeguarding_concern', closedAt, staffOkonkwo, true),
+    // No invented evidence, and `ordinary` means nobody raised it.
+    evidence: [],
+    urgency: { kind: 'ordinary' },
     origin: { kind: 'reported' },
   })
 }
@@ -1072,6 +1154,9 @@ if (discrepancy && discrepancy.entry.kind === 'routine') {
     review: emptyReview,
     notification: { kind: 'not_yet_decided' },
     reviewFlags: [],
+    // No invented evidence, and `ordinary` means nobody raised it.
+    evidence: [],
+    urgency: { kind: 'ordinary' },
     origin: {
       kind: 'stock_count',
       medicationId: OKAFOR_MORPHINE,

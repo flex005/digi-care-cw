@@ -3,8 +3,10 @@ import { now as appNow } from '@/data/fixtures/clock'
 import type {
   Incident,
   IncidentAct,
+  IncidentEvidence,
   IncidentId,
   IncidentStatus,
+  IncidentUrgency,
   IsoDateTime,
   ManagerReview,
   StaffRef,
@@ -21,8 +23,12 @@ import type {
  * over the whole incident, one helper that "fills in" a blank from the other
  * field, and the record now attributes one person's account to another.
  *
- * So the patch is typed to the manager's fields only. There is no way to reach
- * `response` from here, which is stronger than remembering not to.
+ * So the patch is typed field by field, and `response` is not one of them.
+ * There is no way to reach it from here, which is stronger than remembering
+ * not to. Evidence and urgency were added to the patch in Phase 21 and do not
+ * weaken that: both are records *beside* the reporter's account, never edits
+ * to it — a photograph attached an hour later and a judgement about how
+ * urgent it is are two new facts with their own names and timestamps.
  *
  * **Everything is in memory and nothing is merged into the fixtures.** The
  * overlay is applied at read time, the same shape `resident-store` uses.
@@ -31,6 +37,8 @@ import type {
 interface Edit {
   status?: IncidentStatus
   review?: Partial<ManagerReview>
+  evidence?: IncidentEvidence[]
+  urgency?: IncidentUrgency
 }
 
 const edits = new Map<IncidentId, Edit>()
@@ -49,6 +57,19 @@ const reported: Incident[] = []
 let acknowledged = 0
 let reviewed = 0
 let closed = 0
+let attached = 0
+let urgencyRaised = 0
+
+/**
+ * Every object URL this store has minted.
+ *
+ * **Kept as a ledger rather than walked out of the records**, because freeing
+ * them is the one thing that must still work when the records are gone: sign
+ * out clears the overlay, and a URL whose record has been dropped is a handle
+ * nothing can reach and nothing will release. The browser holds the file
+ * alive until it is revoked.
+ */
+const objectUrls: string[] = []
 
 const act = (by: StaffRef): IncidentAct => ({
   by,
@@ -63,6 +84,8 @@ export function withIncidentEdits(incident: Incident): Incident {
     ...incident,
     status: edit.status ?? incident.status,
     review: { ...incident.review, ...edit.review },
+    evidence: edit.evidence ?? incident.evidence,
+    urgency: edit.urgency ?? incident.urgency,
   }
 }
 
@@ -92,6 +115,26 @@ export function keepReportedIncident(incident: Omit<Incident, 'id'>): Incident {
 function patch(id: IncidentId, next: Edit): void {
   edits.set(id, { ...edits.get(id), ...next })
 }
+
+/**
+ * The record as this store has it, for a write that builds on what it wrote.
+ *
+ * **Both writes below would otherwise read the caller's copy and lose their own
+ * last answer.** Attaching a second photograph read `evidence` off the incident
+ * it was handed, which a screen may well have taken from the fixtures, so the
+ * new list was "the fixture's empty list plus one" and the first photograph
+ * vanished. Rewording an urgency is the same shape and worse: it would have
+ * found `ordinary` there, treated a reword as a first raise, and re-stamped
+ * `raised` — destroying the original raise, which is the one thing `worded`
+ * exists to protect. Caught by a test attaching twice; the urgency half had no
+ * symptom to notice because every caller happened to pass the patched record
+ * back in.
+ *
+ * So a write asks this store what it holds rather than trusting its argument.
+ * `withIncidentEdits` is already that answer and already the screens' reader,
+ * which keeps one overlay with one owner.
+ */
+const current = (incident: Incident): Incident => withIncidentEdits(incident)
 
 /**
  * Somebody has picked this up.
@@ -173,20 +216,126 @@ export function close(
   return status
 }
 
+/**
+ * A photograph or a video, attached to a report.
+ *
+ * **The object URL is minted here and freed here.** The component that chose
+ * the file does not hold it: creation and revocation are one fact with one
+ * owner, and splitting them is how a file ends up alive with nothing pointing
+ * at it. `resetSessionIncidents` is the other half and runs on sign-out.
+ *
+ * **It refuses anything that is not a photograph or a video**, rather than
+ * filing it under the nearer of the two. The type has exactly two kinds
+ * because a reader looking at an incident wants to know which they are about
+ * to open; a spreadsheet recorded as a photo is a record that lies about
+ * itself. The screen says what it takes, and this says so again, because a
+ * rule that lives in a form is a rule the next form forgets.
+ */
+export function attachEvidence(
+  incident: Incident,
+  file: File,
+  by: StaffRef,
+): IncidentEvidence {
+  const kind = file.type.startsWith('image/')
+    ? 'photo'
+    : file.type.startsWith('video/')
+      ? 'video'
+      : undefined
+  if (kind === undefined)
+    throw new Error(
+      `${file.name} is a ${file.type || 'file of no stated type'}. Evidence on an incident is a photograph or a video.`,
+    )
+
+  const url = URL.createObjectURL(file)
+  objectUrls.push(url)
+  const entry: IncidentEvidence = {
+    id: `evi-${incident.id}-${String(attached + 1).padStart(3, '0')}`,
+    kind,
+    fileName: file.name,
+    size: file.size,
+    url,
+    attached: act(by),
+  }
+  patch(incident.id, { evidence: [...current(incident).evidence, entry] })
+  attached += 1
+  return entry
+}
+
+/**
+ * Saying an incident needs attention now.
+ *
+ * **Raising and rewording are the same call and different records.** A first
+ * raise stamps `raised` and `worded` with the same act. A reword keeps
+ * `raised` exactly as it was and moves `worded` only, which is why the union
+ * carries two: with one act, rewording had to choose between recording who
+ * first raised the alarm and who stands behind the words on screen now, and it
+ * reset the only timestamp there was — an urgency raised six hours ago and
+ * reworded a minute ago read as a minute old, the screen understating how long
+ * something urgent had been sitting.
+ *
+ * **It will not re-raise something already stood down.** The union holds one
+ * raise and one stand-down, not a chain, so raising again would overwrite the
+ * stand-down and erase a judgement somebody recorded — which is the thing the
+ * member exists to prevent. Refused here rather than in the screen.
+ *
+ * **There is no stand-down here on purpose.** Overruling somebody else's
+ * judgement is a manager's act, like closing, and neither role this build signs
+ * in can take it. The screen says who does, through `mayNot`. A store function
+ * nothing may call would be a control in waiting.
+ */
+export function raiseUrgency(incident: Incident, because: string, by: StaffRef): void {
+  if (because.trim() === '')
+    throw new Error('Saying an incident needs attention now means saying why.')
+
+  const urgency = current(incident).urgency
+  if (urgency.kind === 'stood_down')
+    throw new Error(
+      `${incident.id} was stood down by ${urgency.stoodDown.by.fullName}, and raising it again would erase who stood it down and why.`,
+    )
+
+  const stamp = act(by)
+  patch(incident.id, {
+    urgency: {
+      kind: 'needs_attention_now',
+      // The original raise survives a reword. Only the wording is re-stamped.
+      raised: urgency.kind === 'needs_attention_now' ? urgency.raised : stamp,
+      because: because.trim(),
+      worded: stamp,
+    },
+  })
+  urgencyRaised += 1
+}
+
 export function incidentHoldings(): SessionHolding[] {
   return [
     ...held('incidents you acknowledged', acknowledged),
     ...held('review findings you recorded', reviewed),
     ...held('incidents you closed', closed),
     ...held('incidents you reported', reported.length),
+    ...held('photographs and video you attached', attached),
+
+    ...held('incidents you marked as needing attention now', urgencyRaised),
   ]
 }
 
-/** Emptied on sign out, and by tests. */
+/**
+ * Emptied on sign out, and by tests.
+ *
+ * **The object URLs are revoked, not merely dropped.** Clearing the overlay
+ * removes the records that pointed at them; the browser goes on holding each
+ * file until something calls `revokeObjectURL`, so forgetting here is a leak
+ * that lasts as long as the tab. No guard can see this — `check-session-losses`
+ * reads whether the holdings are declared, not whether memory was handed back —
+ * so it is review's to check, and this comment is where it is written down.
+ */
 export function resetSessionIncidents(): void {
+  for (const url of objectUrls) URL.revokeObjectURL(url)
+  objectUrls.length = 0
   edits.clear()
   reported.length = 0
   acknowledged = 0
   reviewed = 0
   closed = 0
+  attached = 0
+  urgencyRaised = 0
 }
