@@ -33,6 +33,7 @@ const complete = draft({
   witnesses: 'nobody',
   immediateAction: 'Stayed with him, checked him over, told the senior.',
   emergency: 'not_called',
+  urgency: 'ordinary',
 })
 
 describe('an empty form', () => {
@@ -47,6 +48,7 @@ describe('an empty form', () => {
       'whether anybody saw it',
       'what you did about it',
       'whether emergency services were called',
+      'whether this one can wait its turn',
     ])
   })
 
@@ -91,6 +93,9 @@ describe('the injury question', () => {
       witnesses: 'nobody',
       immediateAction: 'Took it out of use and labelled it.',
       emergency: 'not_called',
+      // Asked about a hoist as much as about a person: whether it can wait is
+      // about the queue, not about whether anybody was hurt.
+      urgency: 'ordinary',
     })
     expect(asksAboutInjury(equipment)).toBe(false)
     expect(outstanding(equipment, NOW)).toEqual([])

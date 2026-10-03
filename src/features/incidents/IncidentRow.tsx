@@ -1,7 +1,9 @@
-import type { ReactNode } from 'react'
-import type { Incident, IsoDateTime, Resident } from '@/data/types'
+import { useState, type ReactNode } from 'react'
+import type { Incident, IncidentEvidence, IsoDateTime, Resident } from '@/data/types'
 import { useSiteFormat } from '@/app/session/use-session'
 import { Settled, StatusPill, Unrecorded } from '@/components/status'
+import { useViewer } from '@/app/session/use-viewer'
+import { ActPoint } from '@/components/layout/ActPoint'
 import { assertNever } from '@/lib/assert-never'
 import { pluralise } from '@/lib/format'
 import {
@@ -87,6 +89,7 @@ export function IncidentRow({
         </p>
 
         <div className={styles.rowFacts}>
+          <UrgencyFact incident={incident} />
           <StatusPill
             tone={SEVERITY_TONE[incident.severity]}
             label={severityName(incident.severity)}
@@ -99,10 +102,193 @@ export function IncidentRow({
         {/* The reporter's own words, because there is nowhere else to read
             them. INC-02: "Written for whoever reads this next." */}
         <p className={styles.rowWords}>{incident.description}</p>
+
+        <EvidenceStrip incident={incident} />
       </div>
 
       {act === undefined ? null : <div className={styles.rowAct}>{act}</div>}
     </li>
+  )
+}
+
+/**
+ * Whether anybody said this one cannot wait, and how it was answered.
+ *
+ * **An ordinary incident draws nothing**, because nothing is what it is. A
+ * line reading "not urgent" on thirty-eight rows would make the two that are
+ * harder to find, not easier, and §6 is explicit that nothing due and nothing
+ * to show are plain words rather than a state.
+ *
+ * **A raise takes the caution ink and tint and never the fill**, which is the
+ * one treatment `check-caution-carriers` allows outside `Toast` and which puts
+ * the words inside the colour. Never a RAG colour: urgency is not harm, and
+ * the severity pill beside it already owns harm. Never amber either — §6
+ * reserves amber for findings, and this is a judgement somebody recorded.
+ *
+ * **A stood-down urgency renders in full and quietly, and never hatches.** It
+ * is a complete record: one person raised it and gave a reason, another
+ * answered it and gave theirs. The hatch would say nobody had looked, which is
+ * the opposite of what happened.
+ *
+ * **No control, either way.** Raising happens on the report form, where the
+ * person who was there is. Standing one down is asked of the role table and
+ * refused for both roles that sign in, so nothing is drawn — the way this
+ * build renders every act it does not offer.
+ */
+function UrgencyFact({ incident }: { incident: Incident }) {
+  const format = useSiteFormat()
+  const viewer = useViewer()
+  const { urgency } = incident
+  const standDown = viewer.ask('stand_down_urgency')
+
+  switch (urgency.kind) {
+    case 'ordinary':
+      return null
+    case 'needs_attention_now':
+      return (
+        <div className={styles.urgency} data-urgency="needs_attention_now">
+          <StatusPill tone="caution" label="Needs attention now" />
+          <p className={styles.urgencyBecause}>{urgency.because}</p>
+          <p className={styles.urgencyWho}>
+            {format.attribution(urgency.raised.by.displayName, urgency.raised.at)}
+            {/*
+             * Said twice only where two people are involved. On a first raise
+             * the two acts are the same act, and the record says it once.
+             */}
+            {urgency.worded.by.id === urgency.raised.by.id &&
+            urgency.worded.at === urgency.raised.at
+              ? null
+              : ` · reworded by ${format.attribution(
+                  urgency.worded.by.displayName,
+                  urgency.worded.at,
+                )}`}
+          </p>
+          <ActPoint
+            answer={standDown}
+            label="Stand down this urgency"
+            notBuilt="Standing an urgency down is not built."
+          />
+        </div>
+      )
+    case 'stood_down':
+      return (
+        <div className={styles.urgency} data-urgency="stood_down">
+          <Settled
+            label="Raised, and stood down"
+            detail={format.attribution(
+              urgency.stoodDown.by.displayName,
+              urgency.stoodDown.at,
+            )}
+          />
+          {/* Both halves, because losing the first is what returning to
+              `ordinary` would have done. */}
+          <p className={styles.urgencyBecause}>
+            <strong>Raised:</strong> {urgency.because}{' '}
+            <span className={styles.urgencyWho}>
+              {format.attribution(urgency.raised.by.displayName, urgency.raised.at)}
+            </span>
+          </p>
+          <p className={styles.urgencyBecause}>
+            <strong>Stood down:</strong> {urgency.why}
+          </p>
+          <ActPoint
+            answer={standDown}
+            label="Stand down this urgency"
+            notBuilt="Standing an urgency down is not built."
+          />
+        </div>
+      )
+    default:
+      return assertNever(urgency)
+  }
+}
+
+/**
+ * What was attached, and where it lives.
+ *
+ * **Nothing attached draws nothing at all.** Most incidents have nothing, and
+ * §1 is explicit that this is not a gap: hatching it would put the hatch on
+ * nearly every row in the product and make it texture, which is the one thing
+ * that would stop it meaning anything. A row with no evidence is not a row
+ * missing evidence.
+ *
+ * **A dead object URL says so rather than showing a broken image.** A `blob:`
+ * URL belongs to the tab that made it, so a record read after a reload has
+ * handles that resolve to nothing — which would draw an empty box where a
+ * photograph was, the `url(#…)` failure again: a gap that looks like a value.
+ * `onError` turns it into words.
+ */
+function EvidenceStrip({ incident }: { incident: Incident }) {
+  const format = useSiteFormat()
+  if (incident.evidence.length === 0) return null
+
+  return (
+    <div className={styles.evidence} data-evidence-on={incident.id}>
+      <ul className={styles.evidenceList}>
+        {incident.evidence.map((entry) => (
+          <li key={entry.id} className={styles.evidenceItem} data-evidence={entry.id}>
+            <EvidenceThumb entry={entry} />
+            <div className={styles.evidenceAbout}>
+              <p className={styles.evidenceName}>{entry.fileName}</p>
+              <p className={styles.evidenceMeta}>
+                {entry.kind === 'photo' ? 'Photograph' : 'Video'} ·{' '}
+                {format.attribution(entry.attached.by.displayName, entry.attached.at)}
+              </p>
+              {entry.kind === 'video' ? (
+                /* Said rather than left to be discovered: a clip off a phone
+                   has no captions, and nothing here can write them. */
+                <p className={styles.evidenceMeta} data-evidence-no-captions>
+                  No captions — nobody has transcribed what is said on this clip.
+                </p>
+              ) : null}
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p className={styles.evidenceWhere}>
+        {pluralise(incident.evidence.length, 'file')} attached, held in this session
+        only. The originals on the device are the only lasting copy.
+      </p>
+    </div>
+  )
+}
+
+/** The thumbnail, or the account of why there is not one. */
+function EvidenceThumb({ entry }: { entry: IncidentEvidence }) {
+  const [dead, setDead] = useState(false)
+
+  if (dead)
+    return (
+      <p className={styles.evidenceGone} data-evidence-gone={entry.id}>
+        This file was attached in a session that has ended, so there is nothing left to
+        show. The original is on the device it came from.
+      </p>
+    )
+
+  return (
+    <div className={styles.evidenceThumb}>
+      {entry.kind === 'photo' ? (
+        <img
+          className={styles.evidenceImage}
+          src={entry.url}
+          alt={`Attached photograph: ${entry.fileName}`}
+          onError={() => setDead(true)}
+          data-evidence-image={entry.id}
+        />
+      ) : (
+        <>
+          {/* eslint-disable-next-line jsx-a11y/media-has-caption -- a clip filmed on a care worker's phone arrives with no caption track and this build cannot make one; an empty <track> would claim captions that do not exist, so the gap is said in words beside the clip and recorded in docs/DEPARTURES.md under Accessibility */}
+          <video
+            className={styles.evidenceImage}
+            src={entry.url}
+            controls
+            onError={() => setDead(true)}
+            aria-label={`Attached video: ${entry.fileName}`}
+            data-evidence-video={entry.id}
+          />
+        </>
+      )}
+    </div>
   )
 }
 

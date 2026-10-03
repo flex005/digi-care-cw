@@ -37,6 +37,7 @@ import IconEditFormatting_View from '@/assets/icons-generated/edit-formatting/vi
 import IconEditFormatting_ViewOff from '@/assets/icons-generated/edit-formatting/view-off.svg?react'
 import IconGameSports_Puzzle from '@/assets/icons-generated/game-sports/puzzle.svg?react'
 import IconGeometricSharps_Circle from '@/assets/icons-generated/geometric-sharps/circle.svg?react'
+import IconImageCameraVideo_ImageAdd01 from '@/assets/icons-generated/image-camera-video/image-add-01.svg?react'
 import IconLegal_Agreement02 from '@/assets/icons-generated/legal/agreement-02.svg?react'
 import IconLegal_LegalDocument01 from '@/assets/icons-generated/legal/legal-document-01.svg?react'
 import IconLoginLogout_Logout01 from '@/assets/icons-generated/login-logout/logout-01.svg?react'
@@ -55,7 +56,7 @@ import IconUsers_UserMultiple from '@/assets/icons-generated/users/user-multiple
 import IconUsers_UserSwitch from '@/assets/icons-generated/users/user-switch.svg?react'
 
 /**
- * Only the 43 icons actually used in source. Importing all of them
+ * Only the 44 icons actually used in source. Importing all of them
  * would compile every icon in the set into the bundle.
  *
  * Partial because it is keyed by the full IconName union. A missing entry
@@ -92,6 +93,7 @@ export const iconRegistry: Partial<
   'edit-formatting/view-off': IconEditFormatting_ViewOff,
   'game-sports/puzzle': IconGameSports_Puzzle,
   'geometric-sharps/circle': IconGeometricSharps_Circle,
+  'image-camera-video/image-add-01': IconImageCameraVideo_ImageAdd01,
   'legal/agreement-02': IconLegal_Agreement02,
   'legal/legal-document-01': IconLegal_LegalDocument01,
   'login-logout/logout-01': IconLoginLogout_Logout01,

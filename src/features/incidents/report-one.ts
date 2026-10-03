@@ -25,6 +25,14 @@ export function reportOne(at: IsoDateTime) {
       family: { kind: 'not_yet' },
       emergencyServices: { kind: 'not_called' },
     },
+    /*
+     * Nothing attached and nobody raised it — the plain case, which is what the
+     * tests that use this want. An object URL cannot be held by anything that
+     * outlives a tab, so evidence is reached by `holdEvidence` in the test that
+     * is about evidence.
+     */
+    evidence: [],
+    urgency: { kind: 'ordinary' },
     by: staffAkinyemi,
     at,
   })

@@ -54,12 +54,14 @@ import type {
   SiteId,
   StaffRef,
   Incident,
+  IncidentEvidence,
   IncidentId,
   IncidentLocation,
   IncidentSeverityId,
   IncidentStatus,
   IncidentSubject,
   IncidentTypeId,
+  IncidentUrgency,
   ImmediateResponse,
   InjuryMap,
   RegisterMovement,
@@ -893,6 +895,10 @@ export function reportIncident(input: {
   description: string
   injuries: InjuryMap
   response: ImmediateResponse
+  /** What was chosen, held by `incident-store`. Empty is not a gap. */
+  evidence: IncidentEvidence[]
+  /** The reporter's own answer. There is no member for nobody having answered. */
+  urgency: IncidentUrgency
   by: StaffRef
   at: IsoDateTime
 }): Promise<Incident> {
@@ -934,21 +940,17 @@ export function reportIncident(input: {
     notification: { kind: 'not_yet_decided' },
     reviewFlags: [],
     /*
-     * **Nothing attached, and nobody has answered the urgency question yet.**
+     * **Both come from the reporter now, and `ordinary` is their answer rather
+     * than this file's.**
      *
-     * `evidence: []` is final and correct: a report is written before anybody
-     * chooses a file, and attaching runs through `attachEvidence` afterwards.
-     *
-     * `urgency` is not final. The type's docblock says `ordinary` is a
-     * recorded negative *because the form asks*, and the form does not ask
-     * yet — the screens are the next step. Until it does, this is the one
-     * value in the write path that nobody chose, which is the shape §1 calls
-     * the bug this product exists to prevent. It is written here, in one
-     * place, rather than spread through the form, so the step that adds the
-     * question has one line to replace with the reporter's answer.
+     * Until the form asked, this wrote `{ kind: 'ordinary' }` itself — safe
+     * only while no screen read it, and a default nobody chose the moment one
+     * did. `IncidentUrgency` has no member for nobody having answered, and the
+     * reason it needs none is that the form asks, so the question and the
+     * rendering had to land together or the type was resting on a promise.
      */
-    evidence: [],
-    urgency: { kind: 'ordinary' },
+    evidence: input.evidence,
+    urgency: input.urgency,
     origin: { kind: 'reported' },
   })
 

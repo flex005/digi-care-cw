@@ -75,6 +75,8 @@ async function fillIn(user: User, resident: { name: RegExp }) {
     screen.getByLabelText('Immediate action taken'),
     'Stayed with him, checked him over, told the senior.',
   )
+  // Asked, never assumed: the record has no member for nobody having answered.
+  await user.click(screen.getByRole('radio', { name: /^It can wait its turn/ }))
 }
 
 describe('the form', () => {
@@ -286,6 +288,7 @@ describe('the PRD’s silence about whose residents', () => {
       screen.getByLabelText('Immediate action taken'),
       'Moved it back and told the senior.',
     )
+    await user.click(screen.getByRole('radio', { name: /^It can wait its turn/ }))
 
     // Osei has no list at all, and this report is about nobody, so the question
     // never arises.

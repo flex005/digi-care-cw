@@ -7,4 +7,6 @@ import type { IconName } from '@/components/icon/registry.names.generated'
 export const incidentsIcons = {
   /** The statutory notification nobody has decided on. */
   notification: 'alert-notification/alert-01',
+  /** On the report form's file control, which is the first real one here. */
+  chooseEvidence: 'image-camera-video/image-add-01',
 } satisfies Record<string, IconName>

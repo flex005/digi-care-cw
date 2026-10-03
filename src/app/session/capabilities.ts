@@ -182,6 +182,26 @@ export const CARE_ACTS = {
     confirmation: 'none',
     completion: done,
   },
+  stand_down_urgency: {
+    name: 'Stand down an urgency somebody raised',
+    source: {
+      kind: 'departure',
+      see: 'docs/DEPARTURES.md, Incidents: stood down ships as a state and not as an act',
+    },
+    /*
+     * **Both roles refused, and the state still ships.** The record has to be
+     * able to say that one person raised an urgency and another answered it,
+     * because going back to `ordinary` would erase the first half. Answering it
+     * is reviewing somebody else's clinical judgement, which is the same shape
+     * as closing an incident, and neither role that signs into this build takes
+     * it. Declared here rather than left out, so the absence of a control is a
+     * rule a screen asks about instead of a control nobody happened to write.
+     */
+    care_worker: mayNot('A manager answers an urgency somebody raised.', 'manager'),
+    senior_carer: mayNot('A manager answers an urgency somebody raised.', 'manager'),
+    confirmation: 'none',
+    completion: done,
+  },
   write_care_plan: {
     name: 'Write or finalise a care plan',
     source: row('Care Plan — view'),

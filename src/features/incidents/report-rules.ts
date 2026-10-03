@@ -27,6 +27,22 @@ export type WitnessChoice = 'nobody' | 'witnessed' | 'not_chosen'
 export type EmergencyChoice = 'not_called' | 'ambulance_999' | 'nhs_111' | 'not_chosen'
 
 /**
+ * Whether this one can wait its turn.
+ *
+ * **Two answers and `not_chosen`, which is the form's state and never the
+ * record's.** `IncidentUrgency` has no member for nobody having answered,
+ * because the form asks: `ordinary` is a recorded negative, which §1 says looks
+ * settled rather than unfinished, and that is only true of an answer somebody
+ * gave. A checkbox left unticked would mean both "nobody raised it" and "nobody
+ * was asked", which is the one thing this product exists to prevent.
+ *
+ * **It is not severity.** Harm is clinical and has its own four-point scale.
+ * This is the reporter saying that of the nine things waiting, this one is not
+ * like the others — and the form says so where it asks.
+ */
+export type UrgencyChoice = 'ordinary' | 'needs_attention_now' | 'not_chosen'
+
+/**
  * The two types that can have happened to nobody (INC-02).
  *
  * A hoist found faulty during a check happened to no resident; a fall did not.
@@ -50,6 +66,9 @@ export interface ReportDraft {
   immediateAction: string
   emergency: EmergencyChoice
   emergencyOutcome: string
+  urgency: UrgencyChoice
+  /** Required where the answer is that it cannot wait. */
+  urgencyBecause: string
 }
 
 export const EMPTY_DRAFT: ReportDraft = {
@@ -67,6 +86,8 @@ export const EMPTY_DRAFT: ReportDraft = {
   immediateAction: '',
   emergency: 'not_chosen',
   emergencyOutcome: '',
+  urgency: 'not_chosen',
+  urgencyBecause: '',
 }
 
 /** Whether "no resident was involved" can be true of the type chosen so far. */
@@ -141,6 +162,18 @@ export function outstanding(draft: ReportDraft, now: string): string[] {
     waiting.push('whether emergency services were called')
   else if (draft.emergency !== 'not_called' && draft.emergencyOutcome.trim() === '')
     waiting.push('what the emergency service said')
+  /*
+   * **A reason is required, not optional beside the answer.** "Needs attention
+   * now" with nothing behind it tells somebody to hurry and not what about, and
+   * it is the first thing they will ask. The same rule as a flagged care note
+   * and an urgent handover status.
+   */
+  if (draft.urgency === 'not_chosen') waiting.push('whether this one can wait its turn')
+  else if (
+    draft.urgency === 'needs_attention_now' &&
+    draft.urgencyBecause.trim() === ''
+  )
+    waiting.push('why it cannot wait')
 
   return waiting
 }

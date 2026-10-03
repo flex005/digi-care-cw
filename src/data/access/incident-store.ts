@@ -217,7 +217,11 @@ export function close(
 }
 
 /**
- * A photograph or a video, attached to a report.
+ * A photograph or a video held for this session, ready to go on a report.
+ *
+ * **Minted once, here, and freed here.** The report form holds what it has
+ * chosen and hands it to `reportIncident`, so there is one object URL per file
+ * rather than one for the preview and another for the record.
  *
  * **The object URL is minted here and freed here.** The component that chose
  * the file does not hold it: creation and revocation are one fact with one
@@ -231,11 +235,7 @@ export function close(
  * itself. The screen says what it takes, and this says so again, because a
  * rule that lives in a form is a rule the next form forgets.
  */
-export function attachEvidence(
-  incident: Incident,
-  file: File,
-  by: StaffRef,
-): IncidentEvidence {
+export function holdEvidence(file: File, by: StaffRef): IncidentEvidence {
   const kind = file.type.startsWith('image/')
     ? 'photo'
     : file.type.startsWith('video/')
@@ -248,16 +248,43 @@ export function attachEvidence(
 
   const url = URL.createObjectURL(file)
   objectUrls.push(url)
-  const entry: IncidentEvidence = {
-    id: `evi-${incident.id}-${String(attached + 1).padStart(3, '0')}`,
+  attached += 1
+  return {
+    id: `evi-${String(attached).padStart(3, '0')}`,
     kind,
     fileName: file.name,
     size: file.size,
     url,
     attached: act(by),
   }
+}
+
+/**
+ * The reporter changed their mind before sending it.
+ *
+ * **A draft is not a record, so this removes rather than adds.** Every other
+ * write in this file keeps what was there — a correction is a second fact
+ * beside the first. A photograph chosen by mistake and taken out again before
+ * the report is sent was never on the record at all, and keeping it would put
+ * the wrong bruise in front of the next reader. The URL goes back to the
+ * browser here rather than waiting for sign-out.
+ */
+export function releaseEvidence(entry: IncidentEvidence): void {
+  const at = objectUrls.indexOf(entry.url)
+  if (at === -1) return
+  URL.revokeObjectURL(entry.url)
+  objectUrls.splice(at, 1)
+  attached -= 1
+}
+
+/** Holds a file and puts it on an incident that already exists. */
+export function attachEvidence(
+  incident: Incident,
+  file: File,
+  by: StaffRef,
+): IncidentEvidence {
+  const entry = holdEvidence(file, by)
   patch(incident.id, { evidence: [...current(incident).evidence, entry] })
-  attached += 1
   return entry
 }
 

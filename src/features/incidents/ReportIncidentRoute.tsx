@@ -7,8 +7,10 @@ import type {
   Incident,
   IncidentLocation,
   IncidentSeverityId,
+  IncidentEvidence,
   IncidentSubject,
   IncidentTypeId,
+  IncidentUrgency,
   InjuryMap,
   IsoDateTime,
   Resident,
@@ -16,11 +18,13 @@ import type {
 } from '@/data/types'
 import { COMMUNAL_AREAS, INCIDENT_TYPES } from '@/data/types'
 import { getResidentsBySite, reportIncident } from '@/data/access/client'
+import { holdEvidence, releaseEvidence } from '@/data/access/incident-store'
 import { useResource } from '@/data/access/use-resource'
 import { now } from '@/data/fixtures/clock'
 import { BodyMap } from '@/assets/body-map/BodyMap'
 import { useSession, useSignedIn } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
+import { Icon } from '@/components/icon/Icon'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { PageHead } from '@/components/layout/PageHead'
 import {
@@ -34,6 +38,7 @@ import {
 import { AllergyBadge, NotYourHome, Unrecorded } from '@/components/status'
 import { instantFromZonedWallClock, pluralise, zonedWallClockInput } from '@/lib/format'
 import { HARM_GLOSS, regionName, severityName, typePhrase } from './incident-words'
+import { incidentsIcons } from './incidents.icons'
 import {
   EMPTY_DRAFT,
   asksAboutInjury,
@@ -43,8 +48,22 @@ import {
   type EmergencyChoice,
   type InjuryChoice,
   type ReportDraft,
+  type UrgencyChoice,
 } from './report-rules'
 import styles from './incidents.module.css'
+
+/**
+ * How big a thing the record is holding, in the units a person uses.
+ *
+ * Bytes are what the file gives and not what anybody reads: "2411724" says
+ * nothing about whether this is a photograph or a film.
+ */
+function fileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} bytes`
+  const kb = bytes / 1024
+  if (kb < 1024) return `${Math.round(kb)} KB`
+  return `${(kb / 1024).toFixed(1)} MB`
+}
 
 /** The three injury answers, in INC-03's own words. */
 const INJURY_OPTIONS: { value: InjuryChoice; label: string }[] = [
@@ -186,6 +205,14 @@ export function ReportIncidentForm({
   }))
   const [view, setView] = useState<'front' | 'back'>('front')
   const [error, setError] = useState('')
+  /*
+   * **Held by the store, listed here.** `holdEvidence` mints the object URL so
+   * there is one per file rather than one for this preview and another for the
+   * record, and taking a file out again releases it rather than waiting for
+   * sign-out: a photograph chosen by mistake was never on the record.
+   */
+  const [evidence, setEvidence] = useState<IncidentEvidence[]>([])
+  const [evidenceError, setEvidenceError] = useState('')
 
   const load = useMemo(() => () => getResidentsBySite(activeSite.id), [activeSite.id])
   const resource = useResource<Resident[]>(load, [activeSite.id])
@@ -241,8 +268,14 @@ export function ReportIncidentForm({
      * invent — and inventing one would put a type or a harm level on a clinical
      * record that nobody chose.
      */
-    if (draft.type === 'not_chosen' || draft.severity === 'not_chosen')
-      throw new Error('The form submitted with nothing chosen for type or harm.')
+    if (
+      draft.type === 'not_chosen' ||
+      draft.severity === 'not_chosen' ||
+      draft.urgency === 'not_chosen'
+    )
+      throw new Error(
+        'The form submitted with nothing chosen for type, harm or urgency.',
+      )
     const occurredAt = instantFromZonedWallClock(draft.occurredAt, activeSite.timeZone)
     const chosenSubject: IncidentSubject =
       subject === 'resident' && resident !== undefined
@@ -300,6 +333,21 @@ export function ReportIncidentForm({
             },
     }
 
+    /*
+     * **The reporter's own answer, and a first raise is one act.** `raised` and
+     * `worded` are the same stamp here: nobody has reworded anything yet, and
+     * the record says it once rather than printing the same name twice.
+     */
+    const urgency: IncidentUrgency =
+      draft.urgency === 'needs_attention_now'
+        ? {
+            kind: 'needs_attention_now',
+            raised: { by: member.ref, at },
+            because: draft.urgencyBecause.trim(),
+            worded: { by: member.ref, at },
+          }
+        : { kind: 'ordinary' }
+
     reportIncident({
       siteId: activeSite.id,
       subject: chosenSubject,
@@ -310,6 +358,8 @@ export function ReportIncidentForm({
       description: draft.description,
       injuries,
       response,
+      evidence,
+      urgency,
       by: member.ref,
       at,
     })
@@ -602,6 +652,184 @@ export function ReportIncidentForm({
               />
             </div>
           ) : null}
+        </section>
+
+        {/* ---- can it wait ----------------------------------------------- */}
+        <section className={styles.section} aria-labelledby="urgency-heading">
+          <h2 className={styles.sectionTitle} id="urgency-heading">
+            Can this one wait its turn?
+          </h2>
+          <p className={styles.fieldHint}>
+            Not how much harm was caused — that is the question above, and it has its
+            own scale. This is you saying whether, of everything waiting to be picked
+            up, this one is different. Asked rather than assumed: the record has no
+            blank for it.
+          </p>
+          <RadioGroup
+            legend="Can this one wait its turn?"
+            value={draft.urgency === 'not_chosen' ? undefined : draft.urgency}
+            onValueChange={(value) => set({ urgency: value as UrgencyChoice })}
+            options={[
+              {
+                value: 'ordinary',
+                label:
+                  'It can wait its turn — it waits on the incidents list like the others.',
+              },
+              {
+                value: 'needs_attention_now',
+                label: 'It needs attention now — say why, below.',
+              },
+            ]}
+          />
+          {draft.urgency === 'needs_attention_now' ? (
+            <div className={styles.field}>
+              <label className={styles.fieldLabel} htmlFor={`${id}-urgency-because`}>
+                Why it cannot wait
+              </label>
+              <textarea
+                id={`${id}-urgency-because`}
+                className={styles.textarea}
+                rows={3}
+                placeholder="What makes this one different from the others waiting."
+                value={draft.urgencyBecause}
+                onChange={(event) => set({ urgencyBecause: event.target.value })}
+                data-urgency-because
+              />
+              <span className={styles.fieldHint}>
+                Required. “Needs attention now” on its own tells somebody to hurry and
+                not what about, and it is the first thing they will ask.
+              </span>
+            </div>
+          ) : null}
+        </section>
+
+        {/* ---- photographs and video -------------------------------------- */}
+        <section className={styles.section} aria-labelledby="evidence-heading">
+          <h2 className={styles.sectionTitle} id="evidence-heading">
+            Photographs and video
+          </h2>
+          <p className={styles.fieldHint}>
+            Optional. Most incidents have nothing to attach, and nothing attached is not
+            a gap in the record.
+          </p>
+
+          <div className={styles.field}>
+            <input
+              id={`${id}-evidence`}
+              className={styles.evidenceInput}
+              type="file"
+              accept="image/*,video/*"
+              multiple
+              onChange={(event) => {
+                const chosen = [...(event.target.files ?? [])]
+                const kept: IncidentEvidence[] = []
+                const refused: string[] = []
+                for (const file of chosen) {
+                  try {
+                    kept.push(holdEvidence(file, member.ref))
+                  } catch (cause: unknown) {
+                    refused.push(cause instanceof Error ? cause.message : file.name)
+                  }
+                }
+                setEvidence((held) => [...held, ...kept])
+                setEvidenceError(refused.join(' '))
+                // So choosing the same file twice in a row still fires a change.
+                event.target.value = ''
+              }}
+              data-evidence-input
+            />
+            <label className={styles.evidenceChoose} htmlFor={`${id}-evidence`}>
+              <Icon
+                name={incidentsIcons.chooseEvidence}
+                className={styles.evidenceChooseIcon}
+              />
+              Choose photographs or video
+            </label>
+            {evidenceError === '' ? null : (
+              <p className={styles.formError} role="alert" data-evidence-refused>
+                {evidenceError}
+              </p>
+            )}
+          </div>
+
+          {evidence.length === 0 ? (
+            /* Plain words. An empty list is the common case, not a gap, and it
+               takes no hatch — §1 names making the hatch texture as the one
+               thing that would stop it meaning anything. */
+            <p className={styles.evidenceNone} data-evidence-none>
+              Nothing attached.
+            </p>
+          ) : (
+            <>
+              <ul className={styles.evidenceList} data-evidence-list>
+                {evidence.map((entry) => (
+                  <li
+                    key={entry.id}
+                    className={styles.evidenceItem}
+                    data-evidence={entry.id}
+                  >
+                    <div className={styles.evidenceThumb}>
+                      {entry.kind === 'photo' ? (
+                        /* The one other `<img>` in the build is `Avatar`. A
+                           blob URL is scoped to this tab, so `onError` is what
+                           a dead one looks like rather than a broken image. */
+                        <img
+                          className={styles.evidenceImage}
+                          src={entry.url}
+                          alt={`Attached photograph: ${entry.fileName}`}
+                          data-evidence-image={entry.id}
+                        />
+                      ) : (
+                        <>
+                          {/* eslint-disable-next-line jsx-a11y/media-has-caption -- a clip filmed on a care worker's phone arrives with no caption track and this build cannot make one; an empty <track> would claim captions that do not exist, so the gap is said in words beside the clip and recorded in docs/DEPARTURES.md under Accessibility */}
+                          <video
+                            className={styles.evidenceImage}
+                            src={entry.url}
+                            controls
+                            data-evidence-video={entry.id}
+                            aria-label={`Attached video: ${entry.fileName}`}
+                          />
+                        </>
+                      )}
+                    </div>
+                    <div className={styles.evidenceAbout}>
+                      <p className={styles.evidenceName}>{entry.fileName}</p>
+                      <p className={styles.evidenceMeta}>
+                        {entry.kind === 'photo' ? 'Photograph' : 'Video'} ·{' '}
+                        <span data-numeric>{fileSize(entry.size)}</span>
+                      </p>
+                      {entry.kind === 'video' ? (
+                        <p className={styles.evidenceMeta} data-evidence-no-captions>
+                          No captions — nobody has transcribed what is said on this
+                          clip.
+                        </p>
+                      ) : null}
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.evidenceRemove}
+                      onClick={() => {
+                        releaseEvidence(entry)
+                        setEvidence((held) =>
+                          held.filter((item) => item.id !== entry.id),
+                        )
+                      }}
+                      data-evidence-remove={entry.id}
+                    >
+                      Take it out
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {/* Where it lives, beside the list rather than in a caution line:
+                  somebody who believes a photograph of a bruise is filed
+                  somewhere will not take another one. */}
+              <p className={styles.evidenceWhere} data-evidence-where>
+                {pluralise(evidence.length, 'file')} attached, held in this session
+                only. The originals on the device are the only lasting copy.
+              </p>
+            </>
+          )}
         </section>
 
         {/* ---- what you did ---------------------------------------------- */}

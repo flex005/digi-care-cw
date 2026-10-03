@@ -423,3 +423,219 @@
     min-height: var(--space-48);
   }
 }
+
+/* ------------------------------------------------- urgency and evidence */
+
+/*
+ * A raise, and its reason under it. Flex, never grid: the Figma importer
+ * builds auto-layout from flex and gap, and `check-figma-export` fails on
+ * `display: grid`.
+ */
+.urgency {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  gap: var(--space-4);
+
+  /* The pill hugs its words. A column stretches its children by default, which
+     drew a caution-tinted bar the width of the row — colour doing work the
+     words were already doing, and a great deal more of it than the state
+     deserves beside the severity pill. */
+  align-items: flex-start;
+  min-width: 0;
+}
+
+/* The reason and the names run the width; only the pill hugs. */
+.urgencyBecause,
+.urgencyWho {
+  align-self: stretch;
+}
+
+.urgencyBecause {
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.urgencyWho {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+/* What was attached, under the reporter's own words. */
+.evidence {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin-top: var(--space-12);
+}
+
+/*
+ * **One to a row, always, on every width.** A gallery of thumbnails fights
+ * both compact rules at once: every control is 48px and acts stretch to the
+ * width, so three across at 390 gives each 110px and a file name no reader can
+ * follow. A column costs vertical space on a desk screen and keeps the file
+ * name beside the thing it names, which is what somebody is reading for.
+ */
+.evidenceList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.evidenceItem {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  align-items: center;
+  padding: var(--space-8);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-page);
+}
+
+.evidenceThumb {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-64);
+  height: var(--space-64);
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background-color: var(--purple-50);
+}
+
+.evidenceImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.evidenceAbout {
+  display: flex;
+  flex: 1 1 160px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.evidenceName {
+  overflow-wrap: anywhere;
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
+.evidenceMeta {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+/*
+ * Where it lives, in plain words beside the list. Not a caution: the 19/09
+ * sweep took those out, and this is a fact about the file rather than a
+ * warning about the build.
+ */
+.evidenceWhere {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* Nothing attached, which is most incidents. Plain words, never the hatch. */
+.evidenceNone {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* A handle from a session that has ended. Words, never an empty box. */
+.evidenceGone {
+  flex: 1 1 100%;
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/*
+ * The file control, which is the first one in this build that does anything.
+ *
+ * The native input is hidden rather than removed: it is still the control, and
+ * the label is its visible half, so a click and a keyboard both reach it.
+ * `display: none` would take it out of the tab order.
+ */
+.evidenceInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.evidenceChoose {
+  display: inline-flex;
+  gap: var(--space-8);
+  align-items: center;
+  align-self: flex-start;
+  min-height: var(--space-48);
+  padding: var(--space-8) var(--space-20);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+.evidenceChoose:hover {
+  background-color: var(--purple-50);
+}
+
+/* The input sits before its label in the DOM, so the ring can be drawn on the
+   visible half when the hidden half has focus. */
+.evidenceInput:focus-visible + .evidenceChoose {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.evidenceChooseIcon {
+  width: var(--space-20);
+  height: var(--space-20);
+}
+
+.evidenceRemove {
+  flex: 0 0 auto;
+  min-height: var(--space-48);
+  padding: var(--space-8) var(--space-16);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+.evidenceRemove:hover {
+  background-color: var(--purple-50);
+}
+
+/* The act stretches to the width below the breakpoint, as everywhere else. */
+@media (width < 1024px) {
+  .evidenceChoose,
+  .evidenceRemove {
+    flex: 1 1 100%;
+    justify-content: center;
+    width: 100%;
+  }
+}

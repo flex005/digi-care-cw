@@ -46,6 +46,11 @@ const PRD_TABLE_3: Record<
     care_worker: 'no',
     senior_carer: 'your_list',
   },
+  stand_down_urgency: {
+    row: 'docs/DEPARTURES.md, Incidents: stood down ships as a state and not as an act',
+    care_worker: 'no',
+    senior_carer: 'no',
+  },
   write_care_plan: { row: 'Care Plan — view', care_worker: 'no', senior_carer: 'no' },
   update_handover_status: {
     row: 'HO-01',

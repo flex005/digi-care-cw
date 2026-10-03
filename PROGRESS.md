@@ -1275,3 +1275,87 @@ an unused binding — and a mutation that does not compile tests nothing.
 took their subject as `incidents[0]` and broke the day a fixture gained a stood-down
 urgency, which is this change. Every subject here is selected by the property under
 test.
+
+---
+
+## Phase 21, step 4: the screens for urgency and evidence (03/10/2026)
+
+The last step of the incidents work. The report form asks both questions, and the
+record draws both answers.
+
+**There is no incident detail screen, and the brief's third surface is the row.** The
+CW PRD specifies no screen for a single incident, which is why `IncidentRow` carries
+the whole record and why INC-01's "Open >" was never built — it would be a link to
+nothing. So urgency and evidence are drawn on the row, where a reader meets the
+record. Said here because a reader of the brief would reasonably expect a detail page
+to exist.
+
+**The question and the rendering had to land together, and the type was resting on
+that promise.** `IncidentUrgency` has no unrecorded member; the reason it needs none
+is that the form asks. Between step 2 and this one, `client.ts` wrote
+`{ kind: 'ordinary' }` itself — safe only while nothing read it. It now comes from the
+reporter, and the compiler made every caller answer: `reportIncident` takes `evidence`
+and `urgency` as required input, so the form, the test helper and anything added later
+cannot quietly default them.
+
+**Findings from building it.**
+
+**The caution pill stretched the width of the record, and only a screenshot said so.**
+A flex column stretches its children, so a tinted bar ran the full width of the row —
+colour doing work the words had already done, and far more of it than the state
+deserves beside the severity pill. Every test passed: the pill was present, carried
+its words and its tone. Measured and fixed to hug its content, 160px in a 1264px row.
+This is the §8 shape about a legend whose swatches were 2px — a layout claim that only
+measurement or a picture can refuse.
+
+**A `<video>` with no captions is a real accessibility gap and is now said out loud.**
+`jsx-a11y/media-has-caption` failed the build, correctly. A clip off a care worker's
+phone has no caption track and nothing here can write one; an empty `<track>` would
+claim captions that do not exist. The rule is disabled on those two lines with the
+reason, and the screen says "No captions — nobody has transcribed what is said on this
+clip" beside the clip. `docs/DEPARTURES.md` under Accessibility, including what a real
+build has to do about it.
+
+**`accept` is advice, not a gate, and the first test for the refusal could not fail.**
+`userEvent.upload` honours the attribute and drops a refused file before the handler
+sees it — which is what a file picker does, and what a drag and drop, a share sheet or
+a browser ignoring the hint does not. The test was passing because nothing arrived,
+not because anything was refused. Fired through `fireEvent.change` instead, which is
+the case the refusal exists for.
+
+**Radix opens on `pointerdown`, again.** The browser probe's synthesised mouse pair
+did not open the type Select, and the §8 entry about exactly this is why the keyboard
+path was tried rather than the component being changed. A second probe defect followed
+it: the incidents list's own filter is also labelled "Type", so the probe was driving
+the control behind the dialog. Scoping the search to `[role="dialog"]` fixed it. **A
+probe that finds an element is not a probe that found the right one.**
+
+**The seven-state review, and what reached Populated.** Done in a real browser at 1440
+and 390, as both roles, against the fixtures and against an incident reported during
+the session.
+
+- **Populated evidence was reached by attaching a real file by hand**, as it can only
+  be: a 160×120 PNG made for the purpose, pushed through the real control with
+  `DOM.setFileInputFiles`. The thumbnail decodes — `naturalWidth: 160`,
+  `complete: true` — which is the measurement a blank box fails and the reason the
+  check is not a text assertion. It renders on the form before sending and on the
+  record after.
+- **A video was not reviewed against a real file.** There is no ffmpeg on this machine
+  and no sample clip on the system, so nothing valid could be made to attach. The
+  video path is covered by tests through a stubbed object URL, and the `<video>`
+  element, its label and the captions line are drawn — but **nobody has watched a clip
+  play in this build**, and that is the one state of the seven that is claimed from
+  code rather than seen.
+- **Stale** was reached by revoking the handle on a live record: the row says the file
+  was attached in a session that has ended, rather than drawing an empty box.
+- **Empty** is the common case and draws plain words on the form, nothing on the
+  record, and no hatch anywhere.
+- 390: no horizontal overflow on any state; the choose control measures 58px and the
+  remove control 48px.
+
+**Both roles see the same record and neither is offered a control.** Raising happens on
+the report form, where the person who was there is; standing one down is declared in
+`capabilities.ts` and refused for both, so nothing is drawn. Who takes the act reaches
+the reader through the record — a stood-down urgency names the person who stood it
+down — rather than through a line about somebody else's job, which the 19/09 sweep
+removed build-wide.
