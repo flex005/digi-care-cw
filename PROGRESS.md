@@ -1359,3 +1359,41 @@ the report form, where the person who was there is; standing one down is declare
 the reader through the record — a stood-down urgency names the person who stood it
 down — rather than through a line about somebody else's job, which the 19/09 sweep
 removed build-wide.
+
+**Three corrections to step 4 (03/10/2026).**
+
+**The captions line claimed a gap it could not know about.** "No captions — nobody
+has transcribed what is said on this clip" presumes there is speech. An evidence clip
+of a wet floor in an empty corridor has no audio to transcribe, and nothing here can
+tell one from the other, so on a silent clip the screen asserted a transcription
+missing from nothing. **That is hatching `evidence: []`** — a gap claimed where there
+is none — which this same phase refused for the same reason two files away. It now
+reads "Not captioned — this build cannot caption video", which says what is true of
+the build and nothing about the recording. The eslint comment beside it had been right
+all along: *this build cannot make one*. The DEPARTURES entry overstated the
+obligation too; WCAG 1.2.2 covers prerecorded **audio** in synchronised media, so
+captions are owed where something is said and not on every clip, and an entry that
+overstates what is owed is easier to dismiss.
+
+**`attachEvidence` is deleted.** No production caller: the form mints through
+`holdEvidence` and hands entries to `reportIncident`. I had left it and flagged it,
+which was the wrong call — an unused export reads as evidence something is wired up
+and tells the next reader not to look, which is the argument I made myself about
+`standDownUrgency` and then failed to apply. **The parallel with `stood_down` does not
+hold**: that is a union member a record reaches — a fixture depicts one, the row
+renders it, a manager takes the act in the Admin build — while this was a writer with
+no surface, no caller and no PRD row. The act it would have served is real (a bruise
+shows an hour after a fall, and the reporter is who would photograph it) and is now a
+question in DEPARTURES, which is the right shape for something the PRD does not cover.
+Its tests moved to `holdEvidence`, so minting, the refusal, the holdings line and
+revocation are all still covered.
+
+**INC-01's dangling link is quoted rather than described.** DEPARTURES already said
+the row is the whole record; it now quotes the specification — the row ends
+`/ 'Open >' link` and no screen in the PRD describes what it opens — and says plainly
+that this is a gap in the document rather than in the build. GOAL-01 carries the same
+dangling link, noted beside it.
+
+**Unchanged on purpose: the unwatched video.** It stays recorded as unseen. A care
+worker's phone recording is not something this build can honestly produce, and a state
+that looks reviewed because a fake closed it is worse than one left open.

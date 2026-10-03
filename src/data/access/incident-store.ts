@@ -119,16 +119,19 @@ function patch(id: IncidentId, next: Edit): void {
 /**
  * The record as this store has it, for a write that builds on what it wrote.
  *
- * **Both writes below would otherwise read the caller's copy and lose their own
- * last answer.** Attaching a second photograph read `evidence` off the incident
- * it was handed, which a screen may well have taken from the fixtures, so the
- * new list was "the fixture's empty list plus one" and the first photograph
- * vanished. Rewording an urgency is the same shape and worse: it would have
- * found `ordinary` there, treated a reword as a first raise, and re-stamped
- * `raised` — destroying the original raise, which is the one thing `worded`
- * exists to protect. Caught by a test attaching twice; the urgency half had no
- * symptom to notice because every caller happened to pass the patched record
+ * **A write that reads its caller's copy loses its own last answer.** Rewording
+ * an urgency read `incident.urgency` off whatever it was handed — which a screen
+ * may well have taken from the fixtures — so it would have found `ordinary`
+ * there, treated the reword as a first raise, and re-stamped `raised`,
+ * destroying the original raise, which is the one thing `worded` exists to
+ * protect. It had no symptom: every caller happened to pass the patched record
  * back in.
+ *
+ * **It was found in the sibling that did have one.** An evidence write of the
+ * same shape made a second photograph replace the first, a test attaching twice
+ * caught it in a minute, and the urgency half was fixed because it was looked
+ * for. That write has since been removed as a dead export; the lesson is why
+ * this helper exists.
  *
  * So a write asks this store what it holds rather than trusting its argument.
  * `withIncidentEdits` is already that answer and already the screens' reader,
@@ -221,7 +224,9 @@ export function close(
  *
  * **Minted once, here, and freed here.** The report form holds what it has
  * chosen and hands it to `reportIncident`, so there is one object URL per file
- * rather than one for the preview and another for the record.
+ * rather than one for the preview and another for the record. **This is the
+ * only way evidence reaches a record**: there is no path that adds a file to an
+ * incident already filed, and `docs/DEPARTURES.md` asks whether there should be.
  *
  * **The object URL is minted here and freed here.** The component that chose
  * the file does not hold it: creation and revocation are one fact with one
@@ -275,17 +280,6 @@ export function releaseEvidence(entry: IncidentEvidence): void {
   URL.revokeObjectURL(entry.url)
   objectUrls.splice(at, 1)
   attached -= 1
-}
-
-/** Holds a file and puts it on an incident that already exists. */
-export function attachEvidence(
-  incident: Incident,
-  file: File,
-  by: StaffRef,
-): IncidentEvidence {
-  const entry = holdEvidence(file, by)
-  patch(incident.id, { evidence: [...current(incident).evidence, entry] })
-  return entry
 }
 
 /**

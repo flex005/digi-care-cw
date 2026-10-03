@@ -238,7 +238,7 @@ function EvidenceStrip({ incident }: { incident: Incident }) {
                 /* Said rather than left to be discovered: a clip off a phone
                    has no captions, and nothing here can write them. */
                 <p className={styles.evidenceMeta} data-evidence-no-captions>
-                  No captions — nobody has transcribed what is said on this clip.
+                  Not captioned — this build cannot caption video.
                 </p>
               ) : null}
             </div>

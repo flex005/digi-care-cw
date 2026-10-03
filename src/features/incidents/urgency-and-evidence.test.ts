@@ -2,9 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { incidents } from '@/data/fixtures/incidents'
 import { staffAkinyemi, staffNwosu } from '@/data/fixtures/organisation'
 import {
-  attachEvidence,
+  holdEvidence,
   incidentHoldings,
   raiseUrgency,
+  releaseEvidence,
   resetSessionIncidents,
   withIncidentEdits,
 } from '@/data/access/incident-store'
@@ -173,7 +174,18 @@ describe('raising it after the report', () => {
   })
 })
 
-describe('attaching a photograph', () => {
+/**
+ * Holding a file for the session.
+ *
+ * **There is no path that puts a file on an incident already filed**, so there
+ * is nothing here about attaching to a record. `attachEvidence` was that path
+ * and was removed: no screen called it, no PRD row asked for it, and an unused
+ * export reads as evidence something is wired up. Whether a care worker should
+ * be able to add a photograph an hour later is asked in `docs/DEPARTURES.md`
+ * rather than answered by a function waiting for a caller. What a report does
+ * with what is held is tested through the form, in `urgency-screens.test.tsx`.
+ */
+describe('holding a photograph for the session', () => {
   const file = (name: string, type: string, bytes = 2048) =>
     new File([new Uint8Array(bytes)], name, { type })
 
@@ -189,33 +201,19 @@ describe('attaching a photograph', () => {
     vi.unstubAllGlobals()
   })
 
-  it('records what it is, what it was called and who attached it', () => {
-    const subject = withUrgency('ordinary')[0]!
-    const entry = attachEvidence(
-      subject,
-      file('IMG_8812.jpg', 'image/jpeg'),
-      staffNwosu,
-    )
+  it('records what it is, what it was called and who held it', () => {
+    const entry = holdEvidence(file('IMG_8812.jpg', 'image/jpeg'), staffNwosu)
     expect(entry.kind).toBe('photo')
     expect(entry.fileName).toBe('IMG_8812.jpg')
     expect(entry.size).toBe(2048)
     expect(entry.attached.by.id).toBe(staffNwosu.id)
-    expect(withIncidentEdits(subject).evidence).toEqual([entry])
+    expect(entry.url).toMatch(/^blob:/)
   })
 
-  it('reads a video as a video, and keeps both on the same report', () => {
-    const subject = withUrgency('ordinary')[0]!
-    attachEvidence(subject, file('IMG_8812.jpg', 'image/jpeg'), staffNwosu)
-    const clip = attachEvidence(
-      subject,
-      file('clip.mov', 'video/quicktime'),
-      staffNwosu,
-    )
-    expect(clip.kind).toBe('video')
-    expect(withIncidentEdits(subject).evidence.map((item) => item.kind)).toEqual([
-      'photo',
+  it('reads a video as a video', () => {
+    expect(holdEvidence(file('clip.mov', 'video/quicktime'), staffNwosu).kind).toBe(
       'video',
-    ])
+    )
   })
 
   /*
@@ -224,11 +222,9 @@ describe('attaching a photograph', () => {
    * itself.
    */
   it('refuses anything that is not a photograph or a video', () => {
-    const subject = withUrgency('ordinary')[0]!
     expect(() =>
-      attachEvidence(subject, file('notes.pdf', 'application/pdf'), staffNwosu),
+      holdEvidence(file('notes.pdf', 'application/pdf'), staffNwosu),
     ).toThrow(/photograph or a video/)
-    expect(withIncidentEdits(subject).evidence).toEqual([])
   })
 
   /*
@@ -236,15 +232,25 @@ describe('attaching a photograph', () => {
    * photograph of a bruise is filed somewhere.
    */
   it('tells the sign-out list what it is holding, counted', () => {
-    const subject = withUrgency('ordinary')[0]!
-    attachEvidence(subject, file('IMG_1.jpg', 'image/jpeg'), staffNwosu)
-    attachEvidence(subject, file('IMG_2.jpg', 'image/jpeg'), staffNwosu)
-    const said = incidentHoldings().map((holding) => holding.what)
-    expect(said).toContain('photographs and video you attached')
+    holdEvidence(file('IMG_1.jpg', 'image/jpeg'), staffNwosu)
+    holdEvidence(file('IMG_2.jpg', 'image/jpeg'), staffNwosu)
     const line = incidentHoldings().find(
       (holding) => holding.what === 'photographs and video you attached',
     )
     expect(line?.count).toBe(2)
+  })
+
+  /*
+   * A file taken out of a draft was never on the record, so it goes back to the
+   * browser there and then rather than waiting for sign-out.
+   */
+  it('gives a file back when it is taken out again', () => {
+    const entry = holdEvidence(file('IMG_1.jpg', 'image/jpeg'), staffNwosu)
+    releaseEvidence(entry)
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith(entry.url)
+    expect(
+      incidentHoldings().find((h) => h.what.startsWith('photographs')),
+    ).toBeUndefined()
   })
 
   /*
@@ -253,13 +259,11 @@ describe('attaching a photograph', () => {
    * leak that lasts as long as the tab. No guard can see this.
    */
   it('hands the files back to the browser on sign-out', () => {
-    const subject = withUrgency('ordinary')[0]!
-    const one = attachEvidence(subject, file('IMG_1.jpg', 'image/jpeg'), staffNwosu)
-    const two = attachEvidence(subject, file('clip.mov', 'video/mp4'), staffNwosu)
+    const one = holdEvidence(file('IMG_1.jpg', 'image/jpeg'), staffNwosu)
+    const two = holdEvidence(file('clip.mov', 'video/mp4'), staffNwosu)
     resetSessionIncidents()
     expect(URL.revokeObjectURL).toHaveBeenCalledWith(one.url)
     expect(URL.revokeObjectURL).toHaveBeenCalledWith(two.url)
     expect(URL.revokeObjectURL).toHaveBeenCalledTimes(2)
-    expect(withIncidentEdits(subject).evidence).toEqual([])
   })
 })

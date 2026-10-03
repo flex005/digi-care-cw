@@ -800,8 +800,7 @@ export function ReportIncidentForm({
                       </p>
                       {entry.kind === 'video' ? (
                         <p className={styles.evidenceMeta} data-evidence-no-captions>
-                          No captions — nobody has transcribed what is said on this
-                          clip.
+                          Not captioned — this build cannot caption video.
                         </p>
                       ) : null}
                     </div>
