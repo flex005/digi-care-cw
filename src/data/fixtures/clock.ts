@@ -42,6 +42,24 @@ if (typeof window === 'undefined')
 /** `?at=HH:MM` on today's date, or `?at=<ISO instant>` for another day. */
 export const CLOCK_PARAM = 'at'
 
+/**
+ * A `+` in an ISO offset arrives as a space, and that is correct of the web
+ * rather than wrong of the reader.
+ *
+ * `?at=2026-09-16T20:20:00+01:00` is read with `URLSearchParams`, which decodes
+ * `+` as a space because that is what form encoding means by it. So the value
+ * reaching `parse` is `2026-09-16T20:20:00 01:00`, which `new Date` cannot
+ * read. **The product's own links never hit this** — `clockHref` builds them
+ * with `searchParams.set`, which percent-encodes the `+` — so it is reserved
+ * for a URL somebody typed, which is the reviewer's path and nobody else's.
+ *
+ * Repaired here, before `new Date`, because this is the one place that turns
+ * the parameter into an instant. A second read of `location.search` somewhere
+ * else would be a second owner of what `?at=` means.
+ */
+const OFFSET_EATEN =
+  /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?) (\d{2}:\d{2})$/
+
 function parse(raw: string): Date | undefined {
   const clock = /^(\d{1,2}):(\d{2})$/.exec(raw.trim())
   if (clock) {
@@ -52,19 +70,43 @@ function parse(raw: string): Date | undefined {
     at.setHours(hours, minutes, 0, 0)
     return at
   }
-  const instant = new Date(raw)
+  const repaired = raw.trim().replace(OFFSET_EATEN, '$1+$2')
+  const instant = new Date(repaired)
   return Number.isNaN(instant.getTime()) ? undefined : instant
 }
 
 /** `?at=real` pins the real clock, whether or not a round is running. */
 export const REAL_CLOCK = 'real'
 
-function requested(): Date | undefined {
-  if (typeof window === 'undefined') return undefined
+/**
+ * What the address asked for, as three facts rather than two.
+ *
+ * **It returned `Date | undefined`, and `undefined` meant both "nobody asked"
+ * and "somebody asked and it could not be read".** One value, two opposite
+ * meanings, inside the mechanism built to announce a moved clock — so the
+ * banner went silent on precisely the case it exists for. A reviewer who typed
+ * an instant got the real clock, no notice, and their own instant still in the
+ * address bar. CLAUDE.md §1, arriving in a query parameter rather than on a
+ * screen.
+ *
+ * The raw text travels with the refusal so the screen can quote back what was
+ * typed: a reader who wrote an offset has to see it came back as a space to
+ * understand why it was refused.
+ */
+export type ClockRequest =
+  | { kind: 'nothing_asked' }
+  | { kind: 'instant'; at: Date; asked: string }
+  | { kind: 'unreadable'; raw: string }
+
+function requested(): ClockRequest {
+  if (typeof window === 'undefined') return { kind: 'nothing_asked' }
   const raw = new URLSearchParams(window.location.search).get(CLOCK_PARAM)
-  if (raw === null || raw === '') return undefined
-  if (raw === REAL_CLOCK) return new Date()
-  return parse(raw)
+  if (raw === null || raw === '') return { kind: 'nothing_asked' }
+  if (raw === REAL_CLOCK) return { kind: 'instant', at: new Date(), asked: raw }
+  const at = parse(raw)
+  return at === undefined
+    ? { kind: 'unreadable', raw }
+    : { kind: 'instant', at, asked: raw }
 }
 
 /**
@@ -93,11 +135,18 @@ function nearestLiveRound(from: Date): Date {
   return at
 }
 
-const asked =
-  typeof window === 'undefined'
-    ? null
-    : new URLSearchParams(window.location.search).get(CLOCK_PARAM)
-const override = requested()
+/** What the address asked for. Every constant below is derived from this. */
+export const CLOCK_REQUEST: ClockRequest = requested()
+
+/*
+ * Read once, and asked once. This was a second `URLSearchParams` over
+ * `location.search`, which is a second owner of what `?at=` means: the two
+ * could reach different conclusions about the same address, and the one with
+ * the `+` repair in it would be right while the other stayed wrong.
+ */
+const asked = CLOCK_REQUEST.kind === 'instant' ? CLOCK_REQUEST.asked : null
+
+const override = CLOCK_REQUEST.kind === 'instant' ? CLOCK_REQUEST.at : undefined
 const real = new Date()
 const realIsLive =
   roundInProgressAt(real.getHours() * 60 + real.getMinutes()) !== undefined
@@ -127,8 +176,30 @@ export const CLOCK_IS_OVERRIDDEN =
   (override !== undefined && asked !== REAL_CLOCK) ||
   (!realIsLive && override === undefined)
 
-/** Why the clock is where it is, so the banner can say so exactly. */
-export const CLOCK_REASON: 'real' | 'requested' | 'nearest_round' =
+/**
+ * Where the clock landed, and separately why the banner is speaking.
+ *
+ * **Two facts, because a refused request does not move the clock.** The record
+ * is still drawn at the real time or at the nearest round, and a reader told
+ * only that their instant was discarded has half the answer. The component
+ * must not work the second one out for itself: asked whether a round is in
+ * progress, it said "the 14:00 round, which is the nearest one running" at
+ * 14:30 on a real clock, which claims a move that never happened.
+ *
+ * `CLOCK_INSTANT` is where the record is. `CLOCK_REASON` is what the banner
+ * leads with, which is the same thing until a request was refused.
+ *
+ * **`unreadable` outranks the other three**, because it is the only one that
+ * is about the reader rather than about the record: whatever instant is being
+ * shown, the first thing they need to know is that the one they asked for was
+ * discarded. Where it is `unreadable` the record is drawn at the real time or
+ * the nearest round, and the banner says which as well — one of them is always
+ * true, and the refusal does not replace it.
+ *
+ * Derived from `CLOCK_REQUEST` rather than read from the address a second
+ * time, so the two cannot come to different conclusions.
+ */
+export const CLOCK_INSTANT: 'real' | 'requested' | 'nearest_round' =
   override !== undefined
     ? asked === REAL_CLOCK
       ? 'real'
@@ -136,6 +207,18 @@ export const CLOCK_REASON: 'real' | 'requested' | 'nearest_round' =
     : realIsLive
       ? 'real'
       : 'nearest_round'
+
+export const CLOCK_REASON: 'real' | 'requested' | 'nearest_round' | 'unreadable' =
+  CLOCK_REQUEST.kind === 'unreadable' ? 'unreadable' : CLOCK_INSTANT
+
+/**
+ * Whether the record is drawn at an instant the reader did not ask for *or*
+ * their request was refused. The banner draws on this; `CLOCK_IS_OVERRIDDEN`
+ * stays a claim about the clock alone, because an unreadable request leaves
+ * the clock exactly where it would have been.
+ */
+export const CLOCK_NEEDS_SAYING =
+  CLOCK_IS_OVERRIDDEN || CLOCK_REQUEST.kind === 'unreadable'
 
 /**
  * What the app should call now.
