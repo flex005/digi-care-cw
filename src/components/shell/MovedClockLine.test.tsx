@@ -119,6 +119,100 @@ describe('an instant was asked for and read', () => {
   })
 })
 
+/**
+ * The vocabulary half of the same line.
+ *
+ * Read through the rendered line for the reason the clock's tests are: the
+ * defect that cost two commits was a constant that was right and a notice that
+ * never reached the screen, and no assertion over an export could have seen it.
+ */
+describe('the words this organisation uses', () => {
+  it('says nothing at all under this build’s own vocabulary', async () => {
+    expect(await bannerAt(MID_ROUND)).toBeNull()
+    expect(await bannerAt(MID_ROUND, '?terms=')).toBeNull()
+    // Asking for the default explicitly is still the default, so still silent.
+    expect(await bannerAt(MID_ROUND, '?terms=org:care_home')).toBeNull()
+    expect(await bannerAt(MID_ROUND, '?terms=subject:resident')).toBeNull()
+  })
+
+  it('quotes what was asked for, and offers the way back', async () => {
+    const line = await bannerAt(MID_ROUND, '?terms=subject:service_user')
+    const said = line?.textContent ?? ''
+    expect(line?.querySelector('[data-vocabulary="chosen"]')).not.toBeNull()
+    expect(timesIn(said, 'subject:service_user')).toBe(1)
+    expect(timesIn(said, 'Showing the words you asked for')).toBe(1)
+    const back = line?.querySelector('[data-vocabulary-reset]')
+    expect(back?.textContent).toBe('Use this build’s words')
+    expect(back?.getAttribute('href')).not.toContain('terms=')
+  })
+
+  /*
+   * The clock is at the real time here, so the line exists only because the
+   * words did — which is what proves the two halves are independent rather
+   * than one riding on the other.
+   */
+  it('draws the line for the words alone, with no clock in it', async () => {
+    const line = await bannerAt(MID_ROUND, '?terms=org:hospital')
+    const said = line?.textContent ?? ''
+    expect(line).not.toBeNull()
+    expect(timesIn(said, 'Real time')).toBe(0)
+    expect(timesIn(said, 'Use the real time')).toBe(0)
+    expect(line?.querySelector('[data-clock-reset]')).toBeNull()
+  })
+
+  it('carries both facts in one line, and never draws a second', async () => {
+    const line = await bannerAt(NO_ROUND, '?terms=subject:service_user')
+    expect(document.querySelectorAll('p[data-moved-clock]')).toHaveLength(1)
+    const said = line?.textContent ?? ''
+    expect(timesIn(said, 'the 14:00 round, which is the nearest one running')).toBe(1)
+    expect(timesIn(said, 'subject:service_user')).toBe(1)
+  })
+
+  /*
+   * A value that could not be read is not the same fact as no value — the
+   * defect `?at=` was carrying, which this parameter was written after rather
+   * than before.
+   */
+  it('says a term it cannot read was ignored, and which word was wrong', async () => {
+    const line = await bannerAt(MID_ROUND, '?terms=subject:service-user')
+    const said = line?.textContent ?? ''
+    expect(line?.querySelector('[data-vocabulary="unreadable"]')).not.toBeNull()
+    expect(timesIn(said, 'is not a vocabulary this can read, so it was ignored')).toBe(
+      1,
+    )
+    // The word that was wrong, named, so nobody retypes the ones that were right.
+    expect(timesIn(said, 'service-user')).toBe(2) // once quoted whole, once named
+    expect(timesIn(said, 'Showing this build’s own words')).toBe(1)
+  })
+
+  it('refuses a term name it does not know, and names the ones it does', async () => {
+    const said =
+      (await bannerAt(MID_ROUND, '?terms=inhabitant:resident'))?.textContent ?? ''
+    expect(timesIn(said, 'is not a term this build names')).toBe(1)
+    expect(timesIn(said, 'subject')).toBeGreaterThan(0)
+  })
+
+  it('refuses an element that is not a term and a choice at all', async () => {
+    const said = (await bannerAt(MID_ROUND, '?terms=service_user'))?.textContent ?? ''
+    expect(timesIn(said, 'is not a term and a choice')).toBe(1)
+    expect(timesIn(said, 'subject:service_user')).toBe(1)
+  })
+
+  /*
+   * **One bad element refuses the whole request.** Half a vocabulary applied is
+   * a setting that looks applied, with no way for the reader to tell which of
+   * their choices landed.
+   */
+  it('takes none of a request when one element of it is wrong', async () => {
+    const line = await bannerAt(
+      MID_ROUND,
+      '?terms=subject:service_user,carePlan:nonsense',
+    )
+    expect(line?.querySelector('[data-vocabulary="unreadable"]')).not.toBeNull()
+    expect(line?.querySelector('[data-vocabulary="chosen"]')).toBeNull()
+  })
+})
+
 describe('an instant was asked for and could not be read', () => {
   /*
    * The case the whole change exists for. It must not be silent, and it must

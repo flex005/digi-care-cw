@@ -1397,3 +1397,137 @@ dangling link, noted beside it.
 **Unchanged on purpose: the unwatched video.** It stays recorded as unseen. A care
 worker's phone recording is not something this build can honestly produce, and a state
 that looks reviewed because a fake closed it is worse than one left open.
+
+---
+
+## Terminology, phase 1: the vocabulary, the override and the guards (04/10/2026)
+
+**Infrastructure only. No visible copy changed — not one screen.** The point of
+stopping here is that all three land with nothing depending on them, so a mistake in
+any of them is cheap.
+
+**`src/lib/vocabulary.ts` is a byte-for-byte copy** of the Admin build's, with one
+block added to its docblock saying so. Six forms declared per term, never derived,
+`INVARIANT_PLURALS` and `DEFERRED_TERMS` included: the two products describe one
+organisation, so a term that pluralises differently between them is the two builds
+disagreeing about what the same home calls the same people. **Nothing detects
+divergence** — no script compares the repositories, and each is a working copy
+somebody can edit alone — so the docblock is the only thing that will tell the next
+reader it is a copy under an agreement. `vocabulary.test.ts` came with it and passes
+here unchanged, 55 tests.
+
+**`src/lib/vocabulary-choice.ts` is this build's own**, and is where the two builds
+legitimately differ: the Admin has a settings screen that writes a choice, and this
+one must not, because choosing what an organisation calls people is an Admin act.
+`?terms=org:hospital,subject:service_user`, read once at module load, the clock's
+pattern for the clock's reason. Three outcomes, not two — `nothing_asked`, `chosen`,
+`unreadable` — because a value that could not be read is not the same fact as no
+value, which this repository has already paid two commits for. One reader: a single
+`URLSearchParams` over `location.search`, and everything else derived from it.
+
+**One bad element refuses the whole request.** Applying the readable half would render
+a vocabulary nobody asked for with no way to tell which choices landed — a setting
+that looks applied. The refusal names the element that was wrong, so nobody retypes
+the ones that were right.
+
+**It extends `MovedClockLine` rather than adding a second line, and that is the
+decision the brief asked for.** A second standing notice in the same position is the
+alarm-fatigue failure this build records: a reader who learns to skim the strip skims
+whichever notice is in it, including the one that matters. So there is one line saying
+what about this record is not ordinary, carrying the instant, the words, or both. The
+component's name is now narrower than its job; renaming it is a separate change and is
+not taken here.
+
+**A flaw the tests caught before the guards did.** `VOCABULARY_IS_OVERRIDDEN` was
+first written as "did somebody type something", so `?terms=subject:resident` — which
+asks for exactly what this build already says — announced that the words had changed.
+A notice about nothing, which is the failure the clock line was corrected for twice in
+two days. It now compares the resolved words against the default, so asking for the
+default is silent however it is spelled.
+
+### The guards, and the one that was blind on arrival
+
+Both report **zero findings**, as expected with no copy changed — which proves
+nothing, so both were broken on purpose.
+
+**`check-plural-agreement.mjs`**, ported. `✓ 2 declared plural forms; 0 counts agreed
+through pluralise, 0 sitting beside one without it (0 deliberate).`
+
+- *A count beside a configurable plural as separate expressions, with `<b>` between
+  them* — **passed. The guard was blind.** `BETWEEN` allowed whitespace, `{' '}` and
+  `<span>`, because that is what the Admin build writes; this build writes `<b>`, and
+  the first honest mutation against it printed a tick. **The §8 shape of a rule that
+  was right for every case it had met** — and the reason a ported guard is mutated in
+  the repository it arrives in rather than trusted on its record elsewhere. `BETWEEN`
+  now takes the inline tags that can sit between a number and a noun.
+- *The same, re-run after the fix* — fails, as it should.
+- *The same with `<span>`* — fails, so the Admin build's shape is still caught.
+- *The same written through `pluralise`* — passes, **and the "agreed" counter moved
+  from 0 to 1**, which is what distinguishes "recognised as correct" from "not
+  matched at all".
+- *`PLURAL_FORMS` emptied* — fails loudly rather than checking nothing, which is the
+  hole a guard reading its own configuration always has.
+
+**The completeness guard** (`vocabulary.test.ts`), ported with both bidirectional
+checks.
+
+- *A plural set to its own singular* (`care assessment` / `care assessment`) — fails.
+  This is the mutation the Admin build found: a form that is **present and wrong**
+  satisfies every truthiness assertion, and 34 tests had passed on it.
+- *`next_of_kin` given a real plural while still named invariant* — fails **twice**,
+  once in each direction, which is the point of reading the exception list both ways:
+  an entry that stops being needed is as loud as a missing one.
+- *A form title-cased where sentence case is the rule* — fails.
+- *A proper-noun exception declared for a term that has none* — fails, so
+  `TERMS_WITH_A_PROPER_NOUN` cannot silently keep excusing something.
+
+### Proposed module order, measured
+
+1,545 standalone occurrences of the subject word across 102 non-test `.tsx` files,
+counted with a word-boundary match that excludes `residentId` and friends. Other
+configurable terms counted alongside, since a module is worth doing once:
+
+| Module | subject | files | other terms |
+| --- | ---: | ---: | --- |
+| `features/residents` | 431 | 25 | assessment 26, carePlan 25, medication 20 |
+| `features/notes` | 276 | 12 | — |
+| `features/medications` | 202 | 11 | **medication 287** |
+| `features/documents` | 97 | 6 | — |
+| `features/incidents` | 90 | 4 | manager 4, family 4 |
+| `features/handover` | 78 | 5 | — |
+| `features/goals` | 66 | 4 | — |
+| `features/activities` | 56 | 2 | — |
+| `features/risk` | 50 | 3 | assessment 34 |
+| `features/consent` | 48 | 2 | assessment 7 |
+| `features/reviews` | 44 | 2 | carePlan 15 |
+| `features/dashboard` | 37 | 1 | medication 13 |
+| `components` | 35 | 16 | medication 13 |
+| the rest | 35 | 9 | — |
+
+**I would not start with the largest.** Proposed order:
+
+1. **`components` and `app` (35 + 15, spread over 19 files).** Shared primitives and
+   the shell, where a wrong decision propagates everywhere and is cheapest to find
+   while the diff is small. It is also the only group whose files are read by every
+   other module, so doing it last would mean revisiting them.
+2. **`features/incidents` (90, 4 files).** The module I have just spent two phases in,
+   so a copy change here is the one I am most likely to get right, and it carries
+   four of the nine terms rather than only the subject — which is what shakes out
+   whether `TERM_OPTIONS` covers real sentences.
+3. **`features/handover` and `features/goals` (78 + 66, 9 files).** Small, with
+   distinctive sentence shapes — a handover board heading and a first-person goal — so
+   the possessive and sentence-initial forms get exercised early rather than at scale.
+4. **`features/medications` (202 subject + 287 medication, 11 files).** The first
+   genuinely large one, and the first where two terms move together. Worth taking
+   before `residents` because the MAR is where a plural beside a count is densest, so
+   it is the real test of the guard that was blind an hour ago.
+5. **`features/notes` (276, 12 files).** Large but repetitive.
+6. **`features/residents` (431, 25 files).** Last, deliberately: the biggest, and the
+   one where four terms appear together. By then every form will have been exercised
+   somewhere smaller.
+7. The remainder — documents, activities, risk, consent, reviews, dashboard,
+   specimens — in any order, each a single sitting.
+
+**Not in any phase: `features/auth` and the sign-in screens**, which name a product
+and an organisation rather than a resident, and `features/specimens`, which documents
+the design system itself and should go on saying what the components are called.
