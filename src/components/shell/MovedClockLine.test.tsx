@@ -22,6 +22,17 @@ import { render } from '@testing-library/react'
 
 const ROSEWOOD_ROUNDS = '08:00, 14:00, 18:00 and 20:00'
 
+/**
+ * How many times a phrase is in the line, because once is the claim.
+ *
+ * **`toContain` is blind to repetition**, and that is what let the refusal line
+ * say "the real time" three times and print the same 14:30 at both ends: every
+ * assertion over it was true at one occurrence and true at three. A line of one
+ * sentence saying one fact under three owners is the defect this component was
+ * changed to fix, and the test agreed with it.
+ */
+const timesIn = (text: string, phrase: string) => text.split(phrase).length - 1
+
 async function bannerAt(realTime: string, search = '') {
   vi.setSystemTime(new Date(realTime))
   vi.resetModules()
@@ -58,12 +69,15 @@ describe('nothing was asked for', () => {
    */
   it('names the round it moved to, and the real time, when no round is running', async () => {
     const line = await bannerAt(NO_ROUND)
+    const said = line?.textContent ?? ''
     expect(line?.dataset.movedClock).toBe('nearest_round')
-    expect(line?.textContent).toContain('14:20')
-    expect(line?.textContent).toContain(
-      'Showing the 14:00 round, which is the nearest one running',
-    )
-    expect(line?.textContent).toContain('Real time 16:30')
+    expect(timesIn(said, '14:20')).toBe(1)
+    expect(
+      timesIn(said, 'Showing the 14:00 round, which is the nearest one running'),
+    ).toBe(1)
+    expect(timesIn(said, 'the 14:00 round')).toBe(1)
+    // Two instants, both needed: where the record is, and where the wall is.
+    expect(timesIn(said, 'Real time 16:30')).toBe(1)
     expect(line?.querySelector('[data-clock-unreadable]')).toBeNull()
   })
 })
@@ -71,10 +85,11 @@ describe('nothing was asked for', () => {
 describe('an instant was asked for and read', () => {
   it('says it is showing what was asked for, with the real time beside it', async () => {
     const line = await bannerAt(NO_ROUND, '?at=08:20')
+    const said = line?.textContent ?? ''
     expect(line?.dataset.movedClock).toBe('requested')
-    expect(line?.textContent).toContain('08:20')
-    expect(line?.textContent).toContain('Showing the time you asked for')
-    expect(line?.textContent).toContain('Real time 16:30')
+    expect(timesIn(said, '08:20')).toBe(1)
+    expect(timesIn(said, 'Showing the time you asked for')).toBe(1)
+    expect(timesIn(said, 'Real time 16:30')).toBe(1)
   })
 
   /*
@@ -99,7 +114,7 @@ describe('an instant was asked for and read', () => {
       wanted.getMinutes(),
     ).padStart(2, '0')}`
     expect(line?.dataset.movedClock).toBe('requested')
-    expect(line?.textContent).toContain(hhmm)
+    expect(timesIn(line?.textContent ?? '', hhmm)).toBe(1)
     expect(line?.querySelector('[data-clock-unreadable]')).toBeNull()
   })
 })
@@ -120,23 +135,34 @@ describe('an instant was asked for and could not be read', () => {
         ?.querySelector('[data-clock-unreadable]')
         ?.getAttribute('data-clock-unreadable'),
     ).toBe('tuesday')
-    expect(line?.textContent).toContain('“tuesday”')
-    expect(line?.textContent).toContain(
-      'is not a time this can read, so it was ignored',
-    )
+    const said = line?.textContent ?? ''
+    expect(timesIn(said, '“tuesday”')).toBe(1)
+    expect(timesIn(said, 'is not a time this can read, so it was ignored')).toBe(1)
     // The refusal does not replace saying where the record actually is.
-    expect(line?.textContent).toContain('14:20')
-    expect(line?.textContent).toContain('the 14:00 round')
-    expect(line?.textContent).toContain('Real time 16:30')
+    expect(timesIn(said, '14:20')).toBe(1)
+    expect(timesIn(said, 'the 14:00 round')).toBe(1)
+    expect(timesIn(said, 'Real time 16:30')).toBe(1)
   })
 
-  it('refuses a clock time outside a clock, and quotes that too', async () => {
+  /*
+   * The case that reads worst and is reachable only here: a refusal while the
+   * real clock is already inside a round. Nothing moved, so the instant at the
+   * front of the line is the real time — and the line must not then say the
+   * real time twice more and print 14:30 again at the end. Counted, not
+   * contained, because the version that said it three times satisfied every
+   * `toContain` written over it.
+   */
+  it('says the clock did not move, once, when a refusal left it where it was', async () => {
     const line = await bannerAt(MID_ROUND, '?at=25:99')
+    const said = line?.textContent ?? ''
     expect(line?.dataset.movedClock).toBe('unreadable')
-    expect(line?.textContent).toContain('“25:99”')
-    // Mid-round, so the instant shown is the real one, and the line says so.
-    expect(line?.textContent).toContain('Showing the real time')
-    expect(line?.textContent).toContain('14:30')
+    expect(timesIn(said, '“25:99”')).toBe(1)
+    expect(timesIn(said, 'and the clock has not moved')).toBe(1)
+    expect(timesIn(said, '14:30')).toBe(1)
+    // Nothing moved, so there is no second instant to name and no "Showing".
+    expect(timesIn(said, 'Real time')).toBe(0)
+    expect(timesIn(said, 'Showing')).toBe(0)
+    expect(timesIn(said, 'the real time')).toBe(1) // the way back, and only that
   })
 
   it('offers the way back to the real clock on every one of them', async () => {

@@ -164,13 +164,25 @@ export const GENERATED_AT: Date =
 export const REAL_NOW: Date = real
 
 /**
- * Whether the record is drawn at anything other than the real time.
+ * Whether the record is drawn at anything other than the real time. That, and
+ * nothing else.
  *
- * A record drawn against a pretend instant that does not announce it is the
- * reassurance failure with the reader's own change as the cause, and this one
- * is worse than a changed figure: a wrong figure is wrong in one place, a
- * moved clock makes every timestamp on every screen agree with each other and
- * with nothing outside.
+ * **It is not what the banner reads, and this docblock used to say it was.**
+ * The argument for announcing a moved clock lived here, on the one constant
+ * that cannot carry it: a request that could not be read leaves the clock
+ * exactly where it would have been, so this is false while there is still
+ * something a reader has to be told. `CLOCK_NEEDS_SAYING` is what
+ * `MovedClockLine` draws on, and the reason now sits there.
+ *
+ * The two are kept apart deliberately. "The clock is not at the real time" and
+ * "the banner has something to say" are different facts, and collapsing a pair
+ * of facts into one value is what put the refusal path out of sight to begin
+ * with. **A comment that points the next reader at the wrong constant is how
+ * that happens again, while reading as documentation.**
+ *
+ * Its only reader outside this file is `clock.test.ts`: the product asks
+ * `CLOCK_NEEDS_SAYING` or `CLOCK_INSTANT`. It stays exported because the
+ * distinction is worth being able to state and to test.
  */
 export const CLOCK_IS_OVERRIDDEN =
   (override !== undefined && asked !== REAL_CLOCK) ||
