@@ -22,6 +22,7 @@ import { useViewer } from '@/app/session/use-viewer'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
 import { assertNever } from '@/lib/assert-never'
 import { SHIFT_NAMES } from '@/lib/shift'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import {
   CATEGORY_NAME,
   FlagReasonText,
@@ -143,7 +144,8 @@ export function NoteDetailRoute() {
                   This note is not about {resident.fullLegalName}.
                 </p>
                 <p className={styles.refusalBody}>
-                  It belongs to another resident’s record, so it is not shown here.
+                  It belongs to another {VOCABULARY.subject.ones} record, so it is not
+                  shown here.
                 </p>
               </div>
             </Card>

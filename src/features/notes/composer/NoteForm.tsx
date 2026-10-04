@@ -3,6 +3,7 @@ import type { MoodScore, Resident, Shift, Site } from '@/data/types'
 import { CARE_NOTE_CATEGORIES, MOOD_LABELS } from '@/data/types'
 import { Button, Checkbox, RadioGroup, Select } from '@/components/primitives'
 import { SHIFTS, SHIFT_NAMES, shiftHours } from '@/lib/shift'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { SubjectStrip } from './SubjectStrip'
 import { SUGGESTED_PHRASES } from './suggested-phrases'
 import { listInWords, stillNeeded, type NoteFields } from './note-fields'
@@ -196,7 +197,7 @@ export function NoteForm({
             ref={textarea}
             className={styles.textarea}
             rows={6}
-            placeholder="What you found, what you saw, what the resident said."
+            placeholder={`What you found, what you saw, what the ${VOCABULARY.subject.one} said.`}
             value={fields.body}
             disabled={category === 'not_chosen'}
             aria-describedby={category === 'not_chosen' ? `${id}-body-hint` : undefined}

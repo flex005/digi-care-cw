@@ -1965,3 +1965,100 @@ visibly heavier; worth watching rather than acting on yet.
 oversight. CLAUDE.md §6 names it: "The medication PIN is named the medication PIN,
 including where it signs a handover or a risk assessment." It is a product name for a
 credential, not the word a service uses for the things in the trolley.
+
+---
+
+## Terminology, phase 6: the widened guard, the Admin's list, and `features/notes` (04/10/2026)
+
+**Two denominators, and both are written down.** `check-vocabulary-coverage` counted
+`.tsx` only until today. Widened to `.ts` as well, under `features/`, `app/`,
+`components/` and `lib/`:
+
+| | denominator | files |
+| --- | ---: | ---: |
+| `.tsx` only, quoted by phases 1–5 | **1,754** | 85 |
+| widened, quoted by phase 6 onward | **2,354** | 127 |
+
+Both re-derived at `a71e96c` by the same worktree method. **The two sets of figures
+are not comparable** and the guard's success line says so on every run, because a
+denominator that changed silently would make the earlier numbers look like progress or
+regression where there was neither.
+
+**Coverage this phase: 2,303 → 2,281.** Seventy-three converted against the widened
+baseline — up from 51 the moment the guard could see the two `.ts` files phase 5 had
+already converted. `plural agreement`: **19 → 20 agreed**, 0 unagreed. `term forms`: 6
+forms, 107 accesses, 0 findings.
+
+### The widening found the guard could not fail
+
+**Three mutations in a row passed.** A term typed back into a converted `.ts` took the
+figure from 2303 to 2304 and the run printed a tick — because the guard failed only
+above the **baseline**, and with 51 words converted there were 51 of headroom. A guard
+that cannot notice a regression until the migration has undone everything it did is
+not watching the migration.
+
+It fails against `BEST` now — the fewest hardcoded words this build has ever carried —
+and `BASELINE` stays only as what "converted" is measured from. **Lowering `BEST` is
+what a phase does; raising it forgives a regression**, and the error says so. The
+success line names the gap when it is stale: *"21 fewer than the recorded best of
+2303 — lower BEST to 2282 in this commit, or a regression of that size passes."*
+
+Re-mutated after the fix: a hardcoded term in a `.ts` under `features/`, under `app/`
+and under `lib/`, a term back in a `.tsx`, and the vocabulary's own exclusion removed —
+**all five fail now, on a single word**.
+
+### `src/data` stays out, and both builds agree
+
+Recorded in DEPARTURES as a decision rather than an omission. A care note's body is
+what somebody wrote and a goal is in the person's own first person; substituting a term
+into either edits a record after the fact. **Checked rather than assumed**: nothing
+under the Admin build's `src/data/fixtures/` reads its vocabulary either, though it has
+had the mechanism live far longer. Two builds, same answer, reached separately. So
+mixed terminology inside a note body is intended.
+
+### What the Admin build owes, as one list
+
+`docs/DEPARTURES.md` now carries it as a table: eight items, each naming the file and
+what that build would need. **Nothing in `~/Documents/digi-care` was touched.** The one
+worth singling out is **`doseAndForm`**, which has no counterpart: the same
+double-printed clinical value was fixed there by a different mechanism, and that build
+has only `quantityWithUnit`, for a different pair. Same rule, two mechanisms, two
+repositories, neither aware of the other.
+
+### What was left in the subject's voice: nothing, because notes holds none
+
+The module expected to hold the most of it holds none. **Every first-person label in
+this build is in `src/features/residents/tabs/plan-fields.ts`** — "What I need help
+with", "How I like it done" — and that file already declares `voice: 'resident'` on
+each, which is the mechanism that will protect them in phase 7. The resident's own
+sentences in the fixtures (`'I like to be washed and dressed before breakfast'`) are
+`src/data`, which is out of scope by decision.
+
+**So the absence is the finding**, as it was last phase. Notes' copy is all *about* the
+subject rather than *by* them: headings, empty states, the search, the composer's
+prompt.
+
+**One string was converted that writes into a record**: the suggested opener
+`'Family visited: '` in the composer. It is product copy the writer finishes, so it
+takes the term — and what it writes into a note body then stays as written, because a
+body is never re-rendered under a later vocabulary. Both halves are asserted.
+
+### Mutations
+
+Eight against the converted sites. **Six failed; two passed, and both are honest.**
+
+- *The "All notes" empty state back to its hardcoded word* — **passed**, because that
+  empty state needs a view with no notes at all and the test never reaches it. It is
+  covered by the coverage guard rather than by an assertion, which is the right
+  division but is worth saying rather than leaving implied.
+- *The empty-search count stops going through `pluralise`* — **passed the test and
+  failed `check-plural-agreement`**, at `ResidentPickerRoute.tsx:159`. With 28 subjects
+  the two render the identical string; they part company only at one. The test asserts
+  the word arrived, the guard asserts the agreement has an owner, and this is the case
+  that shows why both are needed.
+
+### Also
+
+**`scopeLine`'s own output now shows in the figure.** Phase 5 converted it and the
+count did not move, because it is a `.ts`. The jump from 51 to 73 converted is partly
+this phase's work and partly the guard finally seeing the last one's.

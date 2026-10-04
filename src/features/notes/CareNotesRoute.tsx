@@ -32,6 +32,7 @@ import {
 } from '@/app/session/resident-scope'
 import { formatCount, pluralise } from '@/lib/format'
 import { SHIFTS, SHIFT_NAMES, shiftAt, shiftHours } from '@/lib/shift'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import {
   CARE_NOTES_VIEWS,
   allNotes,
@@ -146,14 +147,14 @@ export function CareNotesRoute() {
         {head(false)}
         <Card>
           <CardHead
-            title="Care notes about your residents"
+            title={`Care notes about your ${VOCABULARY.subject.many}`}
             subtitle={scopeNote(viewer.scope, activeSite.name)}
             expand={{ kind: 'whole' }}
           />
           <Unrecorded
             variant="panel"
             label={noListYetLine}
-            detail={`${activeSite.name} has residents and care notes about them. Until somebody gives you a list, no note is shown here and nothing is counted for you.`}
+            detail={`${activeSite.name} has ${VOCABULARY.subject.many} and care notes about them. Until somebody gives you a list, no note is shown here and nothing is counted for you.`}
           />
         </Card>
       </div>
@@ -430,7 +431,7 @@ function QuietView({
     <Card>
       <CardHead
         title="No note today"
-        subtitle={`Nobody has written about these residents today. It is ${format.time(moment)} at ${scoped.home}.`}
+        subtitle={`Nobody has written about these ${VOCABULARY.subject.many} today. It is ${format.time(moment)} at ${scoped.home}.`}
         expand={{ kind: 'whole' }}
       />
       <div className={styles.viewHead}>
@@ -442,7 +443,7 @@ function QuietView({
       </div>
       {unwritten.length === 0 ? (
         <p className={styles.plain} data-notes-empty>
-          Every resident counted here has a care note today.
+          Every {VOCABULARY.subject.one} counted here has a care note today.
         </p>
       ) : (
         <ul className={styles.rows}>
@@ -482,7 +483,7 @@ function YoursView({
     <Card>
       <CardHead
         title="Your notes"
-        subtitle="Only notes you wrote. A resident with nothing here may have notes by somebody else."
+        subtitle={`Only notes you wrote. A ${VOCABULARY.subject.one} with nothing here may have notes by somebody else.`}
         expand={{ kind: 'whole' }}
       />
       <div className={styles.viewHead}>
@@ -494,7 +495,7 @@ function YoursView({
       </div>
       <PagedNotes
         items={items}
-        empty="You have written no care notes about these residents."
+        empty={`You have written no care notes about these ${VOCABULARY.subject.many}.`}
       />
     </Card>
   )
@@ -523,7 +524,7 @@ function ShiftView({
     <Card>
       <CardHead
         title="By shift"
-        subtitle={`Filtered to the ${name} shift today, ${shiftHours(shift)}. A resident below was not written about on this shift; somebody on another may have.`}
+        subtitle={`Filtered to the ${name} shift today, ${shiftHours(shift)}. A ${VOCABULARY.subject.one} below was not written about on this shift; somebody on another may have.`}
         expand={{ kind: 'whole' }}
       />
       <div className={styles.viewHead}>
@@ -606,7 +607,7 @@ function EverythingView({
     <Card>
       <CardHead
         title="All notes"
-        subtitle="Every care note about these residents, by everybody, newest first, a page at a time."
+        subtitle={`Every care note about these ${VOCABULARY.subject.many}, by everybody, newest first, a page at a time.`}
         expand={{ kind: 'whole' }}
       />
       <div className={styles.viewHead}>
@@ -618,7 +619,7 @@ function EverythingView({
       </div>
       <PagedNotes
         items={items}
-        empty="No care note has been written about these residents."
+        empty={`No care note has been written about these ${VOCABULARY.subject.many}.`}
       />
     </Card>
   )

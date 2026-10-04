@@ -51,8 +51,58 @@ const SRC = new URL('../src', import.meta.url).pathname
  * accesses in the tree to strip. The numerator and the denominator therefore
  * come from the same instrument, which they had not been shown to before.
  */
-const BASELINE = 1754
-const BASELINE_FILES = 85
+const BASELINE = 2354
+const BASELINE_FILES = 127
+
+/**
+ * What this counted before 04/10/2026, kept so the migration's own figures stay
+ * comparable.
+ *
+ * Phases 1 to 5 quoted a denominator of **1754 across 85 files**, measured over
+ * `.tsx` only. Widening to `.ts` under the four counted directories raised it to
+ * **2354 across 127 files**, re-derived at `a71e96c` by the same worktree method
+ * the `.tsx` figure was checked with on the same day. Every
+ * figure in PROGRESS.md before phase 6 is against the old denominator and every
+ * figure after is against the new; without both written down the two sets would
+ * look like progress or regression where there was neither.
+ */
+const BASELINE_TSX_ONLY = 1754
+const BASELINE_TSX_ONLY_FILES = 85
+
+/**
+ * The fewest hardcoded term words this build has ever had, and what the check
+ * actually fails on.
+ *
+ * **Failing against the baseline alone caught nothing.** With 51 words
+ * converted there were 51 of headroom, so a term typed back into a converted
+ * file took the figure from 2303 to 2304 and the run printed a tick — three
+ * mutations in a row passed that way. A guard that only notices once the
+ * migration has undone everything it did is not watching the migration.
+ *
+ * So the question is "is this worse than the best we have reached", not "is
+ * this worse than before we started". `BASELINE` stays, because "converted" is
+ * the distance from it and that is the figure worth reading.
+ *
+ * **Lowering this is the normal course of a phase; raising it is the move that
+ * forgives a regression.** The success line says when it is stale and by how
+ * much, so a phase that converted something lowers it in the same commit.
+ */
+const BEST = 2281
+
+/**
+ * Where copy lives, and therefore where this counts.
+ *
+ * **The extension was never the discriminator.** This read `.tsx` only until
+ * 04/10/2026, on the assumption that copy lives in components — and `scopeLine`,
+ * which produces "9 residents on your list" for every screen in the build, is in
+ * a `.ts`. So is the MAR's cell sentence. Two files converted in phase 5 moved
+ * the figure by nothing, because the figure could not see them.
+ *
+ * `src/data` is out, for both extensions: it is shared with the Admin build,
+ * it is identifiers and fixture text, and `docs/DEPARTURES.md` records why a
+ * care note's body is never rewritten to match a term choice.
+ */
+const COUNTED = ['features', 'app', 'components', 'lib']
 
 /**
  * Where a term word is not copy about a resident.
@@ -67,6 +117,10 @@ const EXCLUDED = [
     why: 'names a product and an organisation, not a resident',
   },
   { prefix: 'features/specimens', why: 'documents the design system itself' },
+  {
+    prefix: 'lib/vocabulary',
+    why: 'declares the words themselves; counting them would count the answer',
+  },
 ]
 
 /**
@@ -191,8 +245,9 @@ const perTerm = Object.fromEntries(Object.keys(WORDS).map((id) => [id, 0]))
 const perModule = new Map()
 
 for (const file of walk(SRC)) {
-  if (!file.endsWith('.tsx') || /\.test\./.test(file)) continue
+  if (!/\.tsx?$/.test(file) || /\.test\./.test(file) || file.endsWith('.d.ts')) continue
   const relative = file.slice(SRC.length + 1)
+  if (!COUNTED.some((top) => relative.startsWith(`${top}/`))) continue
   if (EXCLUDED.some((entry) => relative.startsWith(entry.prefix))) {
     excluded += 1
     continue
@@ -222,18 +277,30 @@ for (const file of walk(SRC)) {
 
 const converted = BASELINE - found
 
-if (found > BASELINE) {
+if (found > BEST) {
   console.error(
     `✖ vocabulary coverage — ${String(found)} hardcoded term words, up from the` +
-      `\n  baseline of ${String(BASELINE)}. ${String(found - BASELINE)} more than there were` +
-      `\n  before any of this started, so a module converted earlier has had a term` +
-      `\n  typed back into it — or a new screen was written without asking the` +
-      `\n  vocabulary. Ask the words through src/lib/vocabulary-choice.ts.\n`,
+      `\n  ${String(BEST)} this build had at its best. ${String(found - BEST)} more than` +
+      `\n  the fewest it has ever carried, so a module converted earlier has had a` +
+      `\n  term typed back into it — or a new screen was written without asking the` +
+      `\n  vocabulary. Ask the words through src/lib/vocabulary-choice.ts.` +
+      `\n\n  Raising BEST in scripts/check-vocabulary-coverage.mjs forgives this` +
+      `\n  silently. Lowering it is what a phase does after converting something.\n`,
   )
   const worst = [...perModule.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6)
   for (const [module, count] of worst) console.error(`  ${module}: ${String(count)}`)
   process.exit(1)
 }
+
+/*
+ * Said rather than left for somebody to notice: a phase that converted words
+ * and did not lower `BEST` leaves the next regression unwatched by exactly the
+ * amount it converted.
+ */
+const stale =
+  found < BEST
+    ? ` ${String(BEST - found)} fewer than the recorded best of ${String(BEST)} — lower BEST to ${String(found)} in this commit, or a regression of that size passes.`
+    : ''
 
 const leading = Object.entries(perTerm)
   .sort((a, b) => b[1] - a[1])
@@ -242,10 +309,13 @@ const leading = Object.entries(perTerm)
   .join(', ')
 
 console.log(
-  `✓ vocabulary coverage — ${String(found)} of ${String(BASELINE)} term words still ` +
+  `✓ vocabulary coverage —${stale} ${String(found)} of ${String(BASELINE)} term words still ` +
     `hardcoded, ${String(converted)} converted, across ${String(files)} of ` +
     `${String(BASELINE_FILES)} files (${leading}). ${String(excluded)} files not ` +
     `counted: ${EXCLUDED.map((e) => `${e.prefix} (${e.why})`).join('; ')}. It counts ` +
     `how much has moved, not whether any of it reads well — that is a screenshot's ` +
-    `question. A VOCABULARY.<term>.<form> access is an identifier and is not counted.`,
+    `question. A VOCABULARY.<term>.<form> access is an identifier and is not ` +
+    `counted. Phases 1–5 quoted a .tsx-only denominator of ` +
+    `${String(BASELINE_TSX_ONLY)} across ${String(BASELINE_TSX_ONLY_FILES)} files; ` +
+    `.ts joined it on 04/10/2026 and the two are not comparable.`,
 )

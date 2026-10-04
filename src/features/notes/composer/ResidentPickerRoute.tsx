@@ -18,6 +18,8 @@ import {
 import { listName } from '@/features/residents/list-name'
 import { composerIcons } from './composer.icons'
 import styles from './composer.module.css'
+import { pluralise } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * "Who is this note about?" CW PRD CN-02, reached from Care Notes rather than
@@ -74,14 +76,14 @@ export function ResidentPickerRoute() {
         {head}
         <Card>
           <CardHead
-            title="Your residents"
+            title={`Your ${VOCABULARY.subject.many}`}
             subtitle={scopeNote(viewer.scope, activeSite.name)}
             expand={{ kind: 'link', href: '/residents' }}
           />
           <Unrecorded
             variant="panel"
             label={noListYetLine}
-            detail={`${activeSite.name} has residents. Until somebody gives you a list, there is nobody here you can write a care note about.`}
+            detail={`${activeSite.name} has ${VOCABULARY.subject.many}. Until somebody gives you a list, there is nobody here you can write a care note about.`}
           />
         </Card>
       </div>
@@ -93,7 +95,7 @@ export function ResidentPickerRoute() {
         {head}
         <Card>
           <p className={styles.status} role="status">
-            Loading residents…
+            Loading {VOCABULARY.subject.many}…
           </p>
         </Card>
       </div>
@@ -105,7 +107,7 @@ export function ResidentPickerRoute() {
         {head}
         <Card>
           <EmptyState
-            title="The residents could not be loaded"
+            title={`The ${VOCABULARY.subject.many} could not be loaded`}
             body="Nothing has been lost: this is a read."
             actions={
               <Button variant="secondary" onClick={resource.retry}>
@@ -122,7 +124,7 @@ export function ResidentPickerRoute() {
       {head}
       <Card>
         <CardHead
-          title="Your residents"
+          title={`Your ${VOCABULARY.subject.many}`}
           subtitle="The note opens on their record, with their name above it."
           expand={{ kind: 'link', href: '/residents' }}
         />
@@ -130,13 +132,13 @@ export function ResidentPickerRoute() {
         {writable.length === 0 ? (
           <EmptyState
             title={`Nobody at ${activeSite.name} is on your list`}
-            body="This is not a search result: your list names residents at another home."
+            body={`This is not a search result: your list names ${VOCABULARY.subject.many} at another home.`}
           />
         ) : (
           <>
             <label className={styles.search}>
               <span className={styles.visuallyHidden}>
-                Search residents by name or room
+                Search {VOCABULARY.subject.many} by name or room
               </span>
               <Icon name={composerIcons.search} size={16} />
               <input
@@ -153,8 +155,8 @@ export function ResidentPickerRoute() {
             </p>
             {visible.length === 0 ? (
               <EmptyState
-                title={`No resident matches “${query.trim()}”`}
-                body={`None of the ${writable.length} residents you can write about has that name or room.`}
+                title={`No ${VOCABULARY.subject.one} matches “${query.trim()}”`}
+                body={`None of the ${pluralise(writable.length, VOCABULARY.subject.one, VOCABULARY.subject.many)} you can write about has that name or room.`}
                 actions={
                   <Button variant="secondary" onClick={() => setQuery('')}>
                     Clear search
@@ -162,7 +164,10 @@ export function ResidentPickerRoute() {
                 }
               />
             ) : (
-              <ul className={styles.people} aria-label="Residents you can write about">
+              <ul
+                className={styles.people}
+                aria-label={`${VOCABULARY.subject.Many} you can write about`}
+              >
                 {visible.map((resident) => (
                   <li key={resident.id}>
                     <Link

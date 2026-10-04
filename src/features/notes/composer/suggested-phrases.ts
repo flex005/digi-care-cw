@@ -1,4 +1,5 @@
 import type { CareNoteCategoryId } from '@/data/types'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * Category-based suggested phrases for the composer. CW PRD CN-02.
@@ -25,7 +26,17 @@ export const SUGGESTED_PHRASES: Record<CareNoteCategoryId, string[]> = {
     'PRN given for ',
     'GP contacted about ',
   ],
-  social_emotional: ['Joined ', 'Talked about ', 'Family visited: ', 'Preferred to '],
+  /*
+   * The family term, because a suggestion is product copy the writer
+   * finishes. What it writes into a note body then stays as written: a
+   * note is not re-rendered under a later vocabulary (docs/DEPARTURES.md).
+   */
+  social_emotional: [
+    'Joined ',
+    'Talked about ',
+    `${VOCABULARY.family.One} visited: `,
+    'Preferred to ',
+  ],
   health_observation: [
     'Observations taken: ',
     'Reported ',
