@@ -129,8 +129,13 @@ export function RiskListRoute() {
         detail={
           <div className={styles.bannerDetail} data-risk-banner>
             <p>
-              Across {pluralise(residents.length, 'resident')} and{' '}
-              {pluralise(RISK_ASSESSMENT_TEMPLATES.length, 'template')} at{' '}
+              Across{' '}
+              {pluralise(
+                residents.length,
+                VOCABULARY.subject.one,
+                VOCABULARY.subject.many,
+              )}{' '}
+              and {pluralise(RISK_ASSESSMENT_TEMPLATES.length, 'template')} at{' '}
               {activeSite.name}. <b>{NEVER_ASSESSED_IS_NOT_LOW_RISK}</b>
             </p>
             <p>{COUNTED_LINE}</p>

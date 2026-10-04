@@ -2306,3 +2306,64 @@ is it acting up. `vitest.config.ts` bounds the workers now, with the reason writ
 down. **A test that fails on contention teaches people to re-run rather than to look**,
 which is the most expensive kind of flake: it trains the reflex that hides the next
 real failure.
+
+---
+
+## Terminology, phase 9: thirteen tests, and the count retired (04/10/2026)
+
+**Seven new vocabulary tests**, one per swept module, bringing the total to thirteen —
+one for every module that was converted. Each renders under a vocabulary sharing no
+token with the default and asserts the word on the screen.
+
+| module | what it asserts | mutation |
+| --- | --- | --- |
+| `documents` | the subject's **plural possessive** — "the people supported’ documents" — and the word on a drawn document | reverting it fails |
+| `risk` | the subject in the every-template line, **and that "assessment" does not move** under a vocabulary that renames it | reverting it fails |
+| `consent` | the every-type line, the decision's authority labels, the standing words | reverting it fails |
+| `reviews` | both terms, in the title and the queue, and the subject plural in a filter's accessible name | reverting it fails |
+| `dashboard` | a **count beside the term** through `pluralise`, plus the medication and care plan labels | reverting it fails |
+| `activities` | the **count at one and at four**, which is where a plural parts company | reverting it fails **twice** |
+| `profile` | the **possessive** and the **plural**, in the notification table | reverting it fails |
+
+**All seven fail on the revert**, each with a clean typecheck. Writing them found six
+more `pluralise(…, 'resident')` calls still carrying the literal — in the dashboard,
+the handover signature, consent, activities, risk and reviews — so the agreed counter
+moved **26 → 34**.
+
+### The progress count is retired
+
+It read "151 of 238 convertible, 87 to go", and **the 87 could never reach zero**. The
+placing is a scanner, an approximation of a parsing problem; most of that remainder was
+it reading `const residents = resource.data` as a sentence. It was corrected three
+times and each correction moved the figure by more than the edits around it.
+
+**A number nobody can drive to zero is a number nobody watches**, and an unwatched
+number is worse than none: a genuine hardcoded word appearing among them would take it
+from 87 to 88 and nothing would look twice.
+
+So the line now states what is true rather than counting it:
+
+```
+✓ vocabulary coverage — every convertible term word is converted. The remainder was
+  counted by hand at 6766fa3: one genuine string, since converted. Thirteen per-module
+  tests assert the words on the screens; this does not count them, because the placing
+  below is a scanner and a position count is not the measure.
+  Ratchet: 2159 hardcoded in every position (best 2159, baseline 2354 at a71e96c);
+  this fails when that rises above the best, wherever it rises, and does not depend on
+  the placing being right.
+```
+
+**The commit is named** so the hand count is a fact about a known tree rather than a
+standing claim — and so a later reader knows it stops being evidence the moment the
+tree moves.
+
+**The ratchet is untouched** and is what catches a hardcoded word added next month. It
+compares every position, subtracts nothing, and needs no classifier.
+
+**The docblock says why the count went**, so nobody adds it back as an improvement.
+
+### Completion, asserted
+
+Conversion was never countable. A screen rendering the chosen word is, and thirteen
+tests do that — which is this build's own rule about asserting through the thing itself
+rather than through a figure beside it.

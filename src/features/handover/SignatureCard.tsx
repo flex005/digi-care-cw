@@ -109,7 +109,7 @@ export function SignatureCard({
   }
 
   const answer = viewer.ask('sign_handover')
-  const signs = `${act} for the ${SHIFT_NAMES[shift].toLowerCase()} shift at ${siteName} on ${formatDate(date)}, covering ${reviewed} of ${pluralise(total, 'resident')}${
+  const signs = `${act} for the ${SHIFT_NAMES[shift].toLowerCase()} shift at ${siteName} on ${formatDate(date)}, covering ${reviewed} of ${pluralise(total, VOCABULARY.subject.one, VOCABULARY.subject.many)}${
     notReviewed > 0
       ? `. ${notReviewed} of them have not been looked at at all: this records that, and does not say they are well`
       : ''

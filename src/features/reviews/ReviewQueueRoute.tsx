@@ -105,7 +105,7 @@ export function ReviewQueueRoute() {
       <ActionCard
         kicker={`Owed a whole ${VOCABULARY.carePlan.one} review`}
         figure={formatCount(owed.length)}
-        of={`of ${pluralise(rows.length, 'resident')} at ${activeSite.name}`}
+        of={`of ${pluralise(rows.length, VOCABULARY.subject.one, VOCABULARY.subject.many)} at ${activeSite.name}`}
         detail={
           <div className={styles.bannerDetail} data-reviews-banner>
             <p>{COUNTED_LINE}</p>

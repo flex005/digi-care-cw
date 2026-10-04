@@ -318,7 +318,7 @@ function SessionCard({
           <Unrecorded
             variant="chip"
             label="Nobody recorded who came"
-            detail={`${pluralise(counts.invited, 'resident')} invited`}
+            detail={`${pluralise(counts.invited, VOCABULARY.subject.one, VOCABULARY.subject.many)} invited`}
           />
         ) : null}
         {state.kind === 'part_recorded' ? (
@@ -339,7 +339,14 @@ function SessionCard({
         ) : null}
         {state.kind === 'ahead' ? (
           <span className={styles.plannedWords}>
-            Planned · <span data-numeric>{pluralise(counts.invited, 'resident')}</span>{' '}
+            Planned ·{' '}
+            <span data-numeric>
+              {pluralise(
+                counts.invited,
+                VOCABULARY.subject.one,
+                VOCABULARY.subject.many,
+              )}
+            </span>{' '}
             invited
           </span>
         ) : null}

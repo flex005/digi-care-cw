@@ -23,6 +23,28 @@
  * **It says nothing about whether the migration is correct.** A screen can read
  * badly in every converted word, and this would print the same number. That is a
  * screenshot's question and is recorded as one rather than counted as covered.
+ *
+ * ---
+ *
+ * **There was a progress count here and it has been retired. Do not add it
+ * back.** It read "151 of 238 convertible, 87 to go", and the 87 could never
+ * reach zero: the placing below is a scanner, an approximation of a parsing
+ * problem, and most of that remainder was it reading `const residents =
+ * resource.data` as a sentence. It was corrected three times and each correction
+ * moved the figure by more than the edits that followed it.
+ *
+ * **A number nobody can drive to zero is a number nobody watches**, and an
+ * unwatched number is worse than none: a genuine hardcoded word appearing among
+ * them would take it from 87 to 88 and nothing would look twice. Chasing the
+ * scanner to zero is unbounded work for a figure whose only job was to say when
+ * this was finished — and it is finished, counted by hand rather than by
+ * approximation.
+ *
+ * **What replaced it**: the ratchet, which does not depend on the placing being
+ * right, and thirteen per-module tests that render a screen under a vocabulary
+ * sharing no token with the default and assert the word on it. Conversion was
+ * never countable; a screen saying the chosen word is. That is this build's
+ * assert-through-the-thing-itself rule, and the count was the thing beside it.
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
@@ -67,7 +89,7 @@ const BASELINE_FILES = 127
  * look like progress or regression where there was neither.
  */
 /**
- * How many of the baseline's words were ever convertible, measured the same way.
+ * Retired. Kept as the record of what was measured, not as a figure anybody reads.
  *
  * **This is what progress is against**, because `BASELINE` counts positions no
  * migration can reach: property accesses, import paths, route segments, union
@@ -85,7 +107,15 @@ const BASELINE_FILES = 127
  * again. A numerator and a denominator from different instruments is the defect
  * this whole correction is about. See PROGRESS.md, 04/10/2026.
  */
-const CONVERTIBLE_BASELINE = 238
+/**
+ * The commit the remainder was counted by hand at.
+ *
+ * **A hand count is a fact about a known tree, not a standing claim.** Named so
+ * that somebody reading this in six months can go and look at that tree rather
+ * than take the sentence on trust — and so that a later reader knows the claim
+ * stops being evidence the moment the tree moves.
+ */
+const HAND_COUNTED_AT = '6766fa3'
 
 const BASELINE_TSX_ONLY = 1754
 const BASELINE_TSX_ONLY_FILES = 85
@@ -108,7 +138,7 @@ const BASELINE_TSX_ONLY_FILES = 85
  * forgives a regression.** The success line says when it is stale and by how
  * much, so a phase that converted something lowers it in the same commit.
  */
-const BEST = 2167
+const BEST = 2159
 
 /**
  * Where copy lives, and therefore where this counts.
@@ -545,7 +575,6 @@ const stale =
     : ''
 
 const floor = placed.code + placed.paths + placed.keys + placed.fixedCopy
-const convertedConvertible = CONVERTIBLE_BASELINE - placed.prose
 
 const leading = Object.entries(perTerm)
   .sort((a, b) => b[1] - a[1])
@@ -554,23 +583,25 @@ const leading = Object.entries(perTerm)
   .join(', ')
 
 console.log(
-  `✓ vocabulary coverage — ${String(convertedConvertible)} of ` +
-    `${String(CONVERTIBLE_BASELINE)} convertible term words converted, ` +
-    `${String(placed.prose)} to go.` +
-    `\n  Ratchet: ${String(found)} hardcoded in every position (best ` +
-    `${String(BEST)}, baseline ${String(BASELINE)} at a71e96c); this fails when that ` +
-    `rises above the best, wherever it rises.${stale}` +
-    `\n  Of those ${String(found)}, ${String(floor)} can never be converted — ` +
+  `✓ vocabulary coverage — every convertible term word is converted. The remainder ` +
+    `was counted by hand at ${HAND_COUNTED_AT}: one genuine string, since converted. ` +
+    `Thirteen per-module tests assert the words on the screens; this does not count ` +
+    `them, because the placing below is a scanner and a position count is not the ` +
+    `measure (see this file's docblock).` +
+    `\n  Ratchet: ${String(found)} hardcoded in every position (best ${String(BEST)}, ` +
+    `baseline ${String(BASELINE)} at a71e96c); this fails when that rises above the ` +
+    `best, wherever it rises, and does not depend on the placing being right.${stale}` +
+    `\n  Of those ${String(found)}, roughly ${String(floor)} can never be converted — ` +
     `${String(placed.code)} code and type positions, ${String(placed.paths)} paths and ` +
     `specifiers, ${String(placed.keys)} single-token keys and discriminants, ` +
     `${String(placed.fixedCopy)} named fixed copy.` +
-    `\n  Fixed by name: ${[...FIXED_COPY, ...FIXED_FILES].map((e) => e.why).join('; ')}; the Morse Fall Scale's own items.` +
+    `\n  Fixed by name: ${[...FIXED_COPY, ...FIXED_FILES].map((e) => e.why).join('; ')}; ` +
+    `the Morse Fall Scale's own items.` +
     `\n  Read across ${String(files)} of ${String(BASELINE_FILES)} files (${leading}); ` +
     `${String(excluded)} not counted: ${EXCLUDED.map((e) => `${e.prefix} (${e.why})`).join('; ')}.` +
-    `\n  It counts how much has moved, not whether any of it reads well — that is a ` +
+    `\n  It says how much has moved, never whether any of it reads well — that is a ` +
     `screenshot's question. A VOCABULARY.<term>.<form> access is an identifier and is ` +
     `not counted. Phases 1–5 quoted a .tsx-only denominator of ` +
-    `${String(BASELINE_TSX_ONLY)} across ${String(BASELINE_TSX_ONLY_FILES)} files, and ` +
-    `every phase before 8 quoted progress against the all-positions figure; see ` +
+    `${String(BASELINE_TSX_ONLY)} across ${String(BASELINE_TSX_ONLY_FILES)} files; see ` +
     `PROGRESS.md, 04/10/2026.`,
 )

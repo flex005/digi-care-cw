@@ -298,7 +298,7 @@ export function DashboardRoute() {
               label="Due now or in the next 2 hours"
               icon={metricIcons.doses}
               figure={<MetricValue>{formatCount(soon.doses)}</MetricValue>}
-              of={`doses, across ${pluralise(soon.residents, 'resident')} of ${residents.length}`}
+              of={`doses, across ${pluralise(soon.residents, VOCABULARY.subject.one, VOCABULARY.subject.many)} of ${residents.length}`}
             />
             <MetricTile
               label="Not written up today"
@@ -310,7 +310,7 @@ export function DashboardRoute() {
                   <Unrecorded variant="chip" label={`${formatCount(quiet.length)}`} />
                 )
               }
-              of={`of ${pluralise(residents.length, 'resident')}`}
+              of={`of ${pluralise(residents.length, VOCABULARY.subject.one, VOCABULARY.subject.many)}`}
               note={
                 quiet.length === 0
                   ? 'Everybody counted here has a care note today.'

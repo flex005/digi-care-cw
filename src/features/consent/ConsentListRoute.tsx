@@ -130,8 +130,13 @@ export function ConsentListRoute() {
         detail={
           <div className={styles.bannerDetail} data-consent-banner>
             <p>
-              Across {pluralise(residents.length, 'resident')} and{' '}
-              {pluralise(CONSENT_TYPES.length, 'type')} at {activeSite.name}.{' '}
+              Across{' '}
+              {pluralise(
+                residents.length,
+                VOCABULARY.subject.one,
+                VOCABULARY.subject.many,
+              )}{' '}
+              and {pluralise(CONSENT_TYPES.length, 'type')} at {activeSite.name}.{' '}
               <b>{NEVER_SOUGHT_IS_NOT}</b>
             </p>
           </div>
