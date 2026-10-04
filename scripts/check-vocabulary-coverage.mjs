@@ -31,10 +31,25 @@ import { stripComments } from './lib/strip-comments.mjs'
 const SRC = new URL('../src', import.meta.url).pathname
 
 /**
- * Measured 04/10/2026, before any copy was converted: every default form of
- * every term, in non-test `.tsx`, comments stripped, outside the two excluded
- * directories. It does not move. "Converted" is the distance from it, so a
- * baseline that drifted would quietly forgive whatever had been undone.
+ * **A historical measurement, and it cannot be re-derived from this tree.**
+ *
+ * Every default form of every term, in non-test `.tsx`, comments stripped,
+ * outside the two excluded directories, **as the code stood at `a71e96c`** —
+ * the commit before `vocabulary.ts` arrived. It is hand-typed because it is a
+ * fact about a past commit, not about the present one: the present tree has
+ * conversions in it, so running this against it can never produce the baseline
+ * again by construction.
+ *
+ * **So nobody should "fix" it to make a run green.** A failing run means the
+ * figure went up, which is the regression this exists to catch; raising the
+ * constant would forgive it silently and lose every earlier phase's reading at
+ * the same time. To check the baseline rather than change it, put this file and
+ * `src/lib/vocabulary*.ts` into a worktree at `a71e96c` and run it there.
+ *
+ * It was checked that way on 04/10/2026, after `ACCESS` stripping was added:
+ * **1754 across 85 files, unchanged**, because there were no vocabulary
+ * accesses in the tree to strip. The numerator and the denominator therefore
+ * come from the same instrument, which they had not been shown to before.
  */
 const BASELINE = 1754
 const BASELINE_FILES = 85

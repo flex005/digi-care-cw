@@ -4,6 +4,7 @@ import { useSiteFormat } from '@/app/session/use-session'
 import { Settled, StatusPill, Unrecorded } from '@/components/status'
 import { assertNever } from '@/lib/assert-never'
 import { formatDate, formatLateness, pluralise } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { goalStanding, targetStanding, type GoalStanding } from './goal-timing'
 import styles from './goals.module.css'
 
@@ -52,7 +53,7 @@ export function GoalMeta({ goal, now }: { goal: Goal; now: IsoDateTime }) {
         </span>
       ) : (
         <span data-unlinked>
-          <Unrecorded variant="badge" label="No care plan domain" />
+          <Unrecorded variant="badge" label={`No ${VOCABULARY.carePlan.one} domain`} />
         </span>
       )}
 
@@ -151,7 +152,7 @@ const CLOSED_WORDS: Record<
 > = {
   achieved: 'Achieved',
   not_achieved: 'Not achieved',
-  withdrawn_by_resident: 'Withdrawn by the resident',
+  withdrawn_by_resident: `Withdrawn by the ${VOCABULARY.subject.one}`,
   stopped_by_service: 'Stopped by the service',
 }
 
@@ -173,16 +174,20 @@ export function ResidentViewBadge({
   if (view === 'not_applicable') return null
   switch (view.kind) {
     case 'agreed':
-      return <Settled label="The resident agreed" />
+      return <Settled label={`The ${VOCABULARY.subject.one} agreed`} />
     case 'disagreed':
       return (
-        <StatusPill tone="caution" label="The resident disagreed" detail={view.note} />
+        <StatusPill
+          tone="caution"
+          label={`The ${VOCABULARY.subject.one} disagreed`}
+          detail={view.note}
+        />
       )
     case 'not_asked':
       return (
         <StatusPill
           tone="caution"
-          label="The resident was not asked"
+          label={`The ${VOCABULARY.subject.one} was not asked`}
           detail="somebody decided about their goal without putting it to them"
         />
       )

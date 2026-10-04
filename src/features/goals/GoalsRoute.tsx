@@ -19,6 +19,7 @@ import {
 } from '@/components/primitives'
 import { NotYourHome } from '@/components/status'
 import { formatCount, pluralise } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { GoalMeta, GoalStandingBadge, GoalStatement } from './goal-parts'
 import {
   GOAL_VIEWS,
@@ -63,7 +64,10 @@ export function GoalsRoute() {
   const head = (
     <PageHead
       title="Goals"
-      lines={[activeSite.name, 'every goal at this home, in the resident’s words']}
+      lines={[
+        activeSite.name,
+        `every goal at this home, in the ${VOCABULARY.subject.ones} words`,
+      ]}
     />
   )
 

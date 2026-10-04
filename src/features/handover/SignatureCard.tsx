@@ -17,6 +17,7 @@ import { StatusPill, Unrecorded } from '@/components/status'
 import { assertNever } from '@/lib/assert-never'
 import { formatDate, pluralise } from '@/lib/format'
 import { SHIFT_NAMES } from '@/lib/shift'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { MedicationPinStep } from '@/features/medications/MedicationPinStep'
 import styles from './handover.module.css'
 
@@ -85,10 +86,15 @@ export function SignatureCard({
           />
           {/* What the signature covered. Never a bare "signed". */}
           <p className={styles.signatureCounts}>
+            <span data-numeric>{signature.reviewed} of</span>{' '}
             <span data-numeric>
-              {signature.reviewed} of {signature.reviewed + signature.notReviewed}
+              {pluralise(
+                signature.reviewed + signature.notReviewed,
+                VOCABULARY.subject.one,
+                VOCABULARY.subject.many,
+              )}
             </span>{' '}
-            residents reviewed when this was signed
+            reviewed when this was signed
             {signature.notReviewed > 0
               ? `, and ${signature.notReviewed} had not been looked at`
               : ''}
@@ -122,7 +128,7 @@ export function SignatureCard({
         setSigning(false)
         onSigned(
           side === 'outgoing'
-            ? `Handed over, awaiting countersign. ${reviewed} of ${pluralise(total, 'resident')} reviewed${notReviewed > 0 ? `, ${notReviewed} not looked at` : ''}.`
+            ? `Handed over, awaiting countersign. ${reviewed} of ${pluralise(total, VOCABULARY.subject.one, VOCABULARY.subject.many)} reviewed${notReviewed > 0 ? `, ${notReviewed} not looked at` : ''}.`
             : `You have taken over the handover. Both shifts have now signed.`,
         )
       })

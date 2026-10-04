@@ -1744,3 +1744,92 @@ lines apart**, all of them in docblocks, all written here:
 build has nine terms live across a far larger surface and will meet the attributive
 case sooner. Until they are squared up the two files differ, which is the drift the
 first paragraph warns about — one well-reasoned paragraph at a time.
+
+---
+
+## Terminology, phase 4: `handover` and `goals`, and asserting the conversion (04/10/2026)
+
+**Coverage: 1,737 → 1,719.** Eighteen converted this phase, thirty-five in total.
+`plural agreement`: **0 → 7 counts agreed through pluralise**, 0 sitting beside one
+without it. `term forms` (new): 6 declared forms, 40 accesses, none building a form at
+a call site.
+
+### The baseline is sound, and now demonstrably from one instrument
+
+`BASELINE = 1754` was measured before `ACCESS` stripping existed; `found` has been
+measured after it ever since, which is the two-clocks defect in the one figure steering
+this work. Checked by putting the **current** guard into a worktree at `a71e96c`, the
+commit before `vocabulary.ts` arrived: **1754 of 1754 across 85 of 85 files** — exactly
+the old number, because there were no vocabulary accesses in that tree to strip. Every
+phase report's quoted figure stands.
+
+The guard's docblock now says the constant is a **historical measurement that cannot be
+re-derived from the present tree**, how to re-check it in a worktree, and that raising
+it to make a run green would forgive the regression it exists to catch.
+
+### Tests that can fail, which is the point
+
+**Every converted test passed the moment the conversion landed, and none of them could
+have failed** — the default vocabulary renders the identical string. Three new files
+render under a vocabulary that shares no token with this build's own and assert the
+word on screen: `incidents-vocabulary` (7), `handover-vocabulary` (4),
+`goals-vocabulary` (4). Incidents is included because it was converted last phase and
+was asserted only by a count and one browser check at the edge of the product.
+
+**Thirteen mutations against the converted call sites. Eleven failed as they should.
+The two that passed are the useful ones.**
+
+- *A possessive built at the call site* (`` `${term.one}’s` `` instead of `ones`)
+  **passed**, and no test in this build can ever catch it: `ones` is declared as
+  `` `${one}’s` ``, so the two render the identical string for every term offered
+  today. The rule is real and the instrument was wrong — it needs to read the source.
+  **`scripts/check-term-forms.mjs`** does: no possessive, no plural and no case
+  transform built on a vocabulary access. Four mutations, all caught.
+  **It had a false positive on its own first run**: `VOCABULARY.manager.ones`
+  backtracks to `…manager.one` followed by an `s`, which reads exactly like a
+  hand-built plural. The form names come from the `Term` interface now and end on a
+  word boundary. A guard whose first run fails on correct code teaches people to switch
+  it off.
+- *The handover denominator given the singular as its plural* **passed**, because
+  `/of \d+ people supported living at Rosewood Court/` is true of **two** sentences on
+  that board — the dark card's and the group claim's — and only one was mutated. Each
+  sentence is pinned by its own tail now. The same shape as the assertion that could
+  not disagree, one level up: it could disagree, with the wrong thing.
+
+### What changed shape rather than words
+
+**The group claim was restructured so the plural agrees with the denominator.** It read
+`{rows} of {denominator}` and then a loose `residents living at …`, which is the
+separate-expressions shape `check-plurals` cannot see and `check-plural-agreement`
+exists for. The sentence is "3 of 28 residents living at Rosewood Court", so it is the
+**28** the word has to match, not the 3 — `pluralise` is given the denominator and the
+rows sit beside it. Undoing that is the guard's **first true positive on real code in
+this build**: removing the `pluralise` call fails it at `HandoverRoute.tsx:316`.
+
+**Four `pluralise` calls now carry the term** rather than the literal `'resident'`,
+which is what moved the agreed counter from zero. "People supported" is the case that
+makes it worth doing: no `s` append reaches it, so a denominator built by hand would
+read "28 person supporteds".
+
+**Nothing was left alone for being in the subject's voice, because this phase had
+none.** The goal text — "I want to shower standing up again" — is fixture data rather
+than copy, so no vocabulary reaches it and none should. The label around it
+(`in the resident’s words`) is a term site and was converted to the possessive. The
+rule stands for the modules that do have first-person labels.
+
+**No attributive uses in either module**, so no rewording was needed. The rule on
+`Term` was not exercised here.
+
+**Four vocabularies, two widths, both modules: no overflow anywhere.** The board reads
+"of 28 people supported living at Rosewood Court" and "of 22 people supported reviewed
+this shift"; goals reads "in the person supported’s words" and, under
+`carePlan:care_and_support_plan`, "No care & support plan domain" with the ampersand
+intact.
+
+### Still owed by the Admin build
+
+Unchanged from phase 3 and now larger by this phase's nothing: the two docblock
+paragraphs — the copy-under-an-agreement note and the attributive rule on `Term`.
+`check-term-forms.mjs` is this build's own and the Admin build has no equivalent; it
+would catch the same class there, where nine terms are live across a much larger
+surface.

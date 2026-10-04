@@ -21,6 +21,7 @@ import {
 import { NotYourHome, Settled } from '@/components/status'
 import { formatCount, formatDate, pluralise } from '@/lib/format'
 import { SHIFT_NAMES } from '@/lib/shift'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { HandoverStatusBadge } from './HandoverStatusBadge'
 import { LastNoteLine } from './LastNoteLine'
 import { SignatureCard } from './SignatureCard'
@@ -30,8 +31,7 @@ import { groupRows, type GroupId } from './handover-groups'
 import styles from './handover.module.css'
 
 /** What the board is counted over, said once, because it is not the viewer's list. */
-export const WHOLE_HOME_LINE =
-  'Every resident at this home, whether or not anybody has got to them yet.'
+export const WHOLE_HOME_LINE = `Every ${VOCABULARY.subject.one} at this home, whether or not anybody has got to them yet.`
 
 /**
  * Shift handover. CW PRD HO-01.
@@ -199,7 +199,7 @@ function Board({
           <ActionCard
             kicker={`This shift at ${siteName}`}
             figure={formatCount(board.notReviewed)}
-            of={`of ${pluralise(total, 'resident')} living at ${siteName} have not been looked at`}
+            of={`of ${pluralise(total, VOCABULARY.subject.one, VOCABULARY.subject.many)} living at ${siteName} have not been looked at`}
             detail={
               <div className={styles.bannerDetail} data-handover-banner>
                 <p>{WHOLE_HOME_LINE}</p>
@@ -240,7 +240,7 @@ function Board({
             label="Urgent"
             icon={metricIcons.urgent}
             figure={<MetricValue>{formatCount(countOf('urgent'))}</MetricValue>}
-            of={`of ${pluralise(board.reviewed, 'resident')} reviewed this shift`}
+            of={`of ${pluralise(board.reviewed, VOCABULARY.subject.one, VOCABULARY.subject.many)} reviewed this shift`}
           />
           <MetricTile
             label="Needs attention"
@@ -248,13 +248,13 @@ function Board({
             figure={
               <MetricValue>{formatCount(countOf('needs_attention'))}</MetricValue>
             }
-            of={`of ${pluralise(board.reviewed, 'resident')} reviewed this shift`}
+            of={`of ${pluralise(board.reviewed, VOCABULARY.subject.one, VOCABULARY.subject.many)} reviewed this shift`}
           />
           <MetricTile
             label="All well"
             icon={metricIcons.settled}
             figure={<MetricValue>{formatCount(countOf('all_well'))}</MetricValue>}
-            of={`of ${pluralise(board.reviewed, 'resident')} reviewed this shift`}
+            of={`of ${pluralise(board.reviewed, VOCABULARY.subject.one, VOCABULARY.subject.many)} reviewed this shift`}
           />
         </MetricTiles>
       </div>
@@ -263,13 +263,17 @@ function Board({
       <Card>
         <div id="handover-residents" className={styles.anchor}>
           <CardHead
-            title="Residents"
+            title={VOCABULARY.subject.Many}
             subtitle={WHOLE_HOME_LINE}
             expand={{ kind: 'whole' }}
           />
         </div>
 
-        <div className={styles.pills} role="group" aria-label="Resident status">
+        <div
+          className={styles.pills}
+          role="group"
+          aria-label={`${VOCABULARY.subject.One} status`}
+        >
           {groups.map((entry) => {
             const chosen = entry.id === shown.id
             return (
@@ -294,19 +298,30 @@ function Board({
           <div className={styles.noList} data-no-list>
             <p className={styles.empty}>
               The handover is the shift&rsquo;s, so it is all here to read. Recording a
-              status is per resident, and nobody has given you any.
+              status is per {VOCABULARY.subject.one}, and nobody has given you any.
             </p>
           </div>
         ) : null}
 
+        {/*
+         * **The plural agrees with the denominator, not with the rows.** The
+         * sentence is "3 of 28 residents living at …", so it is 28 the word has
+         * to match — `pluralise` is given the denominator and the rows stay
+         * beside it. Written through the owner so `check-plural-agreement` can
+         * see the agreement rather than find a count next to a loose plural.
+         */}
         <p className={styles.claim} data-group-claim>
+          <span data-numeric>{shown.rows.length} of</span>{' '}
           <span data-numeric>
-            {shown.rows.length} of{' '}
-            {shown.denominator === 'all_residents' ? total : board.reviewed}
+            {pluralise(
+              shown.denominator === 'all_residents' ? total : board.reviewed,
+              VOCABULARY.subject.one,
+              VOCABULARY.subject.many,
+            )}
           </span>{' '}
           {shown.denominator === 'all_residents'
-            ? `residents living at ${siteName}`
-            : 'residents somebody reviewed this shift'}
+            ? `living at ${siteName}`
+            : 'somebody reviewed this shift'}
         </p>
 
         {shown.rows.length === 0 ? (
