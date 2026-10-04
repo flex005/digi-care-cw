@@ -25,6 +25,7 @@
  */
 
 import { ROUND_TIMES, minutesOfDay, roundInProgressAt } from './rounds'
+import { askedFor } from '@/lib/first-address'
 
 /*
  * **Refuses to generate on a server.** Added in the Care Worker build, which
@@ -100,7 +101,13 @@ export type ClockRequest =
 
 function requested(): ClockRequest {
   if (typeof window === 'undefined') return { kind: 'nothing_asked' }
-  const raw = new URLSearchParams(window.location.search).get(CLOCK_PARAM)
+  /*
+   * From the address as it stood at startup, not from `location.search` now.
+   * This module is loaded early enough that the two were always the same, and
+   * the parameter beside it was not — see `src/lib/first-address.ts`. One owner
+   * for what was asked for means neither can be right while the other is wrong.
+   */
+  const raw = askedFor(CLOCK_PARAM)
   if (raw === null || raw === '') return { kind: 'nothing_asked' }
   if (raw === REAL_CLOCK) return { kind: 'instant', at: new Date(), asked: raw }
   const at = parse(raw)

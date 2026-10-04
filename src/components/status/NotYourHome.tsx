@@ -27,7 +27,17 @@ export function NotYourHome({
       </p>
       <p className={styles.body}>
         {refusal.yours.length > 0
-          ? 'Which homes you are appointed to is on your staff record, and an admin changes it on the team screen.'
+          ? /*
+             * **Reworded rather than asked for, because "staff" is attributive
+             * here.** The term declares six forms and none of them is the one
+             * this sentence wanted: `many` gives "your team members record" and
+             * `one` gives "your staff member record", both broken English. A
+             * seventh form for a word used as an adjective would be a form per
+             * grammatical position, which is the derivation the whole module
+             * refuses in the other direction. The sentence does not need the
+             * word — the reader it addresses is the person whose record it is.
+             */
+            'Which homes you are appointed to is on your own record, and an admin changes it on the team screen.'
           : 'Nobody has recorded which home you work in.'}
       </p>
     </div>

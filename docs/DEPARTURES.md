@@ -429,6 +429,8 @@ The Admin & Manager build lets an organisation choose its own words — nine ter
 
 **How this build learns which words were chosen.** It cannot be told the way the Admin build is told: there is no settings screen here and **there should not be** — choosing what an organisation calls the people it holds records about is an Admin act, and a care worker configuring it would be a permission defect rather than a feature. There is no backend and no shared state either, so nothing here can read the Admin's choice. It is a query parameter read once at module load, `?terms=org:hospital,subject:service_user`, which is the fixture clock's pattern for the fixture clock's reason: the words are baked into generated text at import time, so a reload is needed either way, and the address keeps the override visible and shareable instead of a hidden mode somebody leaves switched on. **The default is the care-home vocabulary**, so a reader who asks for nothing sees exactly what this build showed before. **It says so on screen when it is not the default**, in the line the moved clock already uses rather than a second one.
 
+**One address, read once, owned by one module.** `?at=` and `?terms=` both derive from `src/lib/first-address.ts`, which captures `location.search` on the first browser load. Neither reads the address itself, because the address does not survive signing in — see PROGRESS.md, 04/10/2026, and CLAUDE.md §8.
+
 **Recorded free text is never touched, and that is what makes this safe.** A care note reading "the resident was unsettled" goes on saying it, because those are its author's words rather than a label. This is a claim about presentation, not about anything a record asserts.
 
 ## Questions for the PRD's author

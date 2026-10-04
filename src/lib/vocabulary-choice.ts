@@ -7,6 +7,7 @@ import {
   type TermId,
   type Vocabulary,
 } from './vocabulary'
+import { askedFor } from './first-address'
 
 /**
  * Which vocabulary this build is rendering in, and how it was told.
@@ -80,7 +81,14 @@ const isOrganisationType = (value: string): value is OrganisationType =>
  */
 function requested(): VocabularyRequest {
   if (typeof window === 'undefined') return { kind: 'nothing_asked' }
-  const raw = new URLSearchParams(window.location.search).get(TERMS_PARAM)
+  /*
+   * **From the address at startup, because this module loads too late to read
+   * it any other way.** It is reached through the shell, which mounts after
+   * signing in has rewritten the URL, so reading `location.search` here found
+   * nothing every time and the override did nothing at all. The tests could not
+   * see it: a test sets the address and imports the module in the same breath.
+   */
+  const raw = askedFor(TERMS_PARAM)
   if (raw === null || raw.trim() === '') return { kind: 'nothing_asked' }
 
   let type: OrganisationType = 'care_home'

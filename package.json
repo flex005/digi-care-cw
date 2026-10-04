@@ -12,7 +12,7 @@
     "icons": "node scripts/icons/build-icons.mjs",
     "icons:check": "node scripts/icons/build-icons.mjs --check",
     "typecheck": "tsc --noEmit",
-    "lint": "npm run lint:es && npm run lint:css && npm run lint:classes && npm run lint:tokens && npm run lint:hatch && npm run lint:assignment && npm run lint:client-only && npm run lint:figma && npm run lint:caution && npm run lint:roles && npm run lint:losses && npm run lint:nav && npm run lint:plural-agreement",
+    "lint": "npm run lint:es && npm run lint:css && npm run lint:classes && npm run lint:tokens && npm run lint:hatch && npm run lint:assignment && npm run lint:client-only && npm run lint:figma && npm run lint:caution && npm run lint:roles && npm run lint:losses && npm run lint:nav && npm run lint:plural-agreement && npm run lint:vocabulary",
     "lint:es": "eslint . --max-warnings 0",
     "lint:css": "stylelint \"src/**/*.css\"",
     "lint:classes": "node scripts/check-css-classes.mjs",
@@ -31,7 +31,8 @@
     "lint:roles": "node scripts/check-role-names.mjs",
     "lint:losses": "node scripts/check-session-losses.mjs",
     "lint:nav": "node scripts/check-nav-reach.mjs",
-    "lint:plural-agreement": "node scripts/check-plural-agreement.mjs"
+    "lint:plural-agreement": "node scripts/check-plural-agreement.mjs",
+    "lint:vocabulary": "node scripts/check-vocabulary-coverage.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx}": "eslint --fix",

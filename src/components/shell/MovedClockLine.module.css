@@ -1,6 +1,18 @@
 .line {
   display: flex;
   flex-wrap: wrap;
+
+  /*
+   * **A requested vocabulary is one long token with nothing to break on.**
+   * `org:hospital,subject:person_supported,carePlan:care_and_support_plan` has
+   * no spaces in it, so at 390 it pushed the whole page 258px wide and every
+   * screen scrolled sideways — the thing the mobile pass went through the build
+   * to remove. Measured, not noticed: the words were legible and the page was
+   * broken. The same `anywhere` the evidence list uses for a file name off a
+   * device, and for the same reason: text this build did not choose the shape
+   * of has to be allowed to break.
+   */
+  overflow-wrap: anywhere;
   gap: var(--space-4) var(--space-8);
   align-items: baseline;
   margin-bottom: var(--space-16);

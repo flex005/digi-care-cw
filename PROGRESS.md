@@ -1531,3 +1531,111 @@ configurable terms counted alongside, since a module is worth doing once:
 **Not in any phase: `features/auth` and the sign-in screens**, which name a product
 and an organisation rather than a resident, and `features/specimens`, which documents
 the design system itself and should go on saying what the components are called.
+
+---
+
+## Terminology, phase 2: the coverage guard, and `components` + `app` (04/10/2026)
+
+**Coverage: 1,754 → 1,753.** One occurrence converted, which is the whole of this
+phase's visible copy, and the reason why is the finding.
+
+### The baseline is 1,754 across 85 files, not 1,545 across 102
+
+The brief carried my own earlier figure forward, and it was measured three ways the
+guard is not: **subject only**, **comments included**, and **`auth` and `specimens`
+included**. Counting every term word, with comments stripped and those two
+directories excluded, the real baseline is **1,754 across 85 files** — subject 1,326,
+medication 316, assessment 50, carePlan 29, staff 15, family 10, manager 6, admission
+2, incidentReport 0. The guard uses what it can actually count, because a baseline it
+does not measure is wrong on day one and every later reading is off by a number nobody
+can recover.
+
+### `check-vocabulary-coverage.mjs`
+
+Fails when the figure rises, never on a finding: every occurrence is expected until its
+phase lands, and nothing needs classifying. **No allowlist** — a proper noun or a
+quoted PRD string is counted as unconverted and the total simply never reaches zero,
+because an exception list is wallpaper within a week. Its success line says what it
+does *not* claim: how much has moved, not whether any of it reads well.
+
+Both lists it holds are read against `vocabulary.ts` **in both directions**: a term the
+vocabulary declares that the guard does not count fails, and a word the guard counts
+that the vocabulary does not declare fails too.
+
+Mutations, all in compiling code except where noted:
+
+- *A term word typed into a converted file* — fails: `1755, up from the baseline of
+  1754`.
+- *A term word converted* — the real conversion below, and the figure fell by exactly
+  one, 1754 → 1753.
+- *The vocabulary gains a term the guard does not count* — fails. (Typecheck also
+  breaks, because `TERM_OPTIONS` is keyed by `TermId`; the guard's verdict is what was
+  under test and it is right.)
+- *A word counted that the vocabulary does not declare* — fails.
+- *`TERM_IDS` renamed out from under it* — fails rather than counting nothing.
+
+### `components` + `app` is 24 occurrences, and 23 of them are identifiers
+
+The phase was approved as "50 across 19 files". The guard counts **24**, because my
+earlier figure included comments. Of those 24:
+
+- **18 in `app/client-only.tsx`** — screen keys and import paths (`residents:`,
+  `residentProfile:`, `@/features/residents/…`).
+- **3 in `AlertDialog.tsx`** — the `kind: 'resident'` discriminant of
+  `ConfirmationSubject`. It renders the **person's name**, never the word.
+- **1 in `SessionProvider.tsx`** (`StaffMember`, `resetMedicationPins`), **1 in
+  `residents/page.tsx`** (`screen="residents"`).
+
+Every one is out of scope by the decision recorded in DEPARTURES. **One occurrence was
+visible copy**, in `NotYourHome.tsx`.
+
+**So the shared layer was already clean, and that is worth knowing before five more
+phases.** This build's primitives take their words from their callers — `AlertDialog`
+is handed a name, `CompletionBar` is handed a denominator — so there was almost nothing
+here to convert. The risk argument for going first still held; it was answered in a
+morning instead of a day.
+
+### The one conversion found a case the six forms do not cover
+
+"Which homes you are appointed to is on your **staff** record" uses the term
+**attributively**, as an adjective. None of the six forms fits: `many` gives "your team
+members record", `one` gives "your staff member record", both broken English. **A
+seventh form for a word used as an adjective would be a form per grammatical position**,
+which is the derivation the module refuses from the other direction. The sentence is
+reworded to drop the word — "on your own record" — which loses nothing, since the
+reader it addresses is the person whose record it is. **Expect this again**: where a
+term is attributive, reword rather than reach for a form.
+
+### `?terms=` had never worked in a browser, and thirteen tests said it had
+
+The phase's real finding, and now a §8 entry. The parameter is read at module load.
+`vocabulary-choice.ts` is reached only through the shell, which mounts **after** signing
+in has rewritten the address: a reviewer opening `/incidents?terms=…` is sent to
+`/sign-in?from=%2Fincidents`, and by the time the module ran there was nothing to read.
+It returned "nobody asked" every time and drew nothing.
+
+**The clock was right by accident.** `clock.ts` is pulled in by the fixtures, which the
+sign-in screen needs for its own demonstration list, so it was evaluated during the
+first render. Nothing said so and nothing checked it, and the second parameter built
+"to the same pattern" did not inherit it, because the pattern was never the import
+graph.
+
+**No test could see it.** Both suites call `vi.resetModules()`, write the address and
+import in the same breath, so the address is always correct at the moment of the read.
+It took driving the product the way a reader does.
+
+`src/lib/first-address.ts` now captures the address once, on the first browser load,
+and both parameters derive from it. Neither reads `location.search` itself any more.
+
+### A long vocabulary broke the page at 390, and the words looked fine
+
+Measured under `?terms=org:hospital,subject:person_supported,carePlan:care_and_support_plan,staff:healthcare_professional`:
+the quoted request is one token with no spaces, so at 390 it pushed the document
+**258px** wider than the viewport and every screen scrolled sideways — the thing the
+mobile pass went through the build to remove. Nothing about the text looked wrong;
+only `scrollWidth - clientWidth` said so. `overflow-wrap: anywhere` on the line, the
+same treatment the evidence list gives a file name off a device, and for the same
+reason: text this build did not choose the shape of has to be allowed to break.
+
+Re-measured at both widths across four vocabularies — default, `person_supported`, the
+longest, and a refused one: **no overflow anywhere, and still one line, never two.**
