@@ -1,5 +1,6 @@
 import type { Goal, GoalProgressNote, IsoDateTime, Resident } from '@/data/types'
 import { goalStanding } from './goal-timing'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * The five views GOAL-01 puts on the queue, and what each one counts over.
@@ -21,7 +22,7 @@ export const GOAL_VIEWS: { id: GoalViewId; label: string }[] = [
   { id: 'past_target', label: 'Past date, nothing said' },
   { id: 'open', label: 'Open' },
   { id: 'closed', label: 'Closed' },
-  { id: 'resident_not_asked', label: 'Resident not asked' },
+  { id: 'resident_not_asked', label: `${VOCABULARY.subject.One} not asked` },
   { id: 'all', label: 'All' },
 ]
 

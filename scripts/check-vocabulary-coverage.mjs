@@ -66,6 +66,27 @@ const BASELINE_FILES = 127
  * figure after is against the new; without both written down the two sets would
  * look like progress or regression where there was neither.
  */
+/**
+ * How many of the baseline's words were ever convertible, measured the same way.
+ *
+ * **This is what progress is against**, because `BASELINE` counts positions no
+ * migration can reach: property accesses, import paths, route segments, union
+ * members. Reporting "116 of 2354" described the work as 5% done when the work
+ * that exists was a quarter done, and seven phase reports quoted it.
+ *
+ * The ratchet still compares the all-positions figure, deliberately: a term
+ * typed back into any position is a regression, and subtracting a floor from
+ * the number a check fails on is the allowlist this build has refused three
+ * times. Two figures, two questions.
+ *
+ * Re-derived at `a71e96c` with the same classifier that reports it, **last on
+ * the day the final floor categories were declared** — the instrument changed
+ * three times while this work ran, and each time both halves were measured
+ * again. A numerator and a denominator from different instruments is the defect
+ * this whole correction is about. See PROGRESS.md, 04/10/2026.
+ */
+const CONVERTIBLE_BASELINE = 238
+
 const BASELINE_TSX_ONLY = 1754
 const BASELINE_TSX_ONLY_FILES = 85
 
@@ -87,7 +108,7 @@ const BASELINE_TSX_ONLY_FILES = 85
  * forgives a regression.** The success line says when it is stale and by how
  * much, so a phase that converted something lowers it in the same commit.
  */
-const BEST = 2238
+const BEST = 2167
 
 /**
  * Where copy lives, and therefore where this counts.
@@ -259,6 +280,52 @@ const FIXED_COPY = [
     pattern: /Medication administration record/g,
     why: 'a standard UK document name, like a statutory title',
   },
+  {
+    pattern: /\b[Aa]ssessments?\b/g,
+    why: 'every use names an instrument — a risk assessment on the Waterlow, a capacity assessment under the MCA — never the configurable term, which has no site in this build',
+  },
+  {
+    pattern: /Family Portal/g,
+    why: 'the name of the other product, not a word for a relative',
+  },
+  {
+    pattern: /Advance care plan/g,
+    why: 'a named UK document, like a DNACPR, rather than this home’s plan for somebody',
+  },
+]
+
+/**
+ * Files whose term words belong to a published instrument.
+ *
+ * `instrument.ts` holds the Morse Fall Scale's items and their wording. The
+ * scale's questions are the scale's, and a service renaming its own terms does
+ * not get to reword a validated instrument — the same rule that keeps the
+ * Waterlow and the MUST out of reach.
+ */
+const INSTRUMENT_FILES = ['features/risk/instrument.ts']
+
+/**
+ * Files whose term words are fixed whole, with the reason.
+ *
+ * **`capabilities.ts` is the role table**, and its act names and refusal reasons
+ * sit line by line beside `row('…')` citations of the PRD. A file that quotes a
+ * document in one line and rewrites itself in the next is harder to read against
+ * that document than one that does neither — and since the 19/09 sweep none of
+ * those reasons reaches a screen, because `ActPoint` draws nothing for a
+ * refusal. The one string there that is rendered, the `not_stated` question, is
+ * converted and so is not counted here either way.
+ *
+ * `plan-fields.ts` holds the two labels written in the subject's own voice.
+ */
+const FIXED_FILES = [
+  {
+    prefix: 'app/session/capabilities.ts',
+    why: 'the role table’s own words, beside its quotations of the PRD, and none of them drawn',
+  },
+  {
+    prefix: 'features/residents/tabs/plan-fields.ts',
+    why: 'two labels in the subject’s own voice',
+  },
 ]
 
 /**
@@ -267,55 +334,104 @@ const FIXED_COPY = [
  */
 function regions(source, isTsx) {
   const out = new Uint8Array(source.length)
+  /*
+   * **A stack, because a template literal resumes after its interpolation**,
+   * and **JSX text is read before quotes**, because an apostrophe in "this
+   * person's record" is a letter rather than a string opener.
+   *
+   * Both were found by the figures moving further than the edits: with one
+   * `quote` flag, `${…}` ended the string and the rest of the sentence was read
+   * as code, so `paths` fell by 36 across a phase that converted no path. With
+   * the stack but no JSX-first rule, one apostrophe in prose opened a string
+   * that swallowed the file.
+   */
+  const stack = []
+  const top = () => stack[stack.length - 1]
   let i = 0
-  let quote = null
-  /* Inside `<… >` rather than after any `>`: an arrow function is not a tag. */
   let inTag = false
   let jsxText = false
-  /* Depth of `{…}` opened from JSX text, so the text resumes after it closes. */
-  let braces = 0
+  let jsxBraces = 0
+
   while (i < source.length) {
     const c = source[i]
-    if (quote !== null) {
+    const here = top()
+
+    if (here !== undefined && here.kind === 'string') {
       out[i] = 1
       if (c === '\\') {
         out[i + 1] = 1
         i += 2
         continue
       }
-      if (c === quote) quote = null
-      else if (quote === '`' && c === '$' && source[i + 1] === '{') quote = null
+      if (c === here.quote) stack.pop()
+      else if (here.quote === '`' && c === '$' && source[i + 1] === '{') {
+        stack.push({ kind: 'interpolation', depth: 1 })
+        i += 2
+        continue
+      }
       i += 1
       continue
     }
+
+    /* JSX text, before anything treats a quote as code. */
+    if (isTsx && jsxText && stack.length === 0 && jsxBraces === 0) {
+      if (c === '<') {
+        jsxText = false
+        if (/[A-Za-z/>]/.test(source[i + 1] ?? '')) inTag = true
+      } else if (c === '{') {
+        jsxText = false
+        jsxBraces = 1
+      } else out[i] = 2
+      i += 1
+      continue
+    }
+
     if (c === "'" || c === '"' || c === '`') {
-      quote = c
+      stack.push({ kind: 'string', quote: c })
       out[i] = 1
       i += 1
       continue
     }
+
+    if (here !== undefined && here.kind === 'interpolation') {
+      if (c === '{') here.depth += 1
+      else if (c === '}') {
+        here.depth -= 1
+        if (here.depth === 0) stack.pop()
+      }
+      i += 1
+      continue
+    }
+
     if (isTsx) {
-      if (c === '<' && /[A-Za-z/>]/.test(source[i + 1] ?? '')) {
-        inTag = true
-        jsxText = false
-      } else if (c === '>' && inTag) {
+      if (c === '<' && /[A-Za-z/>]/.test(source[i + 1] ?? '')) inTag = true
+      else if (c === '>' && inTag) {
         inTag = false
         jsxText = true
-      } else if (jsxText && c === '{') {
-        jsxText = false
-        braces = 1
-      } else if (braces > 0) {
-        if (c === '{') braces += 1
+      } else if (jsxBraces > 0) {
+        if (c === '{') jsxBraces += 1
         else if (c === '}') {
-          braces -= 1
-          if (braces === 0) jsxText = true
+          jsxBraces -= 1
+          if (jsxBraces === 0) jsxText = true
         }
-      } else if (jsxText) out[i] = 2
+      }
     }
     i += 1
   }
   return out
 }
+
+/**
+ * A one-token literal that is a key rather than a word on a screen.
+ *
+ * **Capitalisation is the signal, and it is the only one available.** This
+ * build's discriminants and screen keys are lowercase — `'resident'`,
+ * `'resident_room'`, `'residentNeeds'` — and a one-word label somebody reads is
+ * capitalised: `title="Residents"`. Counting every single-token literal as a key
+ * put card titles in with the union members and understated the work by
+ * nineteen words.
+ */
+const IS_KEY = /^[a-z][A-Za-z0-9_]*$/
 
 /** The literal a match sits in, so a path or a key can be told from prose. */
 function literalAround(source, where, index) {
@@ -363,6 +479,9 @@ for (const file of walk(SRC)) {
     ' '.repeat(m.length),
   )
   const where = regions(source, file.endsWith('.tsx'))
+  const fixedWholeFile =
+    FIXED_FILES.some((entry) => relative.startsWith(entry.prefix)) ||
+    INSTRUMENT_FILES.some((prefix) => relative.startsWith(prefix))
   /* Spans a declared fixed-copy pattern covers, so a match inside one is placed. */
   const fixedSpans = []
   for (const entry of FIXED_COPY) {
@@ -379,13 +498,14 @@ for (const file of walk(SRC)) {
       perTerm[id] += 1
       here += 1
       const at = hit.index
-      if (fixedSpans.some(([a, b]) => at >= a && at < b)) placed.fixedCopy += 1
+      if (fixedWholeFile || fixedSpans.some(([a, b]) => at >= a && at < b))
+        placed.fixedCopy += 1
       else if (where[at] === 0) placed.code += 1
       else if (where[at] === 2) placed.prose += 1
       else {
         const literal = literalAround(source, where, at)
         if (literal.includes('/')) placed.paths += 1
-        else if (!literal.includes(' ')) placed.keys += 1
+        else if (IS_KEY.test(literal.replace(/^[`'"]|[`'"]$/g, ''))) placed.keys += 1
         else placed.prose += 1
       }
     }
@@ -398,8 +518,6 @@ for (const file of walk(SRC)) {
   }
   found += here
 }
-
-const converted = BASELINE - found
 
 if (found > BEST) {
   console.error(
@@ -427,6 +545,7 @@ const stale =
     : ''
 
 const floor = placed.code + placed.paths + placed.keys + placed.fixedCopy
+const convertedConvertible = CONVERTIBLE_BASELINE - placed.prose
 
 const leading = Object.entries(perTerm)
   .sort((a, b) => b[1] - a[1])
@@ -435,17 +554,23 @@ const leading = Object.entries(perTerm)
   .join(', ')
 
 console.log(
-  `✓ vocabulary coverage —${stale} ${String(found)} of ${String(BASELINE)} term words still ` +
-    `hardcoded, ${String(converted)} converted, across ${String(files)} of ` +
-    `${String(BASELINE_FILES)} files (${leading}). ${String(excluded)} files not ` +
-    `counted: ${EXCLUDED.map((e) => `${e.prefix} (${e.why})`).join('; ')}. It counts ` +
-    `how much has moved, not whether any of it reads well — that is a screenshot's ` +
-    `question.\n  Of the ${String(found)} remaining, ${String(floor)} can never be ` +
-    `converted — ${String(placed.code)} code and type positions, ${String(placed.paths)} ` +
-    `paths and specifiers, ${String(placed.keys)} single-token keys and discriminants, ` +
-    `${String(placed.fixedCopy)} named fixed copy (${FIXED_COPY.map((e) => e.why).join('; ')}). ` +
-    `**${String(placed.prose)} are convertible.**\n  A VOCABULARY.<term>.<form> access is an identifier and is not ` +
-    `counted. Phases 1–5 quoted a .tsx-only denominator of ` +
-    `${String(BASELINE_TSX_ONLY)} across ${String(BASELINE_TSX_ONLY_FILES)} files; ` +
-    `.ts joined it on 04/10/2026 and the two are not comparable.`,
+  `✓ vocabulary coverage — ${String(convertedConvertible)} of ` +
+    `${String(CONVERTIBLE_BASELINE)} convertible term words converted, ` +
+    `${String(placed.prose)} to go.` +
+    `\n  Ratchet: ${String(found)} hardcoded in every position (best ` +
+    `${String(BEST)}, baseline ${String(BASELINE)} at a71e96c); this fails when that ` +
+    `rises above the best, wherever it rises.${stale}` +
+    `\n  Of those ${String(found)}, ${String(floor)} can never be converted — ` +
+    `${String(placed.code)} code and type positions, ${String(placed.paths)} paths and ` +
+    `specifiers, ${String(placed.keys)} single-token keys and discriminants, ` +
+    `${String(placed.fixedCopy)} named fixed copy.` +
+    `\n  Fixed by name: ${[...FIXED_COPY, ...FIXED_FILES].map((e) => e.why).join('; ')}; the Morse Fall Scale's own items.` +
+    `\n  Read across ${String(files)} of ${String(BASELINE_FILES)} files (${leading}); ` +
+    `${String(excluded)} not counted: ${EXCLUDED.map((e) => `${e.prefix} (${e.why})`).join('; ')}.` +
+    `\n  It counts how much has moved, not whether any of it reads well — that is a ` +
+    `screenshot's question. A VOCABULARY.<term>.<form> access is an identifier and is ` +
+    `not counted. Phases 1–5 quoted a .tsx-only denominator of ` +
+    `${String(BASELINE_TSX_ONLY)} across ${String(BASELINE_TSX_ONLY_FILES)} files, and ` +
+    `every phase before 8 quoted progress against the all-positions figure; see ` +
+    `PROGRESS.md, 04/10/2026.`,
 )

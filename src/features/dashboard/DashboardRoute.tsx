@@ -46,6 +46,7 @@ import {
 import { NotYourHome, Unrecorded } from '@/components/status'
 import { formatCount, formatLateness, pluralise, zonedDate } from '@/lib/format'
 import { SHIFT_NAMES, greetingAt, shiftAt, shiftHours } from '@/lib/shift'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { withoutNoteToday } from '@/features/notes/care-notes-views'
 import {
   careNotesToday,
@@ -71,8 +72,7 @@ import {
 import styles from './dashboard.module.css'
 
 /** Said where the combined figure would have been, and not to be reworded. */
-export const NO_COMBINED_LINE =
-  'These three are not added together: a dose an hour late and a review four hundred days late are not one unit, and a handover belongs to a shift rather than to a resident.'
+export const NO_COMBINED_LINE = `These three are not added together: a dose an hour late and a review four hundred days late are not one unit, and a handover belongs to a shift rather than to a ${VOCABULARY.subject.one}.`
 
 interface DashboardData {
   residents: Resident[]
@@ -202,7 +202,7 @@ export function DashboardRoute() {
           <Unrecorded
             variant="panel"
             label={noListYetLine}
-            detail={`${activeSite.name} has residents, doses and records. Until somebody gives you a list, nothing here is counted for you: the figures would be the home's, and this screen is meant to be yours.`}
+            detail={`${activeSite.name} has ${VOCABULARY.subject.many}, doses and records. Until somebody gives you a list, nothing here is counted for you: the figures would be the home's, and this screen is meant to be yours.`}
           />
         </Card>
       </div>
@@ -382,10 +382,10 @@ export function DashboardRoute() {
             <CompletionBar
               label="Care notes today"
               {...careNotesToday(residents, residents.length - quiet.length)}
-              of={`of ${pluralise(residents.length, 'resident')} counted here`}
+              of={`of ${pluralise(residents.length, VOCABULARY.subject.one, VOCABULARY.subject.many)} counted here`}
             />
             <CompletionBar
-              label="Medication today"
+              label={`${VOCABULARY.medication.One} today`}
               {...medicationToday(todaysRecords)}
               of="of the doses on today’s chart"
             />
@@ -395,7 +395,7 @@ export function DashboardRoute() {
               of={`of the assessments ${activeSite.name} carries out`}
             />
             <CompletionBar
-              label="Care plan domains"
+              label={`${VOCABULARY.carePlan.One} domains`}
               {...carePlanDomains(residents)}
               of={`of the domains ${activeSite.name} keeps`}
             />

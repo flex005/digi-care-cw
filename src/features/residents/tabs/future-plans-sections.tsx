@@ -6,6 +6,7 @@ import { RecordedValueField } from './FieldList'
 import { SignedValue } from './SignedValue'
 import { ResuscitationPanel } from './future-plans-resuscitation'
 import styles from './people-and-plans.module.css'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * Future Plans: the resuscitation decision, ADRT, advance care plan, preferred
@@ -74,8 +75,7 @@ export const FUTURE_PLANS_SECTIONS: FuturePlansSection[] = [
   {
     id: 'emergency',
     title: 'In an emergency',
-    description:
-      'What staff do if this person collapses. Both are checked before CPR is started.',
+    description: `What ${VOCABULARY.staff.many} do if this person collapses. Both are checked before CPR is started.`,
     banner: (resident) => (
       <ResuscitationPanel
         status={resident.futurePlans.resuscitation}

@@ -24,6 +24,7 @@ import { NotYourHome, Settled, StatusPill, Unrecorded } from '@/components/statu
 import { CONSENT_MEANS } from '@/features/residents/tabs/consent-meaning'
 import { assertNever } from '@/lib/assert-never'
 import { formatCount, pluralise } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import {
   CONSENT_VIEWS,
   NEVER_SOUGHT_IS_NOT,
@@ -39,7 +40,7 @@ import {
 import styles from './consent-list.module.css'
 
 /** What the screen counts over, said once. CON-01's own sub-text. */
-export const COUNTED_LINE = 'Every resident against every consent type.'
+export const COUNTED_LINE = `Every ${VOCABULARY.subject.one} against every consent type.`
 
 /**
  * The home's consent record. CW PRD CON-01.
@@ -71,7 +72,10 @@ export function ConsentListRoute() {
   const head = (
     <PageHead
       title="Consent"
-      lines={[activeSite.name, 'every resident against every consent type']}
+      lines={[
+        activeSite.name,
+        `every ${VOCABULARY.subject.one} against every consent type`,
+      ]}
     />
   )
 

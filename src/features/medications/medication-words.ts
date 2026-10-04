@@ -1,4 +1,5 @@
 import type { NotGivenReason } from '@/data/types'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * How the medication records' closed answers read on screen. One owner, so the
@@ -8,11 +9,11 @@ import type { NotGivenReason } from '@/data/types'
  * reasons, in the PRD's words.
  */
 export const NOT_GIVEN_REASON_LABEL = {
-  resident_refused: 'Resident refused',
-  resident_asleep: 'Resident asleep',
-  resident_in_hospital: 'Resident in hospital',
-  medication_unavailable: 'Medication not available',
-  resident_vomiting: 'Resident vomiting',
+  resident_refused: `${VOCABULARY.subject.One} refused`,
+  resident_asleep: `${VOCABULARY.subject.One} asleep`,
+  resident_in_hospital: `${VOCABULARY.subject.One} in hospital`,
+  medication_unavailable: `${VOCABULARY.medication.One} not available`,
+  resident_vomiting: `${VOCABULARY.subject.One} vomiting`,
   other: 'Other',
 } as const satisfies Record<NotGivenReason, string>
 

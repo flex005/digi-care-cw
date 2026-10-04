@@ -10,6 +10,7 @@ import { useViewer } from '@/app/session/use-viewer'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
 import { listName } from '@/features/residents/list-name'
 import { shiftAt } from '@/lib/shift'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { NoteForm, NO_REFUSAL, refusalOf, type Refusal } from './NoteForm'
 import { EMPTY_FIELDS, toSubmission, type NoteFields } from './note-fields'
 import { discardDraft, keepDraft, keptDraft, type KeptDraft } from './draft-store'
@@ -134,7 +135,7 @@ export function NoteComposer({ onSaved }: { onSaved: () => void }) {
         fields={fields}
         onChange={change}
         phrases="offered"
-        bodyLabel="Written for whoever reads this next: a manager tonight, an inspector in a year."
+        bodyLabel={`Written for whoever reads this next: a ${VOCABULARY.manager.one} tonight, an inspector in a year.`}
         submitLabel={`Save note for ${listName(resident)}`}
         refusal={refusal}
         saving={saving}

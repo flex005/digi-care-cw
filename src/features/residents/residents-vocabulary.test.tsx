@@ -196,10 +196,23 @@ describe('the labels in the subject’s own voice', () => {
    * half of the same claim: a label in somebody's own voice cannot drift into a
    * term site by somebody converting the file around it.
    */
-  it('asks no vocabulary at all in the file that declares them', async () => {
+  it('asks no vocabulary for the labels in that voice', async () => {
     const { readFileSync } = await import('node:fs')
     const source = readFileSync('src/features/residents/tabs/plan-fields.ts', 'utf8')
-    expect(source).not.toContain('VOCABULARY')
+    /*
+     * **Per field, not per file.** This asserted that the file asked no
+     * vocabulary at all, and that was too wide: `agreedActions` is
+     * `voice: 'staff'` — "What staff will do" — and that word is the
+     * organisation's to choose. The claim that matters is narrower: a label
+     * declared as the subject speaking is a plain sentence, with nothing
+     * interpolated into it.
+     */
+    for (const line of source.split('\n')) {
+      // The declaration of the union is not a field; a field carries a label.
+      if (!line.includes("voice: 'resident'") || !line.includes('label:')) continue
+      expect(line, line.trim()).not.toContain('VOCABULARY')
+      expect(line, line.trim()).toMatch(/label: '[^']+'/)
+    }
     expect(source).toContain("voice: 'resident'")
   })
 })

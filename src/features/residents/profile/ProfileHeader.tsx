@@ -132,7 +132,7 @@ export function ProfileHeader({
         <div className={styles.routine}>
           <div className={styles.dueSlot}>
             <ActionCard
-              kicker={`Medication due · next ${pluralise(MEDICATION_LOOKAHEAD_HOURS, 'hour')}`}
+              kicker={`${VOCABULARY.medication.One} due · next ${pluralise(MEDICATION_LOOKAHEAD_HOURS, 'hour')}`}
               figure={formatCount(dueSoon.length)}
               of={`of ${pluralise(medications.length, VOCABULARY.medication.one, VOCABULARY.medication.many)} prescribed for ${resident.preferredName}`}
               detail={dueSoon.length === 0 ? undefined : <DueList due={dueSoon} />}

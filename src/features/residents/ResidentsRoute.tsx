@@ -114,7 +114,7 @@ export function ResidentsRoute() {
           <Unrecorded
             variant="panel"
             label={noListYetLine}
-            detail={`${activeSite.name} has residents. Until somebody gives you a list, no resident’s record opens here and nothing is counted for you.`}
+            detail={`${activeSite.name} has ${VOCABULARY.subject.many}. Until somebody gives you a list, no ${VOCABULARY.subject.ones} record opens here and nothing is counted for you.`}
           />
         </Card>
       </div>

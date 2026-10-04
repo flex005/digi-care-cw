@@ -1,3 +1,5 @@
+import { VOCABULARY } from '@/lib/vocabulary-choice'
+
 /**
  * Every notification this product sends, typed from the Care Worker PRD's
  * Appendix D (Table 19), which is the only place that lists them.
@@ -57,7 +59,7 @@ export interface NotificationKind {
 export const NOTIFICATIONS: NotificationKind[] = [
   {
     id: 'medication_round_due',
-    what: 'Medication round due in 30 minutes',
+    what: `${VOCABULARY.medication.One} round due in 30 minutes`,
     channel: 'Push and in-app',
     when: '30 minutes before the round',
     reaches: 'All care workers',
@@ -65,7 +67,7 @@ export const NOTIFICATIONS: NotificationKind[] = [
   },
   {
     id: 'medication_window_closing',
-    what: 'Medication window closing in 10 minutes',
+    what: `${VOCABULARY.medication.One} window closing in 10 minutes`,
     channel: 'Push and in-app',
     when: '10 minutes before the window closes',
     reaches: 'All care workers',
@@ -73,7 +75,7 @@ export const NOTIFICATIONS: NotificationKind[] = [
   },
   {
     id: 'care_note_not_written',
-    what: 'Care note not written for an assigned resident for 4 hours',
+    what: `Care note not written for an assigned ${VOCABULARY.subject.one} for 4 hours`,
     channel: 'In-app banner',
     when: '4 hours after the last note',
     reaches: 'All care workers',
@@ -105,7 +107,7 @@ export const NOTIFICATIONS: NotificationKind[] = [
   },
   {
     id: 'risk_band_raised',
-    what: 'A resident’s risk band changed to a higher level',
+    what: `A ${VOCABULARY.subject.ones} risk band changed to a higher level`,
     channel: 'Push and in-app',
     when: 'On a re-score that changes the band',
     reaches: 'All care workers at the site',
@@ -116,7 +118,7 @@ export const NOTIFICATIONS: NotificationKind[] = [
     what: 'Goal target date approaching',
     channel: 'In-app',
     when: '7 days before the date',
-    reaches: 'Responsible staff',
+    reaches: `Responsible ${VOCABULARY.staff.many}`,
     canTurnOff: 'yes',
   },
   {

@@ -1,4 +1,5 @@
 import type { DocumentCategoryId } from '@/data/types'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * The seven categories, and the order they render in — always.
@@ -34,8 +35,8 @@ export const DOCUMENT_CATEGORIES: {
   },
   {
     id: 'identity_admission',
-    label: 'Identity and admission',
-    holds: 'ID, the admission agreement and funding authority',
+    label: `Identity and ${VOCABULARY.admission.one}`,
+    holds: `ID, the ${VOCABULARY.admission.one} agreement and funding authority`,
   },
   {
     id: 'health_clinical',
@@ -45,7 +46,7 @@ export const DOCUMENT_CATEGORIES: {
   {
     id: 'assessments_care_planning',
     label: 'Assessments and care planning',
-    holds: 'risk assessments, care plans and reviews',
+    holds: `risk assessments, ${VOCABULARY.carePlan.many} and reviews`,
   },
   {
     id: 'consent_records',
@@ -55,11 +56,11 @@ export const DOCUMENT_CATEGORIES: {
   {
     id: 'correspondence',
     label: 'Correspondence',
-    holds: 'letters and emails with family and professionals',
+    holds: `letters and emails with ${VOCABULARY.family.many} and professionals`,
   },
   {
     id: 'photographs_media',
     label: 'Photographs and media',
-    holds: 'photographs, video and audio of the resident',
+    holds: `photographs, video and audio of the ${VOCABULARY.subject.one}`,
   },
 ]

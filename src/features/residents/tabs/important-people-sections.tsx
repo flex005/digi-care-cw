@@ -5,6 +5,7 @@ import { ReviewBadge } from '@/components/status'
 import { RecordedListField, RecordedValueField } from './FieldList'
 import { CommunicationPreferenceLine, ContactLines, PersonBlock } from './PersonBlock'
 import { PrimaryContactPanel } from './important-people-primary-contact'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import styles from './people-and-plans.module.css'
 
 /**
@@ -48,7 +49,7 @@ const LPA_TYPES: Record<LpaType, string> = {
 export const IMPORTANT_PEOPLE_SECTIONS: PeopleSection[] = [
   {
     id: 'family',
-    title: 'Family and next of kin',
+    title: `${VOCABULARY.family.One} and next of kin`,
     banner: (resident) => (
       <PrimaryContactPanel
         people={resident.importantPeople}
@@ -86,17 +87,17 @@ export const IMPORTANT_PEOPLE_SECTIONS: PeopleSection[] = [
       },
       {
         id: 'visiting-family',
-        label: 'Family with visiting rights',
+        label: `${VOCABULARY.family.One} with visiting rights`,
         isUnrecorded: (people) =>
           people.familyWithVisitingRights.kind === 'not_recorded',
         render: (resident) => (
           <RecordedListField
             list={resident.importantPeople.familyWithVisitingRights}
-            label="Family with visiting rights"
+            label={`${VOCABULARY.family.One} with visiting rights`}
             // A recorded negative: somebody asked, and no family has visiting
             // rights. Not the same as nobody having asked.
-            noneLabel="No family with visiting rights"
-            missingDetail="nobody has recorded who may visit, so staff have no list to check anybody against"
+            noneLabel={`No ${VOCABULARY.family.one} with visiting rights`}
+            missingDetail={`nobody has recorded who may visit, so ${VOCABULARY.staff.many} have no list to check anybody against`}
             attributed
             render={(people) => (
               <ul className={styles.personList}>

@@ -22,6 +22,7 @@ import {
 import { NotYourHome, Unrecorded } from '@/components/status'
 import { Icon } from '@/components/icon/Icon'
 import { formatCount, pluralise } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { ExpiryChip, FileFactsText } from '@/features/residents/tabs/DocumentParts'
 import { DOCUMENT_CATEGORIES } from '@/features/residents/tabs/documents/categories'
 import {
@@ -174,7 +175,7 @@ function Filed({
             owner.kind === 'site'
               ? siteName
               : (byId.get(owner.residentId)?.fullLegalName ??
-                'A resident this home does not hold'),
+                `A ${VOCABULARY.subject.one} this home does not hold`),
           residentId: (owner.kind === 'site' ? 'the_home' : owner.residentId) as
             ResidentId | 'the_home',
         }

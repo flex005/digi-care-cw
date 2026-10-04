@@ -1,3 +1,5 @@
+import { VOCABULARY } from '@/lib/vocabulary-choice'
+
 import type { CarePlanDomainRecord, CarePlanText, CarePlanVersion } from '@/data/types'
 
 /**
@@ -29,7 +31,7 @@ export interface PlanField {
 const FIELDS: Record<PlanFieldId, Omit<PlanField, 'id'>> = {
   currentNeeds: { label: 'What I need help with', voice: 'resident' },
   preferences: { label: 'How I like it done', voice: 'resident' },
-  agreedActions: { label: 'What staff will do', voice: 'staff' },
+  agreedActions: { label: `What ${VOCABULARY.staff.many} will do`, voice: 'staff' },
 }
 
 export const PLAN_FIELDS: PlanField[] = (Object.keys(FIELDS) as PlanFieldId[]).map(

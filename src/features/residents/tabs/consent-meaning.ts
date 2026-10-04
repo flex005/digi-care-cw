@@ -1,4 +1,5 @@
 import type { ConsentTypeId } from '@/data/types'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * What consenting to each type actually permits, in plain English.
@@ -14,13 +15,12 @@ import type { ConsentTypeId } from '@/data/types'
 export const CONSENT_MEANS: Record<ConsentTypeId, string> = {
   care_and_support:
     'Day-to-day personal care: help with washing, dressing and moving about.',
-  medication:
-    'Staff holding and giving their medicines rather than them managing their own.',
+  medication: `${VOCABULARY.staff.Many} holding and giving their medicines rather than them managing their own.`,
   photography:
     'Photographs in the home, on the noticeboards, and in the Family Portal.',
   data_sharing:
     'Sharing their records with the GP, district nurses and the local authority.',
-  family_portal: 'Named family seeing their care records through the Family Portal.',
+  family_portal: `Named ${VOCABULARY.family.many} seeing their care records through the Family Portal.`,
   research_audit: 'Their anonymised records being used in service audits and research.',
   medical_treatment:
     'Routine treatment arranged through the home, such as a flu vaccination.',

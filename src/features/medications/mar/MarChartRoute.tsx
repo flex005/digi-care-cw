@@ -82,7 +82,7 @@ export function MarChartRoute() {
   const back = (
     <Link href={`/residents/${resident.id}/medications`} className={styles.back}>
       <Icon name={marIcons.back} size={16} />
-      Back to {resident.preferredName}’s medications
+      Back to {resident.preferredName}’s {VOCABULARY.medication.many}
     </Link>
   )
 

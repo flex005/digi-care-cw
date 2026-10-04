@@ -19,6 +19,7 @@ import {
 import { NotYourHome, Settled, Unrecorded } from '@/components/status'
 import { assertNever } from '@/lib/assert-never'
 import { formatCount, formatLateness, pluralise } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import {
   byLongestOverdue,
   isOwed,
@@ -29,8 +30,7 @@ import {
 import styles from './reviews.module.css'
 
 /** What the queue counts over, said once. */
-export const COUNTED_LINE =
-  'Counted over every resident at this home, whether or not anybody has set a review date for them.'
+export const COUNTED_LINE = `Counted over every ${VOCABULARY.subject.one} at this home, whether or not anybody has set a review date for them.`
 
 /**
  * Who is owed a whole care plan review. Table 3: "Reviews — conduct", senior
@@ -53,7 +53,7 @@ export function ReviewQueueRoute() {
 
   const head = (
     <PageHead
-      title="Care plan reviews"
+      title={`${VOCABULARY.carePlan.One} reviews`}
       lines={[activeSite.name, 'who is owed one, longest overdue first']}
     />
   )
@@ -103,7 +103,7 @@ export function ReviewQueueRoute() {
       {head}
 
       <ActionCard
-        kicker="Owed a whole care plan review"
+        kicker={`Owed a whole ${VOCABULARY.carePlan.one} review`}
         figure={formatCount(owed.length)}
         of={`of ${pluralise(rows.length, 'resident')} at ${activeSite.name}`}
         detail={
@@ -142,7 +142,7 @@ export function ReviewQueueRoute() {
         <Card>
           <CardHead
             title="Conducting a review"
-            subtitle="Who may sit down over a whole care plan, and record that they did."
+            subtitle={`Who may sit down over a whole ${VOCABULARY.carePlan.one}, and record that they did.`}
             expand={{ kind: 'whole' }}
           />
           <div className={styles.acts}>
@@ -162,7 +162,11 @@ export function ReviewQueueRoute() {
           expand={{ kind: 'whole' }}
         />
 
-        <div className={styles.pills} role="group" aria-label="Which residents">
+        <div
+          className={styles.pills}
+          role="group"
+          aria-label={`Which ${VOCABULARY.subject.many}`}
+        >
           {(
             [
               { id: 'owed', label: 'Owed a review', count: owed.length },

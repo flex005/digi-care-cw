@@ -24,6 +24,7 @@ import {
 import { NotYourHome, Settled, StatusPill, Unrecorded } from '@/components/status'
 import { assertNever } from '@/lib/assert-never'
 import { formatCount, formatDate, formatLateness, pluralise } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { PlaceholderBanner } from './PlaceholderBanner'
 import {
   NEVER_ASSESSED_IS_NOT_LOW_RISK,
@@ -39,8 +40,7 @@ import {
 import styles from './risk-list.module.css'
 
 /** What the screen counts over, said once. */
-export const COUNTED_LINE =
-  'Every resident at this home against every template the home uses, whether or not anybody has opened one.'
+export const COUNTED_LINE = `Every ${VOCABULARY.subject.one} at this home against every template the home uses, whether or not anybody has opened one.`
 
 /**
  * Which risk assessments the home has never done. CW PRD RA-01.

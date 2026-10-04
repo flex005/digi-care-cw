@@ -17,6 +17,17 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    /*
+     * **Bounded workers, because the terminology tests reload the module graph.**
+     * A vocabulary is captured once at import, so each of those cases calls
+     * `vi.resetModules()` and imports a feature's whole tree again — five files
+     * doing that at once saturated the machine and four unrelated tests timed
+     * out at 155 seconds apiece. They were not failing: they were not being run.
+     * A test that fails on contention teaches people to re-run rather than to
+     * look.
+     */
+    maxWorkers: 4,
+    minWorkers: 1,
     setupFiles: ['./src/test/setup.ts'],
     globals: false,
     include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.mjs'],

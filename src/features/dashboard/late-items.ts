@@ -9,6 +9,7 @@ import { RISK_ASSESSMENT_TEMPLATES } from '@/data/types'
 import type { Omission } from '@/data/access/client'
 import { SHIFT_NAMES } from '@/lib/shift'
 import { wholeDaysBetween } from '@/lib/review-interval'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * Already late: what has passed its date, oldest first, each with the record it
@@ -94,7 +95,7 @@ export function fromReviews(residents: Resident[], today: IsoDate): LateItem[] {
       items.push({
         id: `plan:${resident.id}`,
         kind: 'review',
-        what: 'Whole care plan review, past its date',
+        what: `Whole ${VOCABULARY.carePlan.one} review, past its date`,
         who: `${resident.fullLegalName} · ${roomOf(resident)}`,
         dueAt: asInstant(plan.dueOn),
         daysLate: plan.daysOverdue,

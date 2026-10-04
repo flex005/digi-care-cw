@@ -1,5 +1,6 @@
 import type { ImportantPeople, ImportantPerson } from '@/data/types'
 import { Unrecorded } from '@/components/status'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import styles from './people-and-plans.module.css'
 
 /**
@@ -43,7 +44,7 @@ export function primaryContactsIn(people: ImportantPeople): Held[] {
   if (people.advocate.kind === 'recorded') consider(people.advocate.value, 'Advocate')
   if (people.familyWithVisitingRights.kind === 'recorded')
     for (const person of people.familyWithVisitingRights.items)
-      consider(person, 'Family with visiting rights')
+      consider(person, `${VOCABULARY.family.One} with visiting rights`)
 
   return held
 }

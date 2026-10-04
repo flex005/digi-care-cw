@@ -5,6 +5,7 @@ import { Avatar } from '@/components/primitives'
 import { now } from '@/data/fixtures/clock'
 import { telHref } from '@/lib/phone'
 import { ageFrom, formatDate } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import type { FieldWidth } from './FieldList'
 import { PlainValue, RecordedListField, RecordedValueField } from './FieldList'
 import { AllergyPanel } from './AllergyPanel'
@@ -184,7 +185,7 @@ export const GENERAL_INFORMATION_SECTIONS: ProfileSection[] = [
     fields: [
       {
         id: 'admitted',
-        label: 'Admission date',
+        label: `${VOCABULARY.admission.One} date`,
         whenMissing: 'hatch',
         isUnrecorded: always,
         render: (resident) => (

@@ -2152,3 +2152,157 @@ nearest-round fallback reproduces; the coverage guard counting the vocabulary ac
 that are its own solution; and the same guard failing only above a baseline, so 51
 conversions of headroom meant a one-word regression printed a tick. Every one printed a
 confident success line, with a figure and a sentence about its own limits, while blind.
+
+
+---
+
+## Correction: what every phase figure before this one counted (04/10/2026)
+
+**Seven phase reports quote a figure that measures something other than it appears
+to, and this paragraph is the only place that says so.** Nobody reading back should
+conclude the migration stalled.
+
+**What the numbers counted.** `check-vocabulary-coverage` counts every occurrence of a
+term word in the counted paths, in every position — `resident.fullLegalName`,
+`Resident[]`, `@/features/residents/ResidentsRoute`, `kind: 'resident'`, and a sentence
+on a screen. Phases 1 to 7 reported progress as a fraction of that total. **Of the
+2,354 words in the baseline, 2,033 are in positions no migration can reach**, so the
+denominator was roughly seven times the size of the work.
+
+| | reported then | what it meant |
+| --- | --- | --- |
+| Phases 1–5 | "of 1,754" | `.tsx` only, every position |
+| Phases 6–7 | "of 2,354" | `.tsx` and `.ts`, every position |
+| From phase 8 | "of 321 convertible" | the words a phase can actually change |
+
+**What the convertible figures would have been.** Measured with the corrected
+classifier against the same commits: phase 7 ended at **82 of 321 converted**, not
+"116 of 2,354". The work was a quarter done where the figure said five per cent.
+
+**The ratchet is unchanged and stays unchanged.** It still compares the all-positions
+figure, because a term typed back into any position is a regression, and subtracting a
+floor from the number a check fails on is the allowlist this build has refused three
+times. Two figures, two questions: *how much of the work is done* and *has anything
+gone backwards*.
+
+**The classifier that produces the split was wrong twice before it settled**, and both
+were found by the figures moving further than the edits rather than by reading it:
+
+- **A template literal did not resume after `${…}`.** One `quote` flag meant an
+  interpolation ended the string and the rest of the sentence was read as code — so
+  converting one word silently reclassified the rest of it. `paths` fell by 36 across a
+  phase that converted no path at all, which is what showed it. It keeps a stack now.
+- **An apostrophe in prose opened a string.** With the stack but no JSX-text-first
+  rule, "this person's record" started a literal that swallowed the file, and
+  `literalAround` then returned enormous "literals" containing a `/` — which is why the
+  phase 7 table reported **1,060 paths where there are 214**.
+- A third, smaller: every single-token literal was called a key, which put card titles
+  like `title="Residents"` in with the union members. Capitalisation separates them.
+
+**So the floor table published in phase 7 was wrong in its parts** and roughly right in
+its total. The corrected floor, same baseline commit: **1,715 code and type positions,
+213 paths and specifiers, 86 single-token keys and discriminants, 19 named fixed copy —
+2,033 of 2,354, leaving 321 convertible.**
+
+---
+
+## Terminology, phase 8: the reporting fixed, and the remaining modules (04/10/2026)
+
+**151 of 238 convertible term words converted, 87 to go** — and the 87 is mostly this
+check misreading code as prose. Counted by hand: **one genuine string was left
+unconverted at the start of the final sweep, and it is converted now.**
+
+### Two figures, because they answer two questions
+
+`check-vocabulary-coverage` now opens with progress and keeps the ratchet on its own
+line:
+
+```
+✓ vocabulary coverage — 151 of 238 convertible term words converted, 87 to go.
+  Ratchet: 2167 hardcoded in every position (best 2167, baseline 2354 at a71e96c);
+  this fails when that rises above the best, wherever it rises.
+```
+
+**The ratchet is unchanged and compares the same thing it always did**: every position,
+nothing subtracted. A term typed back into a property name is still a regression, and
+subtracting a floor from the number a check fails on is the allowlist this build has
+refused three times.
+
+### The classifier was wrong three times, and the baseline was re-derived four
+
+Each correction changed the split, so **both halves were measured again at `a71e96c`
+every time** — a numerator and a denominator from different instruments is the whole
+subject of this phase.
+
+- **A template literal did not resume after `${…}`.** One `quote` flag meant an
+  interpolation ended the string and the rest of the sentence was read as code. `paths`
+  fell by 36 across a phase that converted no path at all, which is what showed it.
+- **An apostrophe in prose opened a string.** With a stack but no JSX-text-first rule,
+  "this person's record" began a literal that swallowed the file — so `literalAround`
+  returned enormous "literals" containing a `/`, and the phase 7 table reported
+  **1,060 paths where there are 201**.
+- **Every single-token literal was called a key**, which put `title="Residents"` in with
+  the union members. Capitalisation separates them: discriminants here are lowercase.
+
+### The floor, as it finally stands
+
+Of 2,167 remaining, **2,080 can never be converted**: 1,672 code and type positions,
+202 paths and specifiers, 46 single-token keys and discriminants, and the rest fixed by
+name —
+
+- a **quoted PRD row**, because a quotation does not move;
+- the **medication PIN**, named by §6;
+- the **MAR's document name**, and **"Advance care plan"**, which is a named UK document
+  like a DNACPR rather than this home's plan for somebody;
+- every use of **assessment**, which names an instrument here and never the term;
+- **"Family Portal"**, the other product's name;
+- **`capabilities.ts` whole** — the role table's own words, written line by line beside
+  its quotations of the PRD, and none of them drawn since the sweep. The one string
+  there that *is* drawn, the `not_stated` question, is converted. There is a mechanical
+  reason too: `capabilities.test.ts` holds every refusal to seventy characters, and
+  "Only a clinician or a manager adds an interim medication" is sixty-two — the same
+  sentence under a longer vocabulary is seventy-three. **Making the reason configurable
+  would put a declared limit at the mercy of a word somebody else chooses.** If those
+  words should move, the length rule has to move with them.
+- **`plan-fields.ts` whole** — two labels in the subject's own voice;
+- **`instrument.ts` whole** — the Morse Fall Scale's own items. A service renaming its
+  terms does not get to reword a validated instrument.
+
+### What the sweep found
+
+**A hand-rolled plural.** `activities` built one with a conditional —
+`${n} ${n === 1 ? 'resident was' : 'residents were'}` — which is the "second copy of the
+rule" `check-plural-agreement` exists to refuse, sitting in the build the whole time
+because the guard only looks for a count beside a *declared* form. It goes through
+`pluralise` now, and the agreed counter moved 24 → 26.
+
+**A test assertion that was too wide.** Phase 7 asserted that `plan-fields.ts` asks no
+vocabulary at all, to protect the first-person labels. But `agreedActions` is
+`voice: 'staff'` — "What staff will do" — and that word is the organisation's to choose.
+The claim is per field now: a label declared as the subject speaking is a plain literal
+with nothing interpolated into it.
+
+### What is left, and why
+
+**87 by the figure, one by hand at the start of this sweep.** The residual is dominated
+by the scanner reading `const residents = resource.data` and `.map((resident) =>
+resident.id)` as prose. Tightening it further has diminishing returns and it has already
+been corrected three times, so the guard's own line now says so: *the ratchet above is
+exact; this line is a guide.*
+
+**That is the end of this work.** What remains is a floor with a reason attached to every
+part of it, and a ratchet that fails if anything goes back.
+
+### The suite stopped being reliable, and that was mine
+
+`npm run verify` failed four tests at **155 seconds apiece** — in `incidents`, the MAR,
+care notes and documents, none of them touched this phase. They were not failing;
+**they were not being run.** Five vocabulary test files each call `vi.resetModules()`
+and re-import a feature's whole tree per case, which is inherent to testing a value
+captured at import, and five of them at once on a ten-core machine saturated it.
+
+Noted as "visibly heavier, worth watching rather than acting on" in phase 5, and this
+is it acting up. `vitest.config.ts` bounds the workers now, with the reason written
+down. **A test that fails on contention teaches people to re-run rather than to look**,
+which is the most expensive kind of flake: it trains the reflex that hides the next
+real failure.

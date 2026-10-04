@@ -1,5 +1,6 @@
 import type { DocumentCategoryId, DocumentRecord, Resident } from '@/data/types'
 import { formatDate } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import styles from './viewer.module.css'
 
 /**
@@ -23,7 +24,7 @@ export function DocumentSample({
   document: DocumentRecord
   resident: Resident | undefined
 }) {
-  const name = resident?.fullLegalName ?? 'The resident'
+  const name = resident?.fullLegalName ?? `The ${VOCABULARY.subject.one}`
   const room = resident?.room.kind === 'recorded' ? resident.room.value : 'not recorded'
 
   return (
@@ -38,7 +39,7 @@ export function DocumentSample({
           <br />
           Page 1 of 1
           <br />
-          Retain in the resident record
+          Retain in the {VOCABULARY.subject.one} record
         </p>
       </header>
 
@@ -107,9 +108,9 @@ const STRAP: Partial<Record<DocumentCategoryId, string>> = {
   health_clinical: 'A clinical record issued by the service that made it.',
   consent_records: 'A record of what was agreed, by whom, and on what date.',
   assessments_care_planning: 'An assessment carried out on the date shown.',
-  identity_admission: 'Held to establish identity at admission.',
-  correspondence: 'Correspondence held on the resident record.',
-  photographs_media: 'An image held with the resident’s consent.',
+  identity_admission: `Held to establish identity at ${VOCABULARY.admission.one}.`,
+  correspondence: `Correspondence held on the ${VOCABULARY.subject.one} record.`,
+  photographs_media: `An image held with the ${VOCABULARY.subject.ones} consent.`,
 }
 
 const BLOCK: Partial<Record<DocumentCategoryId, { title: string; body: string }>> = {

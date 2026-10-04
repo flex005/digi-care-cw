@@ -1,6 +1,7 @@
 import type { AnyConsent, ConsentTypeId, Resident } from '@/data/types'
 import { CONSENT_TYPES } from '@/data/types'
 import { configuredState, countsTowardsExpected } from '@/data/access/site-config-store'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * Every consent decision this home is expected to hold, and what it holds.
@@ -135,8 +136,8 @@ export const NEVER_SOUGHT_IS_NOT =
 export const STANDING_MEANS: Record<ConsentStanding['kind'], string> = {
   never_sought: 'nobody has asked, and nobody has decided on their behalf',
   awaiting: 'sought but no answer recorded',
-  refused: 'the resident said no',
+  refused: `the ${VOCABULARY.subject.one} said no`,
   decided_for_them: 'a best-interests decision or an attorney',
-  given_by_them: 'the resident agreed',
+  given_by_them: `the ${VOCABULARY.subject.one} agreed`,
   withdrawn: 'given once and taken back',
 }

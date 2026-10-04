@@ -25,6 +25,7 @@ import {
 import { NotYourHome, Settled, Unrecorded } from '@/components/status'
 import { formatDate, pluralise, zonedDate } from '@/lib/format'
 import { nextReviewFrom } from '@/lib/review-interval'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { SubjectStrip } from '@/features/notes/composer/SubjectStrip'
 import { domainRows, gapWords, isGap } from './review-queue'
 import styles from './reviews.module.css'
@@ -63,7 +64,7 @@ export function WholePlanReviewRoute() {
       <div className={styles.page}>
         <Card>
           <p className={styles.status} role="status">
-            Loading the care plan…
+            Loading the {VOCABULARY.carePlan.one}…
           </p>
         </Card>
       </div>
@@ -74,14 +75,14 @@ export function WholePlanReviewRoute() {
       <div className={styles.page}>
         <Card>
           <EmptyState
-            title="The care plan could not be loaded"
+            title={`The ${VOCABULARY.carePlan.one} could not be loaded`}
             body="Nothing has been lost: nothing was recorded."
             actions={
               <Link
                 href={`/residents/${residentId}/care-plan`}
                 className={buttonClassName({ variant: 'secondary' })}
               >
-                Back to the care plan
+                Back to the {VOCABULARY.carePlan.one}
               </Link>
             }
           />
@@ -144,7 +145,7 @@ function Review({
       .then(() => {
         setError('')
         onRecorded(
-          `Whole care plan review recorded for ${resident.fullLegalName} on ${formatDate(today)}, carrying ${
+          `Whole ${VOCABULARY.carePlan.one} review recorded for ${resident.fullLegalName} on ${formatDate(today)}, carrying ${
             outstanding.length === 0
               ? 'nothing outstanding'
               : pluralise(outstanding.length, 'outstanding domain')
@@ -159,14 +160,14 @@ function Review({
   return (
     <div className={styles.page}>
       <PageHead
-        title={`Whole care plan review: ${resident.fullLegalName}`}
+        title={`Whole ${VOCABULARY.carePlan.one} review: ${resident.fullLegalName}`}
         lines={[site.name, 'senior carers conduct a review']}
         action={
           <Link
             href={`/residents/${resident.id}/care-plan`}
             className={buttonClassName({ variant: 'secondary' })}
           >
-            Back to the care plan
+            Back to the {VOCABULARY.carePlan.one}
           </Link>
         }
       />

@@ -4,6 +4,7 @@ import type {
   IncidentSeverityId,
   IncidentTypeId,
 } from '@/data/types'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * What the report form is still waiting on, named item by item. CW PRD INC-02,
@@ -136,7 +137,7 @@ export function outstanding(draft: ReportDraft, now: string): string[] {
   if (draft.type === 'not_chosen') waiting.push('what kind of incident it was')
   if (subject === 'not_chosen') waiting.push('who this happened to')
   else if (subject === 'resident' && draft.residentId === '')
-    waiting.push('which resident')
+    waiting.push(`which ${VOCABULARY.subject.one}`)
   if (draft.occurredAt === '') waiting.push('when it happened')
   else if (new Date(draft.occurredAt).getTime() > new Date(now).getTime())
     waiting.push('a time that is not in the future')

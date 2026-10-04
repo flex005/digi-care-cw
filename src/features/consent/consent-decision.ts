@@ -1,4 +1,5 @@
 import type { ConsentMethod, ConsentTypeId } from '@/data/types'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * Recording a consent decision, as rules. Table 3: "Consent — record", senior
@@ -68,7 +69,7 @@ export function authoritiesFor(
   return [
     {
       id: 'the_resident',
-      label: 'The resident decided',
+      label: `The ${VOCABULARY.subject.one} decided`,
       available: theResident,
       why: theResident
         ? ''

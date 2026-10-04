@@ -4,6 +4,7 @@ import { coverageRatio } from '@/data/types'
 import { recordCompleteness } from '@/data/completeness'
 import { insufficientEvidenceThreshold } from '@/data/access/settings-store'
 import { STALE_NOTE_HOURS, hasNoNoteWithinWindow } from './use-resident-filters'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * The figures above the residents list, counted over the residents the viewer
@@ -52,7 +53,7 @@ function subset(
         coverage,
         missingDescription:
           total === 0
-            ? 'There are no residents here to count.'
+            ? `There are no ${VOCABULARY.subject.many} here to count.`
             : 'Too few of them have been here long enough to say.',
       },
       excluded,

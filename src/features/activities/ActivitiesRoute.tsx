@@ -19,6 +19,7 @@ import {
 } from '@/components/primitives'
 import { NotYourHome, Settled, Unrecorded } from '@/components/status'
 import { formatCount, formatDate, pluralise, zonedDate } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import {
   WEEKDAYS,
   countsOf,
@@ -32,7 +33,7 @@ import styles from './activities.module.css'
 
 /** The exclusion ACT-01 states out loud, worded once. */
 export const invitedLine = (residents: number): string =>
-  `${residents} ${residents === 1 ? 'resident was' : 'residents were'} invited to them, and there is no record of whether any of them came.`
+  `${pluralise(residents, VOCABULARY.subject.one, VOCABULARY.subject.many)} ${residents === 1 ? 'was' : 'were'} invited to them, and there is no record of whether any of them came.`
 
 /**
  * The activities calendar. CW PRD ACT-01.

@@ -11,6 +11,7 @@ import type {
 import { referencedIds } from '@/data/fixtures/documents'
 import { staffLabel } from '@/data/access/team-store'
 import { formatDate } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { DOCUMENT_CATEGORIES } from './categories'
 import { countExpiry, type ExpiryCounts } from './expiry'
 
@@ -122,7 +123,7 @@ export function expectationFor(
   if (category === 'identity_admission') {
     return {
       missing: `${resident.preferredName} was admitted on ${formatDate(resident.admittedOn)} and nothing is filed here.`,
-      because: 'An admission agreement is signed on the day somebody moves in.',
+      because: `An ${VOCABULARY.admission.one} agreement is signed on the day somebody moves in.`,
     }
   }
 
@@ -145,7 +146,7 @@ export function expectationFor(
       const current = domain.versions.history[domain.versions.history.length - 1]
       if (current === undefined) continue
       return {
-        missing: `A care plan was finalised on ${formatDate(current.finalisedOn)} and nothing is filed here.`,
+        missing: `A ${VOCABULARY.carePlan.one} was finalised on ${formatDate(current.finalisedOn)} and nothing is filed here.`,
         because: 'The care record says this version exists, and it is not filed here.',
       }
     }

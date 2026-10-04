@@ -30,6 +30,7 @@ import { documentsIcons } from './documents.icons'
 import { FileDocumentForm } from './UploadDocumentRoute'
 import { zonedDate } from '@/lib/format'
 import { formatCount, pluralise } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import {
   EXPIRY_DECISION_MEANS,
   NO_EXPIRY_RECORDED,
@@ -83,7 +84,7 @@ export function DocumentsRoute() {
       title="Documents"
       lines={[
         `Everything on file at ${activeSite.name}`,
-        'the residents’ documents and the home’s own',
+        `the ${VOCABULARY.subject.many}’ documents and the home’s own`,
       ]}
       action={
         /*
@@ -374,7 +375,7 @@ function FileForSomebody({
           <Select
             labelVisible
             label="Who the document is about"
-            placeholder="Choose a resident"
+            placeholder={`Choose a ${VOCABULARY.subject.one}`}
             value={chosen === 'not_chosen' ? undefined : chosen}
             onValueChange={(value) => setChosen(value as ResidentId)}
             options={people.map((person) => ({

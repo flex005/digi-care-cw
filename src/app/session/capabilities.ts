@@ -2,6 +2,7 @@ import type { ResidentId, StaffId, StaffRef } from '@/data/types'
 import { assertNever } from '@/lib/assert-never'
 import { scopeReaches, type ResidentScope } from './resident-scope'
 import type { SignInRole } from './roles'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 export { SIGN_IN_ROLES, isSignInRole, signInRoleOf, type SignInRole } from './roles'
 
@@ -128,6 +129,25 @@ const done: Completion = { kind: 'done_when_done' }
  * Table 3 row by row, with the rows it holds together split where they are two
  * acts ("acknowledge or close", "create or close"), and the acts the screen
  * specifications add, each naming its screen.
+ */
+/*
+ * **The words below are not converted, and that is a decision.**
+ *
+ * An act's `name` and a refusal's `reason` are the role table's own words,
+ * written beside `row('…')` citations of the PRD — and a file that quotes a
+ * document in one line and rewrites itself in the next is harder to read
+ * against the document than one that does neither. **They are also not drawn
+ * any more**: since the 19/09 sweep `ActPoint` renders nothing for a refusal,
+ * so these reasons reach no screen. The one string here that does reach a
+ * screen is the `not_stated` question above, and it is converted.
+ *
+ * There is a mechanical reason as well. `capabilities.test.ts` holds every
+ * refusal to one short line of at most seventy characters; "Only a clinician or
+ * a manager adds an interim medication" is sixty-two, and the same sentence
+ * under a longer vocabulary is seventy-three. Making the reason configurable
+ * puts a declared limit at the mercy of a word somebody else chooses.
+ *
+ * If these should move, the length rule has to move with them.
  */
 export const CARE_ACTS = {
   open_resident_record: {
@@ -569,7 +589,7 @@ export function answerFor(
         ? yes
         : {
             kind: 'not_stated',
-            question: `The PRD lets a ${ROLE_WORDS[role]} “${declared.name}” and does not say whether for residents not on their list.`,
+            question: `The PRD lets a ${ROLE_WORDS[role]} “${declared.name}” and does not say whether for ${VOCABULARY.subject.many} not on their list.`,
           }
     case 'your_list':
       return onList()
