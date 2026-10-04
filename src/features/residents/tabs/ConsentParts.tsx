@@ -3,6 +3,7 @@ import { Unrecorded } from '@/components/status'
 import { staffLabel } from '@/data/access/team-store'
 import { assertNever } from '@/lib/assert-never'
 import { formatCount, formatDate } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import styles from './consent-and-documents.module.css'
 
 /**
@@ -51,7 +52,7 @@ export function ConsentAuthority({ status }: { status: AnyConsent }) {
 function who(authority: DecisionAuthority<never>): string {
   switch (authority.kind) {
     case 'the_resident':
-      return 'The resident'
+      return `The ${VOCABULARY.subject.one}`
     case 'best_interests':
       return 'A best-interests process'
     case 'lpa_holder':

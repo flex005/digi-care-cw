@@ -87,7 +87,7 @@ const BASELINE_TSX_ONLY_FILES = 85
  * forgives a regression.** The success line says when it is stale and by how
  * much, so a phase that converted something lowers it in the same commit.
  */
-const BEST = 2281
+const BEST = 2238
 
 /**
  * Where copy lives, and therefore where this counts.
@@ -227,6 +227,105 @@ if (undeclared.length > 0) {
   process.exit(1)
 }
 
+/**
+ * What can never be converted, and why, so the remainder is a figure somebody
+ * can act on.
+ *
+ * **"2281 remaining" at the end of a migration is a number that will be
+ * misread.** Most of what this counts is not copy at all: a property access, an
+ * import path, a route, a discriminant. Reported as one total it looks like work
+ * left undone, and the next person starts converting things that must not
+ * change — a `kind: 'resident'` renamed breaks a type for nothing, and a quoted
+ * PRD row stops being a quotation.
+ *
+ * So each match is placed, and the success line says how many of the remainder
+ * are genuinely convertible. **This is not an allowlist**: nothing is excused or
+ * subtracted from the count the check fails on. It is the same number, said in
+ * four parts.
+ *
+ * The placing is a scanner rather than a judgement, and it is approximate at the
+ * edges — a proportion, reported as one.
+ */
+const FIXED_COPY = [
+  {
+    pattern: /row\('[^']*'\)/g,
+    why: 'quotes a row of the PRD’s role table, and a quotation does not move',
+  },
+  {
+    pattern: /medication PIN/g,
+    why: 'the credential is named the medication PIN (CLAUDE.md §6)',
+  },
+  {
+    pattern: /Medication administration record/g,
+    why: 'a standard UK document name, like a statutory title',
+  },
+]
+
+/**
+ * Where each character sits: inside a string or template, inside JSX text, or in
+ * code. Rough at the edges, and the figure it feeds is reported as a proportion.
+ */
+function regions(source, isTsx) {
+  const out = new Uint8Array(source.length)
+  let i = 0
+  let quote = null
+  /* Inside `<… >` rather than after any `>`: an arrow function is not a tag. */
+  let inTag = false
+  let jsxText = false
+  /* Depth of `{…}` opened from JSX text, so the text resumes after it closes. */
+  let braces = 0
+  while (i < source.length) {
+    const c = source[i]
+    if (quote !== null) {
+      out[i] = 1
+      if (c === '\\') {
+        out[i + 1] = 1
+        i += 2
+        continue
+      }
+      if (c === quote) quote = null
+      else if (quote === '`' && c === '$' && source[i + 1] === '{') quote = null
+      i += 1
+      continue
+    }
+    if (c === "'" || c === '"' || c === '`') {
+      quote = c
+      out[i] = 1
+      i += 1
+      continue
+    }
+    if (isTsx) {
+      if (c === '<' && /[A-Za-z/>]/.test(source[i + 1] ?? '')) {
+        inTag = true
+        jsxText = false
+      } else if (c === '>' && inTag) {
+        inTag = false
+        jsxText = true
+      } else if (jsxText && c === '{') {
+        jsxText = false
+        braces = 1
+      } else if (braces > 0) {
+        if (c === '{') braces += 1
+        else if (c === '}') {
+          braces -= 1
+          if (braces === 0) jsxText = true
+        }
+      } else if (jsxText) out[i] = 2
+    }
+    i += 1
+  }
+  return out
+}
+
+/** The literal a match sits in, so a path or a key can be told from prose. */
+function literalAround(source, where, index) {
+  let a = index
+  let b = index
+  while (a > 0 && where[a - 1] === 1) a -= 1
+  while (b < source.length - 1 && where[b + 1] === 1) b += 1
+  return source.slice(a, b + 1)
+}
+
 const walk = (dir) =>
   readdirSync(dir).flatMap((name) => {
     const full = join(dir, name)
@@ -243,6 +342,8 @@ let files = 0
 let excluded = 0
 const perTerm = Object.fromEntries(Object.keys(WORDS).map((id) => [id, 0]))
 const perModule = new Map()
+/** Every match, placed. The parts add up to `found`. */
+const placed = { code: 0, paths: 0, keys: 0, fixedCopy: 0, prose: 0 }
 
 for (const file of walk(SRC)) {
   if (!/\.tsx?$/.test(file) || /\.test\./.test(file) || file.endsWith('.d.ts')) continue
@@ -258,13 +359,36 @@ for (const file of walk(SRC)) {
    * through the repository's own scanner is what the other guards do — a regex
    * over `/*` once blanked a third of a file and printed a tick over it.
    */
-  const source = stripComments(readFileSync(file, 'utf8')).replace(ACCESS, '')
+  const source = stripComments(readFileSync(file, 'utf8')).replace(ACCESS, (m) =>
+    ' '.repeat(m.length),
+  )
+  const where = regions(source, file.endsWith('.tsx'))
+  /* Spans a declared fixed-copy pattern covers, so a match inside one is placed. */
+  const fixedSpans = []
+  for (const entry of FIXED_COPY) {
+    entry.pattern.lastIndex = 0
+    let hit
+    while ((hit = entry.pattern.exec(source)) !== null)
+      fixedSpans.push([hit.index, hit.index + hit[0].length])
+  }
   let here = 0
   for (const [id, pattern] of patterns) {
     pattern.lastIndex = 0
-    const hits = [...source.matchAll(pattern)].length
-    perTerm[id] += hits
-    here += hits
+    let hit
+    while ((hit = pattern.exec(source)) !== null) {
+      perTerm[id] += 1
+      here += 1
+      const at = hit.index
+      if (fixedSpans.some(([a, b]) => at >= a && at < b)) placed.fixedCopy += 1
+      else if (where[at] === 0) placed.code += 1
+      else if (where[at] === 2) placed.prose += 1
+      else {
+        const literal = literalAround(source, where, at)
+        if (literal.includes('/')) placed.paths += 1
+        else if (!literal.includes(' ')) placed.keys += 1
+        else placed.prose += 1
+      }
+    }
   }
   if (here > 0) {
     files += 1
@@ -302,6 +426,8 @@ const stale =
     ? ` ${String(BEST - found)} fewer than the recorded best of ${String(BEST)} — lower BEST to ${String(found)} in this commit, or a regression of that size passes.`
     : ''
 
+const floor = placed.code + placed.paths + placed.keys + placed.fixedCopy
+
 const leading = Object.entries(perTerm)
   .sort((a, b) => b[1] - a[1])
   .slice(0, 3)
@@ -314,7 +440,11 @@ console.log(
     `${String(BASELINE_FILES)} files (${leading}). ${String(excluded)} files not ` +
     `counted: ${EXCLUDED.map((e) => `${e.prefix} (${e.why})`).join('; ')}. It counts ` +
     `how much has moved, not whether any of it reads well — that is a screenshot's ` +
-    `question. A VOCABULARY.<term>.<form> access is an identifier and is not ` +
+    `question.\n  Of the ${String(found)} remaining, ${String(floor)} can never be ` +
+    `converted — ${String(placed.code)} code and type positions, ${String(placed.paths)} ` +
+    `paths and specifiers, ${String(placed.keys)} single-token keys and discriminants, ` +
+    `${String(placed.fixedCopy)} named fixed copy (${FIXED_COPY.map((e) => e.why).join('; ')}). ` +
+    `**${String(placed.prose)} are convertible.**\n  A VOCABULARY.<term>.<form> access is an identifier and is not ` +
     `counted. Phases 1–5 quoted a .tsx-only denominator of ` +
     `${String(BASELINE_TSX_ONLY)} across ${String(BASELINE_TSX_ONLY_FILES)} files; ` +
     `.ts joined it on 04/10/2026 and the two are not comparable.`,

@@ -11,6 +11,7 @@ import { SiteTimeZone } from '@/app/session/SessionProvider'
 import { useSession } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { assertNever } from '@/lib/assert-never'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { ProfileContext, type OpenRecord } from './ProfileContext'
 import { ProfileHeader } from './ProfileHeader'
 import { TabStrip } from './TabStrip'
@@ -63,7 +64,7 @@ export function ResidentProfileLayout({ children }: { children?: ReactNode }) {
   const back = (
     <Link href="/residents" className={styles.back}>
       <Icon name={profileIcons.back} size={16} />
-      All residents
+      All {VOCABULARY.subject.many}
     </Link>
   )
 
@@ -74,7 +75,7 @@ export function ResidentProfileLayout({ children }: { children?: ReactNode }) {
           {back}
           <Card>
             <p className={styles.status} role="status">
-              Loading resident…
+              Loading {VOCABULARY.subject.one}…
             </p>
           </Card>
         </div>
@@ -94,7 +95,7 @@ export function ResidentProfileLayout({ children }: { children?: ReactNode }) {
           {back}
           <Card>
             <EmptyState
-              title="This resident could not be loaded"
+              title={`This ${VOCABULARY.subject.one} could not be loaded`}
               body={`Nothing in this build answers to ${residentId}.`}
               actions={
                 <Button variant="secondary" onClick={resource.retry}>

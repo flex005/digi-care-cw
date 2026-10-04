@@ -29,6 +29,7 @@ import {
 } from '@/app/session/resident-scope'
 import { assertNever } from '@/lib/assert-never'
 import { formatCount, pluralise } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { ResidentsFilterBar } from './ResidentsFilterBar'
 import { listName } from './list-name'
 import { RISK_FLAG_SOURCES } from './risk-flag-sources'
@@ -81,7 +82,7 @@ export function ResidentsRoute() {
 
   const head = (
     <PageHead
-      title="Residents"
+      title={VOCABULARY.subject.Many}
       lines={[
         activeSite.name,
         scopeLine(
@@ -106,7 +107,7 @@ export function ResidentsRoute() {
         {head}
         <Card>
           <CardHead
-            title="Your residents"
+            title={`Your ${VOCABULARY.subject.many}`}
             subtitle={scopeNote(viewer.scope, activeSite.name)}
             expand={{ kind: 'whole' }}
           />
@@ -125,7 +126,7 @@ export function ResidentsRoute() {
         {head}
         <Card>
           <p className={styles.status} role="status">
-            Loading residents…
+            Loading {VOCABULARY.subject.many}…
           </p>
         </Card>
       </div>
@@ -137,7 +138,7 @@ export function ResidentsRoute() {
         {head}
         <Card>
           <EmptyState
-            title="The resident list could not be loaded"
+            title={`The ${VOCABULARY.subject.one} list could not be loaded`}
             body="Nothing has been lost: this is a read."
             actions={
               <Button variant="secondary" onClick={resource.retry}>
@@ -168,7 +169,7 @@ export function ResidentsRoute() {
               of={
                 notes.excluded === ''
                   ? denominator(notes.aggregate.coverage.total)
-                  : `of ${pluralise(notes.aggregate.coverage.covered, 'resident')} here for ${STALE_NOTE_HOURS} hours or more`
+                  : `of ${pluralise(notes.aggregate.coverage.covered, VOCABULARY.subject.one, VOCABULARY.subject.many)} here for ${STALE_NOTE_HOURS} hours or more`
               }
               footLabel="Longest without a note"
               footValue={
@@ -201,7 +202,7 @@ export function ResidentsRoute() {
                   figure={entry}
                   of={
                     entry.id === 'residents'
-                      ? `of ${pluralise(atHome.length, 'resident')} at ${activeSite.name}`
+                      ? `of ${pluralise(atHome.length, VOCABULARY.subject.one, VOCABULARY.subject.many)} at ${activeSite.name}`
                       : denominator(entry.aggregate.coverage.total)
                   }
                 />
@@ -217,8 +218,8 @@ export function ResidentsRoute() {
       <Card padded={false}>
         <div className={styles.listHead}>
           <CardHead
-            title="Your residents"
-            subtitle="Sort by oldest care note to find the residents nobody has written up."
+            title={`Your ${VOCABULARY.subject.many}`}
+            subtitle={`Sort by oldest care note to find the ${VOCABULARY.subject.many} nobody has written up.`}
             expand={{ kind: 'whole' }}
           />
         </div>
@@ -227,12 +228,12 @@ export function ResidentsRoute() {
         {onList.length === 0 ? (
           <EmptyState
             title={`Nobody at ${activeSite.name} is on your list`}
-            body="This is not a filter result: your list names residents at another home."
+            body={`This is not a filter result: your list names ${VOCABULARY.subject.many} at another home.`}
           />
         ) : listing.visible.length === 0 ? (
           <EmptyState
-            title="No residents match these filters"
-            body={`${pluralise(onList.length, 'resident')} on your list, and none of them match the filters you have set.`}
+            title={`No ${VOCABULARY.subject.many} match these filters`}
+            body={`${pluralise(onList.length, VOCABULARY.subject.one, VOCABULARY.subject.many)} on your list, and none of them match the filters you have set.`}
             actions={
               <Button variant="secondary" onClick={listing.clearFilters}>
                 Clear filters

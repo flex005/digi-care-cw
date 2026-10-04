@@ -1,5 +1,6 @@
 import type { CarePlanDomainId } from '@/data/types'
 import { CARE_PLAN_DOMAINS, NEED_GROUPS } from '@/data/types'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * The Needs tab's sections.
@@ -61,9 +62,8 @@ export const NEEDS_SECTIONS: NeedsSection[] =
         ...GROUPED,
         {
           id: 'other',
-          name: 'Other care plan domains',
-          description:
-            'Part of the care plan; end of life wishes are recorded on the Future Plans tab.',
+          name: `Other ${VOCABULARY.carePlan.one} domains`,
+          description: `Part of the ${VOCABULARY.carePlan.one}; end of life wishes are recorded on the Future Plans tab.`,
           domainIds: UNCLAIMED,
         },
       ]

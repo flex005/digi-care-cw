@@ -8,6 +8,7 @@ import type {
 } from './use-resident-filters'
 import { residentListIcons } from './residents.icons'
 import styles from './residents.module.css'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * The residents list's filters. RES-01: the three record views, search by name
@@ -24,7 +25,7 @@ import styles from './residents.module.css'
  * (docs/DEPARTURES.md), not as a feature waiting to be built.
  */
 const RECORD_VIEWS: { value: RecordsFilter; label: string }[] = [
-  { value: 'all', label: 'All residents' },
+  { value: 'all', label: `All ${VOCABULARY.subject.many}` },
   { value: 'any_incomplete', label: 'Any incomplete record' },
   { value: 'critical', label: 'Critical gaps' },
 ]
@@ -37,7 +38,11 @@ export function ResidentsFilterBar({
   const { filters } = listing
   return (
     <div className={styles.filterBar}>
-      <div className={styles.pills} role="group" aria-label="Show residents">
+      <div
+        className={styles.pills}
+        role="group"
+        aria-label={`Show ${VOCABULARY.subject.many}`}
+      >
         {RECORD_VIEWS.map((view) => {
           const chosen = filters.records === view.value
           return (
@@ -58,7 +63,9 @@ export function ResidentsFilterBar({
 
       <div className={styles.narrowing}>
         <label className={styles.search}>
-          <span className={styles.searchLabel}>Search residents by name or room</span>
+          <span className={styles.searchLabel}>
+            Search {VOCABULARY.subject.many} by name or room
+          </span>
           <Icon name={residentListIcons.search} size={16} />
           <input
             type="search"

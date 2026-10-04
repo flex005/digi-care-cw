@@ -7,6 +7,7 @@ import { staffLabel } from '@/data/access/team-store'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
 import { NEEDS_SECTIONS, domainName } from './needs-sections'
 import styles from './needs.module.css'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * The Needs tab: read-only, generated from the care plan's domains, with the
@@ -96,10 +97,10 @@ function DomainRow({
       <li className={styles.domainRow} data-domain={domainId}>
         <h3 className={styles.domainName}>{name}</h3>
         <dl className={styles.domainFacts}>
-          <DomainFact label="Care plan">
+          <DomainFact label={VOCABULARY.carePlan.One}>
             <Unrecorded
               variant="chip"
-              label={`${name} is not on this care plan`}
+              label={`${name} is not on this ${VOCABULARY.carePlan.one}`}
               detail="nothing has been written for this domain"
             />
           </DomainFact>
@@ -115,7 +116,7 @@ function DomainRow({
       <h3 className={styles.domainName}>{name}</h3>
 
       <dl className={styles.domainFacts}>
-        <DomainFact label="Care plan">
+        <DomainFact label={VOCABULARY.carePlan.One}>
           <DomainStatusBadge status={record.status} />
           <RevisionInProgress record={record} />
         </DomainFact>
@@ -130,7 +131,7 @@ function DomainRow({
           {notStarted || record.summary === '' ? (
             <Unrecorded
               variant="chip"
-              label="No care plan content"
+              label={`No ${VOCABULARY.carePlan.one} content`}
               detail="nothing written"
             />
           ) : (
@@ -152,8 +153,8 @@ export function NeedsTab() {
     <div className={styles.tabPanel} data-tab-panel="needs">
       <div className={styles.intro}>
         <p className={styles.tabIntro}>
-          Generated from the care plan and read-only. All ten domains are listed, filled
-          in or not.
+          Generated from the {VOCABULARY.carePlan.one} and read-only. All ten domains
+          are listed, filled in or not.
         </p>
       </div>
 

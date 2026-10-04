@@ -2062,3 +2062,93 @@ Eight against the converted sites. **Six failed; two passed, and both are honest
 **`scopeLine`'s own output now shows in the figure.** Phase 5 converted it and the
 count did not move, because it is a `.ts`. The jump from 51 to 73 converted is partly
 this phase's work and partly the guard finally seeing the last one's.
+
+---
+
+## Terminology, phase 7: the floor, and `features/residents` (04/10/2026)
+
+**Coverage: 2,281 → 2,238.** 116 converted. `plural agreement`: **20 → 23 agreed**, 0
+unagreed. `term forms`: 6 forms, 139 accesses, 0 findings. `vocabulary`: 65 tests.
+
+### The floor: 1,954 of the 2,238 can never be converted
+
+The guard reports it on every run now, because **"2,238 remaining" at the end of a
+migration is a number somebody will misread** and start converting things that must not
+change.
+
+| category | count | why it can never move |
+| --- | ---: | --- |
+| Code and type positions | 815 | `resident.fullLegalName`, `Resident[]`, `const resident =`. Identifiers, out of scope by the DEPARTURES decision. |
+| Paths and specifiers | 1,060 | `@/features/residents/…`, `/residents/[residentId]`, hrefs. A route is an address, not a word. |
+| Single-token keys and discriminants | 60 | `kind: 'resident'`, `voice: 'resident'`, `screen: 'residents'`. Renaming a union member breaks a type for nothing. |
+| Quoted PRD rows | — | `row('Dashboard — view all residents')` quotes the role table. **A quotation does not move**, or it stops being one. |
+| The credential's name | — | "medication PIN", named by CLAUDE.md §6. |
+| A standard document name | — | "Medication administration record", like a statutory title. |
+
+The last three are counted together as 19 **named fixed copy**, declared in the guard
+with their reasons. **It is not an allowlist**: nothing is subtracted from the figure the
+check fails on. It is the same number, said in five parts, so a run now ends
+"**284 are convertible**".
+
+The placing is a scanner, and it is approximate at the edges — reported as a proportion
+rather than as a fact. **It had a real bug on the way**: `=>` contains `>`, so every
+arrow function put it into "JSX text" and it called hundreds of code lines prose. It
+tracks tags now.
+
+### A term with no live site
+
+**`assessment` has no convertible use in this build.** Every occurrence is part of a
+compound naming an instrument — a *risk* assessment, scored on the Waterlow or the Morse
+Fall Scale, or a *capacity* assessment under the MCA. Substituting the term gives "Score
+a clinical assessment" and "one care assessment covering 3 decisions", both wrong. The
+compound is the name of the thing, not the term plus a word.
+
+This is the shape the Admin build's `DEFERRED_TERMS` already records for discharge: **a
+term whose control changes nothing visible is a dead control.** It is not proposed for
+removal — the Admin build offers it and the two share the file — but it is recorded here
+so nobody looks for its sites again.
+
+### Where two existing rules met terminology
+
+**The subject header is the wrong-subject control (§2)**, and it carries the term on the
+way out of the record. Asserted in both directions: the chosen word appears, and the
+header still names the person, their room and their record — a term that displaced the
+name would be the §2 defect rather than a fix.
+
+**Absence from a list is the same bug as a blank cell (§1).** Ten care plan domains,
+eight consent types, nine risk templates. The headings took the term; the counts are
+asserted to be **identical under both vocabularies**, domains drawn and cells hatched,
+so the conversion moved words and nothing else.
+
+**The two first-person labels stay exactly as they are.** `plan-fields.ts` declares
+`voice: 'resident'` on "What I need help with" and "How I like it done", and the test
+asserts both the declaration and that **the file asks no vocabulary at all** — the
+mechanical half, so a label in somebody's own voice cannot drift into a term site by
+somebody converting the file around it.
+
+### Mutations
+
+Six against the converted sites, **all caught**. Two needed redoing: the care plan
+heading occurs twice and my pattern asserted one; and making a first-person label a term
+site broke the typecheck before it could be judged, so it was redone with the import
+added — and then it failed **both** halves, the declaration test and the asks-no-
+vocabulary test.
+
+One passed on the first attempt and exposed a gap in the test rather than in the code:
+the "Other care plan domains" section heading was converted but unasserted. It is
+asserted now, with the sentence beneath it.
+
+**One test defect found by its own failure**: the either-vocabulary comparison loaded
+two vocabularies in one case, and `vi.resetModules()` was only in `beforeEach` — so the
+second import came out of the registry the first had filled and the test compared one
+render with itself. `loadUnder` resets per call now.
+
+### The §8 entry
+
+**Four guards in this migration arrived unable to do their job, four for four, none
+found by reading.** `check-plural-agreement` blind to the `<b>` this build writes; the
+address check passing on a route that never exercises the defect, with a clock pin the
+nearest-round fallback reproduces; the coverage guard counting the vocabulary accesses
+that are its own solution; and the same guard failing only above a baseline, so 51
+conversions of headroom meant a one-word regression printed a tick. Every one printed a
+confident success line, with a figure and a sentence about its own limits, while blind.

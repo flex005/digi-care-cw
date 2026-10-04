@@ -17,6 +17,7 @@ import { useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { assertNever } from '@/lib/assert-never'
 import { formatCount, formatLateness, pluralise } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
 import { carePlanGaps } from '@/features/residents/profile/record-gaps'
 import { configuredState } from '@/data/access/site-config-store'
@@ -81,11 +82,11 @@ export function CarePlanTab() {
     <div className={styles.tab} data-tab-body="care-plan">
       <Card>
         <CardHead
-          title={`${resident.preferredName}’s care plan`}
+          title={`${resident.preferredName}’s ${VOCABULARY.carePlan.one}`}
           subtitle={
             retired > 0
               ? `Counted over the ${asked} of ${rows.length} domains ${site.name} keeps.`
-              : `Counted over all ${rows.length} care plan domains.`
+              : `Counted over all ${rows.length} ${VOCABULARY.carePlan.one} domains.`
           }
           expand={{ kind: 'whole' }}
         />
@@ -143,12 +144,12 @@ export function CarePlanTab() {
                 className={buttonClassName({ variant: 'secondary' })}
                 data-open-review
               >
-                Conduct a whole care plan review
+                Conduct a whole {VOCABULARY.carePlan.one} review
               </Link>
             ) : (
               <ActPoint
                 answer={reviewAnswer}
-                label="Conduct a whole care plan review"
+                label={`Conduct a whole ${VOCABULARY.carePlan.one} review`}
                 notBuilt="Conducting a review is not built."
                 residentName={resident.preferredName}
               />
@@ -347,7 +348,7 @@ function DraftFact({ record }: { record: CarePlanDomainRecord }) {
       <StatusPill
         tone="info"
         label="Draft in progress"
-        detail={`${format.attributionOn(staffLabel(record.draft.updatedBy), record.draft.updatedAt)} · not signed, and the signed version above is what staff follow`}
+        detail={`${format.attributionOn(staffLabel(record.draft.updatedBy), record.draft.updatedAt)} · not signed, and the signed version above is what ${VOCABULARY.staff.many} follow`}
       />
     </span>
   )
@@ -376,7 +377,8 @@ function DomainReading({
   if (version === 'none' && draft === undefined) {
     return (
       <p className={styles.rowMeta} data-not-written-note>
-        This section of the care plan has not been written yet. Contact your manager.
+        This section of the {VOCABULARY.carePlan.one} has not been written yet. Contact
+        your {VOCABULARY.manager.one}.
       </p>
     )
   }
@@ -387,7 +389,9 @@ function DomainReading({
         <div className={styles.readingBody}>
           {version === 'none' ? null : (
             <section className={styles.version} data-signed-version>
-              <h3 className={styles.versionTitle}>What staff follow</h3>
+              <h3 className={styles.versionTitle}>
+                What {VOCABULARY.staff.many} follow
+              </h3>
               <p className={styles.rowMeta}>
                 Signed <span data-numeric>{format.date(version.finalisedOn)}</span> by{' '}
                 {staffLabel(version.finalisedBy)}
@@ -400,7 +404,8 @@ function DomainReading({
               <h3 className={styles.versionTitle}>Draft, not signed</h3>
               <p className={styles.rowMeta}>
                 {format.attributionOn(staffLabel(draft.updatedBy), draft.updatedAt)}.
-                Not what staff follow until a manager signs it.
+                Not what {VOCABULARY.staff.many} follow until a {VOCABULARY.manager.one}
+                signs it.
               </p>
               <PlanText text={draft} empty="Not written in this draft" />
             </section>

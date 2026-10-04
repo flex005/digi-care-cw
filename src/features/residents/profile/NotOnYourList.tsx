@@ -3,6 +3,7 @@ import { noListYetLine, notOnYourListLine } from '@/app/session/resident-scope'
 import type { Resident } from '@/data/types'
 import { Card } from '@/components/primitives'
 import { assertNever } from '@/lib/assert-never'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { listName } from '../list-name'
 import styles from './profile.module.css'
 
@@ -57,7 +58,7 @@ function body(answer: Exclude<Answer, { kind: 'yes' }>): string {
     case 'not_on_your_list':
       return 'Their record is not shown here because your list does not include them. Your list is set on your staff record.'
     case 'no_list_yet':
-      return 'Until somebody gives you a list of residents, no resident’s record opens here.'
+      return `Until somebody gives you a list of ${VOCABULARY.subject.many}, no ${VOCABULARY.subject.ones} record opens here.`
     case 'not_your_role':
     case 'not_the_author':
     case 'not_stated':

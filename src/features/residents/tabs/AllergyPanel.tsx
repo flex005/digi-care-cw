@@ -1,5 +1,6 @@
 import type { AllergyStatus } from '@/data/types'
 import { assertNever } from '@/lib/assert-never'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { Icon } from '@/components/icon/Icon'
 import { Unrecorded } from '@/components/status'
 import { Attribution } from './FieldList'
@@ -54,7 +55,7 @@ export function AllergyPanel({ status }: { status: AllergyStatus }) {
             variant="panel"
             caption={CAPTION}
             label="Not recorded"
-            detail="Nobody has recorded whether this person has allergies, and medication must not be given on the assumption there are none."
+            detail={`Nobody has recorded whether this person has allergies, and ${VOCABULARY.medication.one} must not be given on the assumption there are none.`}
           />
         </div>
       )

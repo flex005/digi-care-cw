@@ -7,6 +7,7 @@ import { carePlanDomainName } from '@/data/access/review-flags'
 import { NotYourHome } from '@/components/status'
 import { useSiteFormat } from '@/app/session/use-session'
 import { assertNever } from '@/lib/assert-never'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import styles from './risk-and-plan.module.css'
 
 const INCIDENT_PHRASE = Object.fromEntries(
@@ -59,7 +60,8 @@ export function OwedReviews({
             Post-incident reviews could not be read for this resident
           </p>
           <p className={styles.owedItem}>
-            Whether this care plan owes a review is unknown, not settled.
+            Whether this {VOCABULARY.carePlan.one} owes a review is unknown, not
+            settled.
           </p>
         </div>
       )
@@ -78,8 +80,8 @@ export function OwedReviews({
         <div className={styles.owed} data-owed={owed.length}>
           <p className={styles.owedTitle}>
             {owed.length === 1
-              ? 'This care plan owes a post-incident review'
-              : 'This care plan owes post-incident reviews'}
+              ? `This ${VOCABULARY.carePlan.one} owes a post-incident review`
+              : `This ${VOCABULARY.carePlan.one} owes post-incident reviews`}
           </p>
           {owed.map(({ incident, flag, domainId }) => (
             <p

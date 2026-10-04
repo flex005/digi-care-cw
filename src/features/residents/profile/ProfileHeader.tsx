@@ -17,6 +17,7 @@ import { Icon } from '@/components/icon/Icon'
 import { useSiteFormat } from '@/app/session/use-session'
 import { ageFrom, formatCount, formatDate, pluralise } from '@/lib/format'
 import { MEDICATION_LOOKAHEAD_HOURS } from '@/lib/shift'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import type { OpenRecord } from './ProfileContext'
 import { BadgeStrip } from './BadgeStrip'
 import { profileIcons } from './profile.icons'
@@ -133,7 +134,7 @@ export function ProfileHeader({
             <ActionCard
               kicker={`Medication due · next ${pluralise(MEDICATION_LOOKAHEAD_HOURS, 'hour')}`}
               figure={formatCount(dueSoon.length)}
-              of={`of ${pluralise(medications.length, 'medicine')} prescribed for ${resident.preferredName}`}
+              of={`of ${pluralise(medications.length, VOCABULARY.medication.one, VOCABULARY.medication.many)} prescribed for ${resident.preferredName}`}
               detail={dueSoon.length === 0 ? undefined : <DueList due={dueSoon} />}
               footLabel={
                 dueSoon.length === 0 ? 'Checked against' : 'First window closes'
@@ -148,7 +149,7 @@ export function ProfileHeader({
                   href={`/residents/${resident.id}/medications`}
                   className={buttonClassName({ variant: 'secondary' })}
                 >
-                  Open medications
+                  Open {VOCABULARY.medication.many}
                 </Link>
               }
             />
@@ -164,7 +165,7 @@ export function ProfileHeader({
 
           <Card className={styles.routineCard}>
             <CardHead
-              title="Care plan review"
+              title={`${VOCABULARY.carePlan.One} review`}
               expand={{ kind: 'link', href: `/residents/${resident.id}/care-plan` }}
             />
             <ReviewBadge state={resident.carePlanReview} emphasis="compact" />
