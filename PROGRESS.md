@@ -2367,3 +2367,55 @@ compares every position, subtracts nothing, and needs no classifier.
 Conversion was never countable. A screen rendering the chosen word is, and thirteen
 tests do that — which is this build's own rule about asserting through the thing itself
 rather than through a figure beside it.
+
+---
+
+## A plural possessive that reached the build (04/10/2026)
+
+**`DocumentsRoute.tsx` read `` `the ${VOCABULARY.subject.many}’ documents and the
+home’s own` ``** — a possessive built at the call site out of a plural and a bare
+apostrophe. Right for the thirty declared plurals that end in s, wrong for the four
+that do not: **people supported, staff, care staff, next of kin**. The subject term is
+the one in play, so the live defect was "the people supported’ documents", under
+exactly the term the six declared forms exist because of.
+
+Phase 5 reported that no plural possessive form exists and that rewording is the
+answer. This built one anyway.
+
+**Three things were wrong together.**
+
+**The string.** Reworded, so the sentence stops needing a form that does not exist:
+**"documents held for the residents, and the home’s own"**, and under the other three
+subject vocabularies "…for the service users…", "…for the people supported…", "…for the
+patients…". A seventh form would be declaration by grammatical position again, and it
+would have to be declared per term rather than derived — `’` after a word ending in s,
+`’s` otherwise.
+
+**The test.** It asserted the defective sentence word for word. **An assertion written
+from the same assumption as the code can only ever agree with it.** It now asserts the
+reworded string and, separately, that **no apostrophe follows the plural at all** —
+confirmed by putting the possessive back in both shapes and watching three cases fail
+each time. It runs over all four subject vocabularies rather than one, because the four
+plurals that do not end in s are the whole reason the rule exists.
+
+**The guard.** `check-term-forms` required an `s` after the apostrophe. It now matches
+any declared form that is **not already a possessive**, followed by an apostrophe, with
+or without an `s` — and it checks that the forms it calls possessive are forms `Term`
+declares, so renaming one cannot leave it watching nothing. Eight mutations: bare
+apostrophe, apostrophe-s, straight apostrophe, the capitalised plural, the singular
+with a bare apostrophe — all fail; the declared `ones` and `Ones` — both still pass;
+and the possessive names mismatched against `Term` — fails with its own message.
+
+**The wider sweep found nothing else.** One instance in the build, now fixed:
+`grep -rnE "VOCABULARY\.[a-zA-Z]+\.(one|many|One|Many)\}?\s*['’]"` returns nothing, and
+the guard reads **244 accesses across the build with no findings**.
+
+### The §8 entry
+
+This is the fifth guard in the migration that could not do its job and **the first to
+let a defect into the build** rather than merely fail a mutation. The other four were
+caught by mutating them. This one could not be: a mutation is written from the same
+understanding as the guard, so both knew about `’s` and both missed `’`. It was found
+by reading the rendered string back and asking what it says under every term — the move
+that found the double-printed dose. **Mutating proves a guard can fail on the case you
+thought of; reading the output back finds the case you did not.**

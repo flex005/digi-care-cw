@@ -59,15 +59,47 @@ describe('the library', () => {
   async function open(terms: string) {
     const m = await loadUnder(terms)
     m.renderSignedIn(m.staffAkinyemi.id, <m.DocumentsRoute />, ROSEWOOD)
-    await screen.findByText(/documents and the home’s own/)
+    await screen.findByText(/and the home’s own/)
     return document.body.textContent ?? ''
   }
 
-  /** The subject plural possessive, which no other module needed. */
-  it('names whose documents these are, in the plural', async () => {
+  /*
+   * **This asserted the defect, and could only ever have agreed with it.**
+   * The line read "the ${…many}’ documents", a plural possessive built at the
+   * call site, and this test was written to match it — the same assumption in
+   * two places, which is what makes an assertion unable to disagree. It was
+   * found by reading the rendered string back and asking what it says under
+   * every term: "the people supported’ documents", under the one term the six
+   * declared forms exist because of.
+   *
+   * The sentence is reworded, so the assertion is that **no apostrophe follows
+   * the plural at all** — which fails if the possessive comes back in any of
+   * its shapes.
+   */
+  it('names whose documents these are without building a possessive', async () => {
     const said = await open(OTHER)
-    expect(said).toContain('the people supported’ documents and the home’s own')
+    expect(said).toContain(
+      'documents held for the people supported, and the home’s own',
+    )
+    expect(said).not.toMatch(/people supported[’']s? documents/)
     expect(said).not.toContain('the residents’ documents')
+  })
+
+  /*
+   * **Every subject vocabulary, rendered rather than reasoned about.** Four of
+   * the thirty-five declared plurals do not end in s — "people supported",
+   * "staff", "care staff", "next of kin" — and one of them is a subject term,
+   * which is what made the possessive wrong here rather than merely fragile.
+   */
+  it.each([
+    ['', 'residents'],
+    ['subject:service_user', 'service users'],
+    ['subject:person_supported', 'people supported'],
+    ['org:hospital', 'patients'],
+  ])('reads the same way under %s', async (terms, plural) => {
+    const said = await open(terms)
+    expect(said).toContain(`documents held for the ${plural}, and the home’s own`)
+    expect(said).not.toMatch(/[’']s? documents/)
   })
 
   /*
@@ -94,6 +126,7 @@ describe('the library', () => {
 
   it('says this build’s own words when nothing is asked for', async () => {
     const said = await open('')
-    expect(said).toContain('the residents’ documents and the home’s own')
+    expect(said).toContain('documents held for the residents, and the home’s own')
+    expect(said).not.toContain('people supported')
   })
 })

@@ -62,12 +62,45 @@ const ACCESS =
   [...FORMS].sort((a, b) => b.length - a.length).join('|') +
   String.raw`)\b`
 
+/**
+ * The two forms that are already possessive, so an apostrophe after them is the
+ * word rather than an assembly.
+ *
+ * Checked against `Term` below, so renaming a form cannot leave this naming
+ * something the interface no longer declares.
+ */
+const POSSESSIVE_FORMS = ['ones', 'Ones']
+
+/** Any declared form that is not already a possessive. */
+const NOT_POSSESSIVE = String.raw`VOCABULARY\.\w+\.(?:${FORMS.filter(
+  (form) => !POSSESSIVE_FORMS.includes(form),
+)
+  .sort((a, b) => b.length - a.length)
+  .join('|')})\b`
+
+const unknownPossessive = POSSESSIVE_FORMS.filter((form) => !FORMS.includes(form))
+if (unknownPossessive.length > 0) {
+  console.error(
+    '✖ term forms — this check names possessive forms that Term does not declare,\n' +
+      `  so a possessive could be built out of one unwatched: ${unknownPossessive.join(', ')}.`,
+  )
+  process.exit(1)
+}
+
 const RULES = [
   {
     what: 'a possessive built at the call site',
-    // `${term.one}’s`, with either apostrophe, inside a template or beside a string.
-    pattern: new RegExp(String.raw`${ACCESS}\s*\}?\s*(?:’s|'s|&rsquo;s)`, 'g'),
-    instead: 'ask for `ones` or `Ones`, which the vocabulary declares',
+    /*
+     * **Any form that is not already a possessive, followed by an apostrophe —
+     * with or without an `s`.** It required the `s` until 04/10/2026, and
+     * `${term.many}’ documents` went straight through: a plural possessive,
+     * built out of a plural and a bare apostrophe, correct for the thirty
+     * declared plurals that end in s and wrong for the four that do not. It
+     * reached the build and a test was written asserting it.
+     */
+    pattern: new RegExp(String.raw`${NOT_POSSESSIVE}\s*\}?\s*(?:’|'|&rsquo;)s?`, 'g'),
+    instead:
+      'ask for `ones` or `Ones` where the singular is possessive; a plural possessive has no form, so reword the sentence',
   },
   {
     what: 'a plural built at the call site',

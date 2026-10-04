@@ -84,7 +84,22 @@ export function DocumentsRoute() {
       title="Documents"
       lines={[
         `Everything on file at ${activeSite.name}`,
-        `the ${VOCABULARY.subject.many}’ documents and the home’s own`,
+        /*
+         * **Reworded, because a plural possessive has no form.** This read
+         * "the ${…many}’ documents", which is a possessive built at the call
+         * site out of a plural and a bare apostrophe — right for the thirty
+         * declared plurals that end in s and wrong for the four that do not:
+         * "people supported", "staff", "care staff", "next of kin". The subject
+         * term is the one in play here, so the live defect was "the people
+         * supported’ documents" — under exactly the term the six declared forms
+         * exist because of.
+         *
+         * A seventh form for the plural possessive would be declaration by
+         * grammatical position again, and it would have to be declared per term
+         * rather than derived, because the rule is `’` after a word ending in s
+         * and `’s` otherwise. The sentence does not need it.
+         */
+        `documents held for the ${VOCABULARY.subject.many}, and the home’s own`,
       ]}
       action={
         /*
