@@ -16,6 +16,16 @@ import { beforeEach, describe, expect, it } from 'vitest'
  * two vocabularies agreeing on a word.
  */
 
+/*
+ * **A longer timeout, because each case reloads the module graph.** The
+ * vocabulary is captured once at import, so every case calls `vi.resetModules()`
+ * and imports a feature's whole tree again. Alone that takes a second; under the
+ * suite's concurrency it crossed the 5s default and failed three runs in a row
+ * for a reason that had nothing to do with the words. A test that fails on load
+ * rather than on its subject teaches people to re-run rather than to look.
+ */
+vi.setConfig({ testTimeout: 20_000 })
+
 const navigation = vi.hoisted(() => ({ pathname: '/handover', params: {} }))
 vi.mock('next/navigation', () => ({
   usePathname: () => navigation.pathname,

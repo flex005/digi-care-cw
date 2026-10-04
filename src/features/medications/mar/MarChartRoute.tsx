@@ -19,6 +19,7 @@ import { useSiteFormat } from '@/app/session/use-session'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
 import { assertNever } from '@/lib/assert-never'
 import { formatCount, pluralise } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import {
   buildMarGrid,
   daysIn,
@@ -93,7 +94,7 @@ export function MarChartRoute() {
           <Card>
             {head}
             <p className={styles.status} role="status">
-              Loading the medication record…
+              Loading the {VOCABULARY.medication.one} record…
             </p>
           </Card>
         </div>
@@ -111,7 +112,7 @@ export function MarChartRoute() {
           <Card>
             {head}
             <EmptyState
-              title="This medication record could not be loaded"
+              title={`This ${VOCABULARY.medication.one} record could not be loaded`}
               body="Nothing has been lost: this is a read."
               actions={
                 <Button variant="secondary" onClick={resource.retry}>
@@ -132,8 +133,8 @@ export function MarChartRoute() {
               {head}
               <Unrecorded
                 variant="panel"
-                label="No medication record is held"
-                detail={`Nothing has been recorded against ${resident.preferredName}’s medicines, so there is no month to show.`}
+                label={`No ${VOCABULARY.medication.one} record is held`}
+                detail={`Nothing has been recorded against ${resident.preferredName}’s ${VOCABULARY.medication.many}, so there is no month to show.`}
               />
             </Card>
           ) : (
@@ -258,8 +259,12 @@ function MarChart({
               {rangeLabel}
             </h2>
             <p className={styles.chartFacts}>
-              {pluralise(grid.rows.length, 'medicine')} ·{' '}
-              {pluralise(grid.rounds.length, 'round')} a day · times in {site.name}’s
+              {pluralise(
+                grid.rows.length,
+                VOCABULARY.medication.one,
+                VOCABULARY.medication.many,
+              )}{' '}
+              · {pluralise(grid.rounds.length, 'round')} a day · times in {site.name}’s
               zone
             </p>
           </div>
@@ -322,6 +327,17 @@ function MarChart({
           <div className={styles.scroll} data-mar-scroll>
             <table className={styles.grid}>
               <caption className={styles.caption}>
+                {/*
+                 * **The document's own name, fixed.** "Medication
+                 * administration record" is a standard UK document name, and
+                 * the vocabulary's own rule puts those out of reach of a
+                 * configurable word — alongside statutory titles and published
+                 * instruments, checked one at a time rather than assumed. Built
+                 * from the term it reads "Medication record administration
+                 * record" under one of the three options, which is that rule
+                 * proving itself. The column head below names the things on the
+                 * chart, and does take the term.
+                 */}
                 Medication administration record for {resident.fullLegalName},{' '}
                 {rangeLabel}. One column for each round, under its day.
               </caption>
@@ -337,7 +353,7 @@ function MarChart({
               <thead>
                 <tr>
                   <th className={styles.medicationHead} rowSpan={2} scope="col">
-                    Medication
+                    {VOCABULARY.medication.One}
                   </th>
                   {grid.days.map((day) => (
                     <th

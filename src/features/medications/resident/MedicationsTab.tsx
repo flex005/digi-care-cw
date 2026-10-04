@@ -17,6 +17,7 @@ import {
 import { MEDICATION_LOOKAHEAD_HOURS } from '@/lib/shift'
 import { assertNever } from '@/lib/assert-never'
 import { pluralise } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { quantityWithUnit } from '../register/units'
 import { residentMedicationsIcons } from './resident-medications.icons'
 import styles from './medications-tab.module.css'
@@ -64,8 +65,8 @@ export function MedicationsTab() {
         <div className={styles.tabHead}>
           <div className={styles.tabHeading}>
             <CardHead
-              title={`${resident.preferredName}’s medications`}
-              subtitle={`${pluralise(medications.length, 'medicine')} prescribed: ${pluralise(controlled.length, 'controlled drug')} and ${asRequired.length} as required.`}
+              title={`${resident.preferredName}’s ${VOCABULARY.medication.many}`}
+              subtitle={`${pluralise(medications.length, VOCABULARY.medication.one, VOCABULARY.medication.many)} prescribed: ${pluralise(controlled.length, 'controlled drug')} and ${asRequired.length} as required.`}
               expand={{ kind: 'whole' }}
             />
           </div>
@@ -110,7 +111,7 @@ function DueNow() {
     <Card>
       <CardHead
         title={`Due now or in the next ${pluralise(MEDICATION_LOOKAHEAD_HOURS, 'hour')}`}
-        subtitle={`${dueSoon.length} of ${pluralise(medications.length, 'medicine')} prescribed for ${resident.preferredName}.`}
+        subtitle={`${dueSoon.length} of ${pluralise(medications.length, VOCABULARY.medication.one, VOCABULARY.medication.many)} prescribed for ${resident.preferredName}.`}
         expand={{ kind: 'link', href: `/residents/${resident.id}/medications/mar` }}
       />
       {dueSoon.length === 0 ? (

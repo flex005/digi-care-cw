@@ -5,6 +5,7 @@ import { StatusPill, Unrecorded } from '@/components/status'
 import { useSiteFormat } from '@/app/session/use-session'
 import { staffLabel } from '@/data/access/team-store'
 import { assertNever } from '@/lib/assert-never'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { NOT_GIVEN_REASON_LABEL } from '../medication-words'
 import type { MarCellAt } from './mar-grid'
 import styles from './mar.module.css'
@@ -51,7 +52,7 @@ export function MarCellDetail({
       }
     >
       <dl className={styles.facts} data-cell-detail>
-        <Fact name="Medicine">{medication.name}</Fact>
+        <Fact name={VOCABULARY.medication.One}>{medication.name}</Fact>
         <Fact name="Dose">{medication.dose}</Fact>
         <Fact name="Route">{medication.route}</Fact>
         <Fact name="Round">

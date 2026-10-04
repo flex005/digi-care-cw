@@ -37,6 +37,7 @@ import { useSession, useSignedIn, useSiteFormat } from '@/app/session/use-sessio
 import { useViewer } from '@/app/session/use-viewer'
 import { formatCount, pluralise } from '@/lib/format'
 import { assertNever } from '@/lib/assert-never'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { listName } from '@/features/residents/list-name'
 import { waitingSince } from '@/features/notes/note-parts'
 import {
@@ -45,6 +46,7 @@ import {
   drugInSentence,
   roomWords,
 } from '../omissions/subject'
+import { doseAndForm } from '../medication-words'
 import { medicationsIcons } from '../medications.icons'
 import { MedicationPinStep } from '../MedicationPinStep'
 import {
@@ -298,7 +300,7 @@ function Found({
               label="Controlled drugs"
               icon={metricIcons.doses}
               figure={<MetricValue>{formatCount(drugs.length)}</MetricValue>}
-              of={`across ${pluralise(residentsWithDrugs, 'resident')} at ${home}`}
+              of={`across ${pluralise(residentsWithDrugs, VOCABULARY.subject.one, VOCABULARY.subject.many)} at ${home}`}
             />
           </MetricTiles>
         </div>
@@ -600,8 +602,7 @@ function DrugCard({ drug }: { drug: DrugRegister }) {
         <div className={styles.drugWho}>
           <h3 className={styles.drugTitle}>{medication.name}</h3>
           <p className={styles.drugMeta}>
-            {medication.dose} · {medication.form} · {resident.fullLegalName} ·{' '}
-            {roomWords(resident)}
+            {doseAndForm(medication)} · {resident.fullLegalName} · {roomWords(resident)}
           </p>
         </div>
         <div className={styles.balance} data-balance={balance.kind}>

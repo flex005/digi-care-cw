@@ -42,10 +42,10 @@ import {
 } from './round'
 import { witnessesFor } from './witnesses'
 import styles from './round.module.css'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /** The words at the head of a care worker's round, decided and not to be reworded. */
-export const OFF_LIST_LINE =
-  'Residents not on your list are not shown: the PRD does not say whether you record their doses.'
+export const OFF_LIST_LINE = `${VOCABULARY.subject.Many} not on your list are not shown: the PRD does not say whether you record their doses.`
 
 interface RoundData {
   residents: Resident[]
@@ -114,7 +114,7 @@ export function RoundRoute() {
           <Unrecorded
             variant="panel"
             label={noListYetLine}
-            detail={`${activeSite.name} has residents with doses due. Until somebody gives you a list, no dose is shown to you here and nothing is counted for you.`}
+            detail={`${activeSite.name} has ${VOCABULARY.subject.many} with doses due. Until somebody gives you a list, no dose is shown to you here and nothing is counted for you.`}
           />
         </Card>
       </div>
@@ -232,7 +232,7 @@ export function RoundRoute() {
       <ActionCard
         kicker={`${roundTime} round, ${formatDate(date)}`}
         figure={formatCount(recorded)}
-        of={`of ${pluralise(due, 'medication')} recorded for ${roundTime} round.`}
+        of={`of ${pluralise(due, VOCABULARY.medication.one, VOCABULARY.medication.many)} recorded for ${roundTime} round.`}
         detail={
           <div className={styles.bannerDetail} data-round-banner>
             {roundOpensAt === 'open' ? null : (
@@ -287,8 +287,8 @@ export function RoundRoute() {
             title={`No doses on the chart at ${roundTime}`}
             body={
               offList
-                ? `None of the residents on your list has a dose on the chart at ${roundTime} today.`
-                : `No resident at ${activeSite.name} has a dose on the chart at ${roundTime} today.`
+                ? `None of the ${VOCABULARY.subject.many} on your list has a dose on the chart at ${roundTime} today.`
+                : `No ${VOCABULARY.subject.one} at ${activeSite.name} has a dose on the chart at ${roundTime} today.`
             }
           />
         </Card>

@@ -8,6 +8,7 @@ import { useSession } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { scopeLine } from '@/app/session/resident-scope'
 import styles from './medications.module.css'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * The Medications module: its head and the strip of its three tabs. CW PRD
@@ -50,8 +51,8 @@ export function MedicationsLayout({ children }: { children?: ReactNode }) {
 
   return (
     <div className={styles.module}>
-      <PageHead title="Medications" lines={lines} />
-      <nav className={styles.strip} aria-label="Medications">
+      <PageHead title={VOCABULARY.medication.Many} lines={lines} />
+      <nav className={styles.strip} aria-label={VOCABULARY.medication.Many}>
         <ul className={styles.tabs}>
           {MEDICATION_TABS.map((tab) => {
             // Omissions is the module's own address, so only an exact match

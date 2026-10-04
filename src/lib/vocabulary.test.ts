@@ -260,6 +260,39 @@ describe('a plural is a different word unless it is declared not to be', () => {
 })
 
 /**
+ * A possessive that matches the singular it was derived from.
+ *
+ * **The half the completeness check did not have.** "Every term declares every
+ * form" asserts each form exists, and a `Term` written out by hand — bypassing
+ * `withForms`, which nothing stops — satisfies that with `ones: 'residents'`.
+ * It is the same shape as the plural set to its own singular that 34 tests
+ * passed over, and the same answer: assert the relation, not the presence.
+ *
+ * It is deliberately an assertion about **this** derivation rather than about
+ * English. If a term ever needs an irregular possessive, this test is what
+ * fails, and `withForms` is where the declared form goes.
+ */
+describe('a possessive is its singular plus the apostrophe this build prints', () => {
+  it.each(TERM_IDS)('%s derives both possessives from its own singulars', (id) => {
+    for (const choice of TERM_OPTIONS[id]) {
+      expect(choice.term.ones, `${id}/${choice.id}`).toBe(`${choice.term.one}\u2019s`)
+      expect(choice.term.Ones, `${id}/${choice.id}`).toBe(`${choice.term.One}\u2019s`)
+    }
+  })
+
+  /*
+   * The curly apostrophe specifically. A straight one is invisible in review
+   * and obvious on screen, which is why the helper owns it.
+   */
+  it('never uses a straight apostrophe', () => {
+    for (const id of TERM_IDS)
+      for (const choice of TERM_OPTIONS[id])
+        for (const form of [choice.term.ones, choice.term.Ones])
+          expect(form, `${id}/${choice.id}`).not.toContain("'")
+  })
+})
+
+/**
  * Sentence case, which is this build's convention everywhere it can be checked.
  *
  * `STAFF_ROLE_NAMES` reads "Registered manager"; the sidebar's section

@@ -2,6 +2,7 @@ import type { IsoDate, ResidentId, StaffMember, StaffRef } from '@/data/types'
 import { pluralise } from '@/lib/format'
 import { assertNever } from '@/lib/assert-never'
 import { signInRoleOf } from './roles'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 /**
  * Which residents somebody signed in can see. The only reader of a care
@@ -102,11 +103,11 @@ export function scopeLine(
 ): string {
   switch (scope.kind) {
     case 'every_resident':
-      return `every resident at ${homeName}, ${pluralise(residentIds.length, 'resident')}`
+      return `every ${VOCABULARY.subject.one} at ${homeName}, ${pluralise(residentIds.length, VOCABULARY.subject.one, VOCABULARY.subject.many)}`
     case 'named_residents':
-      return `${pluralise(residentsInScope(scope, residentIds), 'resident')} on your list`
+      return `${pluralise(residentsInScope(scope, residentIds), VOCABULARY.subject.one, VOCABULARY.subject.many)} on your list`
     case 'not_decided':
-      return 'nobody has given you a list of residents yet'
+      return `nobody has given you a list of ${VOCABULARY.subject.many} yet`
     default:
       return assertNever(scope)
   }
@@ -128,9 +129,9 @@ export function scopeAssigned(
 ): string {
   switch (scope.kind) {
     case 'every_resident':
-      return `${pluralise(residentIds.length, 'resident')} at ${homeName}`
+      return `${pluralise(residentIds.length, VOCABULARY.subject.one, VOCABULARY.subject.many)} at ${homeName}`
     case 'named_residents':
-      return `${residentsInScope(scope, residentIds)} of ${pluralise(residentIds.length, 'resident')} assigned to you`
+      return `${residentsInScope(scope, residentIds)} of ${pluralise(residentIds.length, VOCABULARY.subject.one, VOCABULARY.subject.many)} assigned to you`
     case 'not_decided':
       return noListYetLine
     default:
@@ -146,8 +147,8 @@ export function scopeNote(scope: ResidentScope, homeName: string): string {
   switch (scope.kind) {
     case 'every_resident':
       return scope.because === 'senior_carer'
-        ? `Counted over every resident at ${homeName}.`
-        : `Counted over your list, which is every resident at ${homeName}.`
+        ? `Counted over every ${VOCABULARY.subject.one} at ${homeName}.`
+        : `Counted over your list, which is every ${VOCABULARY.subject.one} at ${homeName}.`
     case 'named_residents':
       return "Counted over your list, not the home's."
     case 'not_decided':
@@ -167,7 +168,7 @@ export const notOnYourListLine = (name: string): string =>
   `${name} is not on your list.`
 
 /** A viewer nobody has given a list, at the point an act needed one. */
-export const noListYetLine = 'Nobody has given you a list of residents yet.'
+export const noListYetLine = `Nobody has given you a list of ${VOCABULARY.subject.many} yet.`
 
 /**
  * What a figure counted over the viewer's residents is out of: "of your 4
@@ -184,9 +185,9 @@ export function scopeDenominator(
 ): string {
   switch (scope.kind) {
     case 'every_resident':
-      return `of ${pluralise(inScope, 'resident')} at ${homeName}`
+      return `of ${pluralise(inScope, VOCABULARY.subject.one, VOCABULARY.subject.many)} at ${homeName}`
     case 'named_residents':
-      return `of your ${pluralise(inScope, 'resident')}`
+      return `of your ${pluralise(inScope, VOCABULARY.subject.one, VOCABULARY.subject.many)}`
     case 'not_decided':
       throw new Error('Nothing is counted for a viewer nobody has given a list.')
     default:
@@ -206,9 +207,9 @@ export function scopeAcross(
 ): string {
   switch (scope.kind) {
     case 'every_resident':
-      return `across ${pluralise(inScope, 'resident')} at ${homeName}`
+      return `across ${pluralise(inScope, VOCABULARY.subject.one, VOCABULARY.subject.many)} at ${homeName}`
     case 'named_residents':
-      return `across your ${pluralise(inScope, 'resident')}`
+      return `across your ${pluralise(inScope, VOCABULARY.subject.one, VOCABULARY.subject.many)}`
     case 'not_decided':
       throw new Error('Nothing is counted for a viewer nobody has given a list.')
     default:

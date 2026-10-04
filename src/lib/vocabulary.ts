@@ -10,10 +10,21 @@
  * the caller asks for a form and this returns it. **Nothing downstream calls
  * `.toLowerCase()`, `.toUpperCase()` or appends an `s`.**
  *
- * **Every form is declared, none derived**, and the argument for that is the
- * plural rather than the capitalisation. "person supported" pluralises to
+ * **Four forms are declared and two are derived, in that one place.** The
+ * singular, the plural and their capitalised pairs are written out, because
+ * the plural is what cannot be computed: "person supported" pluralises to
  * "people supported", which no `s` append reaches, and "next of kin" does not
- * pluralise at all — facts about English that no transform knows.
+ * pluralise at all — facts about English that no transform knows. **The two
+ * possessives are derived from the declared singulars by `withForms`**, which
+ * is a different thing from a call site deriving one: there is a single owner,
+ * the apostrophe is the curly one this build prints, and
+ * `scripts/check-term-forms.mjs` fails any call site that builds a form for
+ * itself.
+ *
+ * This docblock used to say every form was declared and none derived, over a
+ * helper that has always derived two. It was true of the forms that carry the
+ * argument and false of the file, and it would never have surfaced as a
+ * failure, because every term offered today takes a plain `’s`.
  *
  * The capitalisation used to carry the argument too, and it no longer does:
  * while these forms were title case, "Service Users" was not the naive
@@ -115,11 +126,21 @@ export interface Term {
 export const PLURAL_FORMS = ['many', 'Many'] as const
 
 /**
- * A curly apostrophe, matching what the rest of the build prints.
+ * The four declared forms, with the two possessives derived from them here.
  *
- * Added here rather than at each call site for the same reason the forms are:
- * a caller writing `` `${term.one}'s` `` would get a straight quote, and the
+ * **A curly apostrophe, matching what the rest of the build prints.** Added
+ * here rather than at each call site for the same reason the forms are: a
+ * caller writing `` `${term.one}'s` `` would get a straight quote, and the
  * difference is invisible in review and obvious on screen.
+ *
+ * **It assumes a singular whose possessive is the word plus `’s`**, which is
+ * true of all twenty-nine terms offered today and is not a fact about English
+ * in general. A term ending in a sibilant that a service wants written
+ * "the Jones’ record", or any singular whose possessive is irregular, breaks
+ * **here** — so this is the place to add a declared `ones` to the shape rather
+ * than to work around it at a call site. `vocabulary.test.ts` asserts the
+ * derivation against each declared singular, so a `Term` written out by hand
+ * that bypasses this helper fails rather than passing a presence check.
  */
 function withForms(one: string, many: string, One: string, Many: string): Term {
   return { one, many, One, Many, ones: `${one}’s`, Ones: `${One}’s` }
@@ -136,9 +157,9 @@ const DEFAULTS: Record<OrganisationType, Term> = {
  * Terms somebody may choose instead of their type's default.
  *
  * **Declared, not parsed.** A free-text term would need its plural and its
- * capitalisation guessed, which is the derivation this module exists to
- * refuse — "Service User" is the case that proves it. Offering a list keeps
- * every form declared by somebody who knows the word.
+ * capitalisation guessed, which is the derivation the four written forms exist
+ * to refuse — "Service User" is the case that proves it. Offering a list keeps
+ * the plural and the capital written down by somebody who knows the word.
  */
 export const SUBJECT_TERMS: { id: string; label: string; term: Term }[] = [
   { id: 'resident', label: 'Resident', term: DEFAULTS.care_home },

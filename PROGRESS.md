@@ -1833,3 +1833,135 @@ paragraphs — the copy-under-an-agreement note and the attributive rule on `Ter
 `check-term-forms.mjs` is this build's own and the Admin build has no equivalent; it
 would catch the same class there, where nine terms are live across a much larger
 surface.
+
+---
+
+## Terminology, phase 5: `features/medications` (04/10/2026)
+
+**Coverage: 1,719 → 1,706.** Forty-eight converted in total — one fewer than mid-phase, because the MAR caption went back to being a fixed document name. `plural agreement`:
+**7 → 19 counts agreed through pluralise**, 0 unagreed. `term forms`: 6 declared forms,
+86 accesses, none building a form. `vocabulary` completeness: 65 tests.
+
+### The two corrections to the vocabulary
+
+**The docblock claimed six declared forms over a helper that derives two.**
+`withForms` computes `ones` and `Ones` as `${one}’s`. The derivation is right and stays
+— one owner computing it, with `check-term-forms` stopping call sites doing the same —
+but the sentence was false about the file, and could never have surfaced as a failure
+because every term offered today takes a plain `’s`. It now says four declared, two
+derived, and `withForms` says it **assumes a singular whose possessive is the word plus
+`’s`**, so whoever adds a term where that is wrong knows this is the place that breaks.
+
+**The completeness guard gained its missing half**: each term's possessives asserted
+against its own declared singulars, and against the curly apostrophe specifically. A
+`Term` written out by hand bypasses `withForms` and nothing stopped it — the same shape
+as the plural set to its own singular that 34 tests passed over. Three mutations, all
+caught: a possessive set to the plural, a straight apostrophe, and a possessive derived
+from the wrong form.
+
+**No plural possessive was needed.** Nothing in this module wanted "the residents’
+keyworkers", so none is proposed. If one is ever needed it has to be **declared per
+term rather than derived**, because a plural possessive is `’` after a word ending in s
+and `’s` otherwise — `residents’` but `people supported’s`.
+
+### What changed shape rather than words
+
+**The build said "medicine" in some places and "medication" in others, and the
+vocabulary made it one word.** `<Fact name="Medicine">`, `pluralise(…, 'medicine')` in
+the MAR subtitle and twice in the resident's tab were all hardcoded to a word the
+default vocabulary does not use. Asking the vocabulary changed what the **default**
+renders — the first visible copy change of the whole migration — so the MAR's existing
+test now expects "Medication". That is a real change a reviewer will see, and it is the
+migration doing its job: the inconsistency was invisible while two words were both
+hardcoded.
+
+**`scopeLine`, `scopeAssigned`, `scopeNote`, `scopeAcross`, `scopeDenominator` and
+`noListYetLine` were converted, and they are not in this module.** They are the one
+owner of "9 residents on your list" and "Counted over your list, not the home's", read
+by every screen in the build. Eleven sentences, one file. Most of the jump from 7 to 19
+agreed counts is there rather than in medications proper.
+
+**The register printed a clinical value twice.** `{medication.dose} · {medication.form}`
+renders "10mg · 10mg · modified release tablets", because `form` carries the strength
+and the presentation. **Five of the six controlled drugs** in the fixtures do this, so
+it is live on the register today, not latent — the same defect the Admin build found,
+confirmed here on real data. Each field is correct on its own, which is why reading
+either never showed it; it took reading the rendered string back, exactly as the brief
+said it would.
+
+Fixed with one owner, `doseAndForm`, which drops the dose only when the form already
+opens with it: a 1g dose of 500mg tablets and 2.5mg of a 10mg/5ml solution are **two
+facts**, and only the repetition goes. Four tests, one of them over every controlled
+drug in the fixtures rather than over three examples.
+
+### The accessible name, which nothing else could see
+
+The MAR's cells carry a full sentence as their accessible name, and one state names the
+term: *"no dose of this medicine is prescribed at this round"*. **It exists only in
+`aria-label`** — no screenshot reads it, and the coverage count cannot tell which of two
+strings in a file is which.
+
+The mutation the brief asked for — convert the visible word, leave the spoken one
+hardcoded — **failed on the default case and passed on the chosen one**, and the reason
+is worth keeping: the hardcoded word was "medicine", which **is itself one of the
+offered options**, so asserting under `medication:medicines` passes whether the call
+site asks or not. The case runs under three vocabularies now — none, `medicines` and
+`medication_record` — and both hardcodings fail two of the three.
+
+### A document's name is not a word in a sentence
+
+**The MAR's caption read "Medication record administration record for Emmanuel
+Okafor"** under `medication:medication_record` — found by driving the four vocabularies,
+not by any test. "Medication administration record" is a **standard UK document name**,
+and the vocabulary's own rule already puts those out of reach of a configurable word,
+alongside statutory titles and published instruments, "checked one at a time rather
+than assumed". This is that rule proving itself on the first document name the
+migration touched.
+
+The caption is fixed text again. **The column head beside it still takes the term**,
+because it names the things on the chart rather than the document — "Medication",
+"Medicine", "Medication record" are all fine as a column of what is prescribed. The
+test asserts both halves: the caption does not move, the column does.
+
+### The register, after the fix
+
+Read back from the rendered page: "10mg · modified release tablets" where it had been
+"10mg · 10mg · modified release tablets", and "25 micrograms/hour · transdermal patch"
+likewise. The pairs that are two facts keep both — "2.5mg · 10mg/5ml · oral solution"
+is a dose and a concentration, and somebody has to measure 1.25ml from it.
+
+**One false positive on the way**, worth recording because it is the third of its kind
+tonight: the probe's regex matched "5mg · 5mg" inside "5mg · 5mg/5ml · oral solution",
+by backtracking out of the longer unit — the same shape as `check-term-forms` matching
+`manager.one` inside `manager.ones`. A pattern that can match a prefix of what it is
+looking at will.
+
+### The guard's blind spot, measured and not fixed here
+
+`check-vocabulary-coverage` counts `.tsx` only, so copy in a `.ts` helper is invisible
+to the migration's own measure. This phase converted two such files — `mar-sentence.ts`
+and `resident-scope.ts` — and **neither shows in the figure**.
+
+Measured: **469 term words in `src/features/**/*.ts`**, 124 in `src/app`, 14 in
+`src/components`, and 812 in `src/data`, which is out of scope by the DEPARTURES
+decision because it is shared with the Admin build and is identifiers.
+
+**Not widened in this phase, deliberately.** Changing the file set changes the
+denominator, and changing the denominator mid-phase would make this phase's before and
+after incomparable — which is the two-clocks defect that was just corrected. It wants
+its own change: widen to `features/**/*.ts`, `app/**/*.ts` and `components/**/*.ts`,
+re-derive the baseline in a worktree at `a71e96c` the way the last one was checked, and
+record both numbers.
+
+### Also
+
+**The vocabulary tests reload the module graph per case**, which is inherent to testing
+a load-time capture, and under the suite's concurrency three of them crossed the 5s
+default and failed for a reason that had nothing to do with words. They carry
+`vi.setConfig({ testTimeout: 20_000 })` with the reason written down. The suite is
+visibly heavier; worth watching rather than acting on yet.
+
+**`medication PIN` is left hardcoded**, and that is a decision rather than an
+oversight. CLAUDE.md §6 names it: "The medication PIN is named the medication PIN,
+including where it signs a handover or a risk assessment." It is a product name for a
+credential, not the word a service uses for the things in the trolley.

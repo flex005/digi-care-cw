@@ -1,5 +1,6 @@
 import type { IsoDate, IsoDateTime, MarWitness, StaffRef } from '@/data/types'
 import { assertNever } from '@/lib/assert-never'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { NOT_GIVEN_REASON_LABEL } from '../medication-words'
 import type { MarCellAt } from './mar-grid'
 
@@ -32,7 +33,7 @@ export function marCellSentence(at: MarCellAt, words: SentenceWords): string {
 
   switch (cell.kind) {
     case 'not_on_this_round':
-      return `${context}: not due, no dose of this medicine is prescribed at this round.`
+      return `${context}: not due, no dose of this ${VOCABULARY.medication.one} is prescribed at this round.`
     case 'not_prescribed_yet':
       return `${context}: not due, not prescribed until ${words.date(cell.startedOn)}.`
     case 'not_held':

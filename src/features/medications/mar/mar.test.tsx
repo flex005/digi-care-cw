@@ -469,7 +469,14 @@ describe('the detail panel', () => {
       `${medication.name}, ${record.roundTime} round on ${formatDate(record.date)}`,
     )
     expect(dialog.textContent).toContain(residentOf('res-okafor').fullLegalName)
-    for (const fact of ['Medicine', 'Dose', 'Route', 'Round', 'Given by', 'Given at'])
+    /*
+     * "Medication" where this used to say "Medicine". The panel's own label was
+     * hardcoded to a word the default vocabulary does not use — the build said
+     * medicine in some places and medication in others — and asking the
+     * vocabulary made it one word. A deliberate change to what the default
+     * renders, recorded in PROGRESS.md.
+     */
+    for (const fact of ['Medication', 'Dose', 'Route', 'Round', 'Given by', 'Given at'])
       expect(dialog.querySelector(`[data-fact="${fact}"]`), fact).toBeTruthy()
     expect(dialog.querySelector('[data-fact="Dose"]')?.textContent).toContain(
       medication.dose,
