@@ -90,6 +90,34 @@ const DECLARED = {
 
 const vocabulary = readFileSync(join(SRC, 'lib/vocabulary.ts'), 'utf8')
 
+/**
+ * How a converted call site reaches a word, so it is not counted as one.
+ *
+ * **Four of the nine term ids are themselves counted words**, so
+ * `VOCABULARY.manager.one` contains "manager" and `VOCABULARY.family.one`
+ * contains "family". Counting those made converting a manager or a family term
+ * change the figure by exactly nothing — the hardcoded word went and the
+ * property path replaced it — and the guard would have reported a phase as
+ * having done less than it did, or nothing at all. Found by converting
+ * `features/incidents` and watching ten of twenty conversions fail to move the
+ * number.
+ *
+ * A property path is an identifier, which `docs/DEPARTURES.md` already puts out
+ * of scope, so this removes the access before counting rather than excusing it
+ * afterwards.
+ */
+const ACCESS = /\bVOCABULARY\.\w+\.\w+/g
+
+const choice = readFileSync(join(SRC, 'lib/vocabulary-choice.ts'), 'utf8')
+if (!/export const VOCABULARY\b/.test(choice)) {
+  console.error(
+    '✖ vocabulary coverage — vocabulary-choice.ts no longer exports VOCABULARY, so\n' +
+      '  the access pattern this check ignores is out of date and every converted\n' +
+      '  call site would be counted as unconverted.',
+  )
+  process.exit(1)
+}
+
 const ids = /export const TERM_IDS = \[([^\]]*)\]/.exec(vocabulary)
 if (ids === null) {
   console.error(
@@ -160,7 +188,7 @@ for (const file of walk(SRC)) {
    * through the repository's own scanner is what the other guards do — a regex
    * over `/*` once blanked a third of a file and printed a tick over it.
    */
-  const source = stripComments(readFileSync(file, 'utf8'))
+  const source = stripComments(readFileSync(file, 'utf8')).replace(ACCESS, '')
   let here = 0
   for (const [id, pattern] of patterns) {
     pattern.lastIndex = 0
@@ -204,5 +232,5 @@ console.log(
     `${String(BASELINE_FILES)} files (${leading}). ${String(excluded)} files not ` +
     `counted: ${EXCLUDED.map((e) => `${e.prefix} (${e.why})`).join('; ')}. It counts ` +
     `how much has moved, not whether any of it reads well — that is a screenshot's ` +
-    `question.`,
+    `question. A VOCABULARY.<term>.<form> access is an identifier and is not counted.`,
 )

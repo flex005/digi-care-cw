@@ -5,6 +5,7 @@ import { useSignedIn } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { Button, Dialog } from '@/components/primitives'
 import { assertNever } from '@/lib/assert-never'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import type { Answer } from '@/app/session/capabilities'
 import { typePhrase } from './incident-words'
 import styles from './incidents.module.css'
@@ -39,7 +40,7 @@ export function AcknowledgeControl({
 
   const about =
     resident === undefined
-      ? `the ${typePhrase(incident.type)} with no resident involved`
+      ? `the ${typePhrase(incident.type)} with no ${VOCABULARY.subject.one} involved`
       : `${resident.fullLegalName}’s ${typePhrase(incident.type)}`
 
   const confirm = () => {
@@ -108,7 +109,7 @@ function nextWords(answer: Answer): string {
   if (answer.kind !== 'yes') return ''
   switch (answer.completion.kind) {
     case 'handed_on':
-      return `Acknowledging is not the end of it: ${answer.completion.next} is a manager’s act.`
+      return `Acknowledging is not the end of it: ${answer.completion.next} is a ${VOCABULARY.manager.ones} act.`
     case 'done_when_done':
       return ''
     case 'needs_a_second_signature':

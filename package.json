@@ -32,7 +32,8 @@
     "lint:losses": "node scripts/check-session-losses.mjs",
     "lint:nav": "node scripts/check-nav-reach.mjs",
     "lint:plural-agreement": "node scripts/check-plural-agreement.mjs",
-    "lint:vocabulary": "node scripts/check-vocabulary-coverage.mjs"
+    "lint:vocabulary": "node scripts/check-vocabulary-coverage.mjs",
+    "check:address": "node scripts/check-address-survives.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx}": "eslint --fix",

@@ -1639,3 +1639,108 @@ reason: text this build did not choose the shape of has to be allowed to break.
 
 Re-measured at both widths across four vocabularies — default, `person_supported`, the
 longest, and a refused one: **no overflow anywhere, and still one line, never two.**
+
+---
+
+## Terminology, phase 3: `features/incidents`, and the check that protects the fix (04/10/2026)
+
+**Coverage: 1,753 → 1,737. Sixteen converted this phase, seventeen in total.**
+`plural agreement`: 2 declared forms, **0 agreed, 0 unagreed, 0 opt-outs — unchanged,
+and that is the honest figure.** The incidents module has no site where a count sits
+beside a term word: its counts are over incidents, which is not a configurable term
+("2 of 40 incidents"). The "agreed" counter cannot move for a module that has nothing
+to agree. It will move in `features/medications`.
+
+### `check-address-survives.mjs`, and the premise that was wrong
+
+**There is no `check-layout.mjs` in this build.** That is the Admin build's — 893
+lines, driven by Playwright, which is not a dependency here, so porting it is a §9 ask
+and a phase of its own. The assertion was the point rather than the file, so it is a
+focused script of its own, driving the system browser over CDP the way tonight's
+probes have. `npm run check:address`; not in `verify`, because it needs a dev server
+and a browser.
+
+**Two ways in, because only one of them loses the parameters.** This is the phase's
+sharpest finding and the mutation found it, not the writing. The first version opened
+`/incidents?at=…&terms=…` and signed in — and **passed with the defect restored**,
+because that route mounts the shell for a moment before redirecting, so a module
+reading `location.search` for itself still finds what it wants. The path that actually
+breaks is entering on the sign-in screen: nothing of the product mounts, so anything
+reached through the shell loads after the rewrite. Both are real reviewer paths, so
+both are driven, and a failure names which.
+
+**The clock assertion was vacuous, and a second mutation found that.** It pinned
+`?at=20:20` — and with no parameter at all the record is drawn twenty minutes into the
+nearest round, which between 20:20 and the next morning **is 20:20**. The clock was
+made to ignore `?at=` outright and the check still passed: §8's assertion that could
+not disagree with the code, written tonight, in a check written to catch exactly that
+class. It pins `09:37` now, which no round-plus-twenty can produce, and asks the line
+for "the time you asked for" as well as for the digits.
+
+Mutations, all compiling:
+
+- *The vocabulary reads `location.search` itself again* — **fails**, with the named
+  step: `opened the sign-in screen: signed in, and the vocabulary asked for did not
+  survive`.
+- *The clock ignores `?at=` entirely* — **fails** on the instant step (after the
+  vacuous pin was fixed; before it, this passed).
+- *A converted call site goes back to its hardcoded word* — **fails**.
+- *The clock reads `location.search` itself again* — **passes, and that limit is
+  written into the script.** `clock.ts` is pulled in by the fixtures, which load on
+  the first render whichever way a reader comes in, so its half has an accident behind
+  it that the vocabulary's does not. The clock assertion fires if the parameter stops
+  being read, or if the sign-in screen stops needing the fixtures — which is precisely
+  the arrangement `first-address.ts` exists to stop depending on.
+
+### The coverage guard was counting its own solution
+
+`VOCABULARY.manager.one` contains the word **manager**. Four of the nine term ids are
+themselves counted words, so converting a manager, family, staff or medication term
+removed a hardcoded word and added a property path, and **the figure did not move at
+all** — ten of this phase's conversions registered as zero. Found by converting and
+watching the number stay still.
+
+A property path is an identifier, which DEPARTURES already puts out of scope, so the
+guard strips `VOCABULARY.<term>.<form>` before counting rather than excusing it after.
+It also now fails if `vocabulary-choice.ts` stops exporting `VOCABULARY`, because the
+pattern it ignores would otherwise go stale and silently count every converted call
+site as unconverted.
+
+### What changed shape rather than words
+
+**Of 82 counted occurrences in the module, 54 lines are identifiers and stay.** Props
+(`resident`), types (`Resident`), discriminants (`kind: 'resident'`,
+`kind: 'resident_room'`), the fixture id and the array name. Sixteen words of copy
+moved. **The guard's denominator contains identifiers that will never convert**, which
+is why the total can never reach zero — stated in its docblock from the start, and now
+demonstrated.
+
+**Every converted test still passes, and that is worth noticing rather than
+celebrating.** All 72 incidents tests were green immediately, because the default
+vocabulary renders the identical string. A test asserting "A resident — choose the
+person below." cannot tell a hardcoded sentence from one that asked for its words. The
+coverage guard is what distinguishes them, and the browser check is what proves the
+asking works.
+
+**Four vocabularies, two widths, no overflow anywhere** — default, `service_user`,
+`person_supported` with three other terms moved, and `org:hospital`. The form reads
+"A person supported — choose the person below." and "a clinical manager tonight" at
+390 with no horizontal scroll on the list or the dialog.
+
+### What the Admin build now owes
+
+`src/lib/vocabulary.ts` is meant to be byte-identical in both builds and **is now 37
+lines apart**, all of them in docblocks, all written here:
+
+1. **The copy-under-an-agreement paragraph** (phase 1) — that the file is a copy, that
+   nothing detects divergence, and that a change here is a change owed there.
+2. **The attributive rule on `Term`** (this phase) — that there is no form for a word
+   used as an adjective, that a seventh form would be derivation by grammatical
+   position, and that the answer is to reword. It is on `Term` rather than in this
+   file because the act it governs is picking a form at a call site, which is where
+   somebody about to get it wrong is looking.
+
+**Both belong in the Admin build's copy**, and the second one more than the first: that
+build has nine terms live across a far larger surface and will meet the attributive
+case sooner. Until they are squared up the two files differ, which is the drift the
+first paragraph warns about — one well-reasoned paragraph at a time.

@@ -37,6 +37,7 @@ import {
 } from '@/components/primitives'
 import { AllergyBadge, NotYourHome, Unrecorded } from '@/components/status'
 import { instantFromZonedWallClock, pluralise, zonedWallClockInput } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { HARM_GLOSS, regionName, severityName, typePhrase } from './incident-words'
 import { incidentsIcons } from './incidents.icons'
 import {
@@ -162,7 +163,7 @@ export function ReportedCard({ reported }: { reported: Reported }) {
         title={`${
           incident.subject.kind === 'resident' && subjectName !== ''
             ? `${subjectName}’s ${typePhrase(incident.type)}`
-            : `A ${typePhrase(incident.type)} with no resident involved`
+            : `A ${typePhrase(incident.type)} with no ${VOCABULARY.subject.one} involved`
         } is on the record`}
         subtitle={`Reported by ${reportedBy}, and held in this session only.`}
         expand={{ kind: 'whole' }}
@@ -238,7 +239,8 @@ export function ReportIncidentForm({
         <PageHead title="Report an incident" lines={[activeSite.name]} />
         <Card>
           <p className={styles.formError} role="alert">
-            The residents could not be loaded, so there is nobody to report about.
+            The {VOCABULARY.subject.many} could not be loaded, so there is nobody to
+            report about.
           </p>
         </Card>
       </div>
@@ -389,12 +391,15 @@ export function ReportIncidentForm({
             value={subject === 'not_chosen' ? undefined : subject}
             onValueChange={(value) => set({ subject: value as ReportDraft['subject'] })}
             options={[
-              { value: 'resident', label: 'A resident — choose the person below.' },
+              {
+                value: 'resident',
+                label: `A ${VOCABULARY.subject.one} — choose the person below.`,
+              },
               {
                 value: 'no_resident',
                 label: canHaveNoResident(draft.type)
-                  ? 'No resident was involved — a statement that nobody was, not a blank.'
-                  : 'No resident was involved — available for an equipment failure or a near miss. Choose the type first.',
+                  ? `No ${VOCABULARY.subject.one} was involved — a statement that nobody was, not a blank.`
+                  : `No ${VOCABULARY.subject.one} was involved — available for an equipment failure or a near miss. Choose the type first.`,
                 disabled: !canHaveNoResident(draft.type),
               },
             ]}
@@ -404,7 +409,7 @@ export function ReportIncidentForm({
             <div className={styles.field}>
               <Select
                 labelVisible
-                label="Resident"
+                label={VOCABULARY.subject.One}
                 placeholder="Choose the person this happened to"
                 value={draft.residentId === '' ? undefined : draft.residentId}
                 onValueChange={(value) => set({ residentId: value })}
@@ -514,7 +519,8 @@ export function ReportIncidentForm({
                   data-witness-names
                 />
                 <span className={styles.fieldHint}>
-                  Names, separated by commas. Staff, family, anybody who was there.
+                  Names, separated by commas. {VOCABULARY.staff.Many},{' '}
+                  {VOCABULARY.family.one}, anybody who was there.
                 </span>
               </div>
             ) : null}
@@ -528,14 +534,14 @@ export function ReportIncidentForm({
               id={`${id}-description`}
               className={styles.textarea}
               rows={5}
-              placeholder="What you found, what you saw, what the resident said."
+              placeholder={`What you found, what you saw, what the ${VOCABULARY.subject.one} said.`}
               value={draft.description}
               onChange={(event) => set({ description: event.target.value })}
               data-description
             />
             <span className={styles.fieldHint}>
-              Written for whoever reads this next: a manager tonight, an inspector in a
-              year.
+              Written for whoever reads this next: a {VOCABULARY.manager.one} tonight,
+              an inspector in a year.
             </span>
           </div>
         </section>
@@ -624,9 +630,9 @@ export function ReportIncidentForm({
           </h2>
           <p className={styles.fieldHint}>
             Asked because the record has no blank for it: either somebody dialled or
-            nobody did, and this build will not answer it in your name. The GP and the
-            family are recorded as not yet contacted, which is what is true as you write
-            this.
+            nobody did, and this build will not answer it in your name. The GP and the{' '}
+            {VOCABULARY.family.one} are recorded as not yet contacted, which is what is
+            true as you write this.
           </p>
           <RadioGroup
             legend="Were emergency services called?"
@@ -850,8 +856,8 @@ export function ReportIncidentForm({
               data-immediate-action
             />
             <span className={styles.fieldHint}>
-              Your words, at the time. The manager writes their own account when they
-              review it.
+              Your words, at the time. The {VOCABULARY.manager.one} writes their own
+              account when they review it.
             </span>
           </div>
         </section>

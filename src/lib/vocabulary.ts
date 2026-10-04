@@ -75,6 +75,20 @@ export const ORGANISATION_TYPES: { id: OrganisationType; name: string }[] = [
 /**
  * The forms a caller may ask for. Six, taken from real strings in the build
  * rather than invented: every one of these is a sentence that exists today.
+ *
+ * **There is no form for a term used as an adjective, and the answer is to
+ * reword.** "On your staff record" wants the word attributively, and none of
+ * the six fits: `many` gives "your team members record" and `one` gives "your
+ * staff member record", both broken English. A seventh form for the adjectival
+ * slot would be a form per grammatical position — derivation by where the word
+ * sits, which is the thing this interface exists to refuse, arriving from the
+ * other side. Six forms is not a shortage; the sentence is the problem.
+ *
+ * So rewrite the sentence until the word lands in a form that exists, or until
+ * it does not need the word at all. "On your staff record" became "on your own
+ * record", which loses nothing: the reader it addresses is the person whose
+ * record it is. **Expect this in every module**, and reach for the sentence
+ * rather than for a new form.
  */
 export interface Term {
   /** Mid-sentence singular: "the resident’s own room" uses `one`. */

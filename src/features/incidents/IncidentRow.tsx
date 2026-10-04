@@ -6,6 +6,7 @@ import { useViewer } from '@/app/session/use-viewer'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { assertNever } from '@/lib/assert-never'
 import { pluralise } from '@/lib/format'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import {
   SEVERITY_TONE,
   injuryWords,
@@ -58,11 +59,11 @@ export function IncidentRow({
           <>
             {/* Never an empty column: where nobody was involved, that is the
                 content, with who recorded it. A claim, not a blank. */}
-            <p className={styles.rowName}>No resident was involved</p>
+            <p className={styles.rowName}>No {VOCABULARY.subject.one} was involved</p>
             <p className={styles.rowMeta}>
               {incident.subject.kind === 'no_resident_involved'
                 ? `recorded by ${incident.subject.recordedBy.displayName}`
-                : 'the resident this happened to is not at this home'}
+                : `the ${VOCABULARY.subject.one} this happened to is not at this home`}
             </p>
           </>
         ) : (
