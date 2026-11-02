@@ -148,6 +148,8 @@ export const ROUTES: RouteDeclaration[] = [
    * the layout turns an address into a stack (docs/MOBILE_APP_SHELL.md §2).
    */
   { path: '/m/[[...path]]', screen: 'phoneAddress', inShell: false },
+  /* Every phone screen in its own frame, for one Figma capture. Not a place in the app. */
+  { path: '/m/sheet', screen: 'phoneSheet', inShell: false },
 ]
 
 export const isBuilt = (module: NavModuleId): boolean =>

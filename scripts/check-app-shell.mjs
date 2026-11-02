@@ -17,7 +17,11 @@
  *     bar carries `env(safe-area-inset-top)` (§5).
  *  5. One scroll pane: `overflow` `auto` or `scroll` on anything but `.pane`
  *     is a finding, `.pane` must contain its overscroll, and the document
- *     root must be locked at `100dvh` with `overflow: hidden` (§1).
+ *     root must be locked with `overflow: hidden` (§1).
+ *  8. The app sizes to its container, never the viewport: no `vh`, `dvh`,
+ *     `vw` or their kin anywhere, and `position: fixed` only on `.stage`, the
+ *     backdrop that is the container on a laptop. A fixed header inside a
+ *     frame resolves against the window and leaves the phone.
  *  6. Places, not tasks: every entry in `PHONE_PLACES` is `kind: 'place'`, and
  *     no address under `/m` names a task (§3).
  *  7. No `next/link` in the phone tree, which replaces the document (§2).
@@ -102,6 +106,8 @@ let rules = 0
 let containers = 0
 let medias = 0
 let overflows = 0
+let viewportUnits = 0
+let fixed = 0
 let lock = false
 let pane = { found: false, contained: false }
 let tabBar = { found: false, inset: false }
@@ -147,6 +153,19 @@ for (const sheet of sheets) {
           `${rel(sheet)}:${block.line} — ${selector} { ${property}: ${value} }. An auto margin centres a column.`,
         )
       }
+      if (/\d(dvh|svh|lvh|vh|dvw|svw|lvw|vw|vmin|vmax)\b/.test(value)) {
+        viewportUnits += 1
+        findings.push(
+          `${rel(sheet)}:${block.line} — ${selector} { ${property}: ${value} }. The app sizes to its container, not the viewport.`,
+        )
+      }
+      if (property === 'position' && value === 'fixed') {
+        fixed += 1
+        if (selector !== '.stage')
+          findings.push(
+            `${rel(sheet)}:${block.line} — ${selector} { position: fixed }. Inside a frame it resolves against the window; only .stage is fixed.`,
+          )
+      }
       if (/^overflow(-x|-y)?$/.test(property) && /\b(auto|scroll)\b/.test(value)) {
         overflows += 1
         if (selector !== '.pane')
@@ -175,12 +194,7 @@ for (const sheet of sheets) {
     if (selector === '.tabBar')
       tabBar = { found: true, inset: padded('bottom', 'bottom') }
     if (selector === '.bar') bar = { found: true, inset: padded('top', 'top') }
-    if (
-      /\bbody\b/.test(selector) &&
-      /height: 100dvh/.test(all) &&
-      /overflow: hidden/.test(all)
-    )
-      lock = true
+    if (/\bbody\b/.test(selector) && /overflow: hidden/.test(all)) lock = true
   }
 }
 
@@ -206,7 +220,7 @@ else if (!bar.inset)
   )
 if (!lock)
   findings.push(
-    'no rule locks html and body at 100dvh with overflow: hidden, so the document scrolls',
+    'no rule locks html and body with overflow: hidden, so the document scrolls',
   )
 
 /* §3: places, not tasks. */
@@ -269,9 +283,10 @@ if (findings.length > 0) {
 
 console.log(
   `✓ app shell — ${sheets.length} stylesheets, ${rules} rules: ` +
-    `${containers} max-width, every one a text measure, and no auto margin; ` +
+    `${containers} max-width, every one in ch or 100%, and no auto margin; ` +
     `0 :hover of ${rules} rules; ${medias} @media, all reduced motion; ` +
     `${overflows} scrolling overflow, all on .pane; root locked; both safe areas set; ` +
+    `${viewportUnits} viewport units; ${fixed} position: fixed, on .stage only; ` +
     `${placeCount} places of ${placeCount} declared as places, ${routeFiles.length} route file(s), no task addresses; ` +
     `${links} next/link imports of ${components.length} components.`,
 )

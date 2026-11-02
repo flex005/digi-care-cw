@@ -12,7 +12,10 @@ describe('the phone’s stacks', () => {
     expect(stackOf('/m')).toEqual({ tab: 'today', places: [{ kind: 'today' }] })
     expect(stackOf('/m/people/res-okafor')).toEqual({
       tab: 'people',
-      places: [{ kind: 'people' }, { kind: 'record', id: okafor }],
+      places: [
+        { kind: 'people', view: 'yours' },
+        { kind: 'record', id: okafor },
+      ],
     })
     expect(stackOf('/m/search').places.map((place) => place.kind)).toEqual([
       'people',
@@ -24,7 +27,8 @@ describe('the phone’s stacks', () => {
   it('round-trips every place through its address', () => {
     for (const place of [
       { kind: 'today' },
-      { kind: 'people' },
+      { kind: 'people', view: 'yours' },
+      { kind: 'people', view: 'everyone' },
       { kind: 'search' },
       { kind: 'record', id: okafor },
     ] as const) {

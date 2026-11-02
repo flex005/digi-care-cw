@@ -1,5 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { useRef, useState, type PointerEvent, type ReactNode } from 'react'
+import { useFrame } from './nav'
 import styles from './shell.module.css'
 
 /** How far down a sheet has to be dragged before letting go closes it. */
@@ -28,6 +29,7 @@ export function Sheet({
   cancel?: string
   children: ReactNode
 }) {
+  const frame = useFrame()
   const [drag, setDrag] = useState(0)
   const from = useRef<number | null>(null)
 
@@ -48,7 +50,7 @@ export function Sheet({
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
+      <Dialog.Portal container={frame ?? undefined}>
         <Dialog.Overlay className={styles.sheetOverlay} />
         <Dialog.Content
           className={styles.sheet}

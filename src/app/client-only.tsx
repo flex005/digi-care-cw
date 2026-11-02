@@ -448,7 +448,13 @@ const SCREENS = {
     { ssr: false },
   ),
   phoneApp: dynamic(
-    () => import('@/features/phone/shell/PhoneApp').then((module) => module.PhoneApp),
+    () =>
+      import('@/features/phone/shell/PhoneStage').then((module) => module.PhoneStage),
+    { ssr: false },
+  ),
+  phoneSheet: dynamic(
+    () =>
+      import('@/features/phone/sheet/PhoneSheet').then((module) => module.PhoneSheet),
     { ssr: false },
   ),
   phoneAddress: dynamic(

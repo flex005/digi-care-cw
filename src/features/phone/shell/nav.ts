@@ -27,3 +27,12 @@ export function usePhoneNav(): PhoneNav {
 export const InFrontContext = createContext(true)
 
 export const useInFront = (): boolean => useContext(InFrontContext)
+
+/**
+ * The element the app is drawn in, so a sheet portals into the phone rather
+ * than the window: inside a frame on a laptop, a sheet rising from the bottom of
+ * the browser would be a sheet outside the phone.
+ */
+export const FrameContext = createContext<HTMLElement | null>(null)
+
+export const useFrame = (): HTMLElement | null => useContext(FrameContext)

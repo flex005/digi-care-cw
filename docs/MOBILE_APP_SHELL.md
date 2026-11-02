@@ -8,12 +8,22 @@ Rules for everything under `/m` (`src/app/m/`, `src/features/phone/`). CLAUDE.md
 
 ## 1. Only the middle scrolls
 
-**The single biggest tell, and the one most often got wrong.** `html` and `body` do not scroll at all: while the phone tree is mounted they are locked at `100dvh` with `overflow: hidden` (`.lockedRoot`, set by `PhoneApp` on mount and removed on unmount, so the desktop build is untouched). The header is fixed, the tab bar is fixed, and **exactly one pane between them scrolls**, `.pane`, with `overscroll-behavior: contain` so a flick at the end of a list does not drag the whole page.
+**The single biggest tell, and the one most often got wrong.** `html` and `body` do not scroll at all: while the phone stage is mounted they are locked with `overflow: hidden` (`.lockedRoot`, set by `PhoneStage` on mount and removed on unmount, so the desktop build is untouched). The header is fixed, the tab bar is fixed, and **exactly one pane between them scrolls**, `.pane`, with `overscroll-behavior: contain` so a flick at the end of a list does not drag the whole page.
 
 On a web page everything scrolls together, header included. Get this wrong and nothing else here rescues it.
 
 - Each screen on a stack has its own `.pane`, and only the top one is visible, so at any moment one pane scrolls. A second scrolling element inside a screen is a finding.
-- The shell is a flex column filling the viewport: header, stack, tab bar. Fixed by construction, not by `position: fixed` on each part.
+- The shell is a flex column filling **its container**: header, stack, tab bar. Fixed by construction, not by `position: fixed` on each part.
+
+### The app sizes to its container, never the viewport
+
+**On a laptop the container is a 390 × 844 frame; on a phone it is the screen. One shell, two containers, and no branch on width.** The frame (`.frame`) is 390 × 844 with `max-width` and `max-height` of 100%, `position: relative`, 28px radius and the page shadow, centred on `.stage`, a plain dark backdrop and the one `position: fixed` element in the tree. Everything in the app is `position: absolute` within the frame or in its flex flow: the header, the floating tab bar, and sheets, which portal into the frame rather than `<body>` so they rise inside the phone.
+
+**What makes it the screen on a phone is the viewport, not a query.** `src/app/m/layout.tsx` declares a 390-wide viewport. A phone lays the page out at 390 and scales it to its glass, so the frame's 390 is the viewport's whole width and the 100% caps take the height. A desktop browser ignores the declaration, so the frame stays a frame. The cost is stated: a phone wider than 390 shows the app scaled up rather than showing more of it, and a phone whose scaled height exceeds 844 shows a strip of backdrop below. A `@media` query would have been the obvious alternative and fails `check-app-shell`.
+
+No `vh`, `dvh` or `vw` anywhere in the phone tree: a unit read from the window inside a frame measures the wrong box. No device chrome is drawn around the frame (§12); safe-area insets resolve to zero inside it, which is correct.
+
+**`/m/sheet`** puts every phone screen side by side in its own frame for one Figma capture, as Specimens does for the desktop. Each frame is the real `PhoneApp`, started at an address, signed in as a named person in its own session, and none of them touches the browser's address.
 
 ## 2. Screens are a stack, not links
 
@@ -93,7 +103,8 @@ No fake status bar, notch or home indicator, and no imitation browser chrome. Th
 - `@media` other than `prefers-reduced-motion` (§10, and CLAUDE.md §4's one breakpoint)
 - a tab bar without `env(safe-area-inset-bottom)` in its padding, or a bar without `env(safe-area-inset-top)` in its padding (§5) — in the padding, because the first version read the whole rule and passed a bar whose padding had lost the inset while its `min-height` still mentioned it
 - `overflow: auto | scroll` anywhere but `.pane`, or a `.pane` without `overscroll-behavior: contain` (§1)
-- no root lock at `100dvh` with `overflow: hidden` (§1)
+- no root lock with `overflow: hidden` (§1)
+- a viewport unit (`vh`, `dvh`, `vw` and their kin) anywhere, or `position: fixed` on anything but `.stage` (§1, the container)
 - a place not declared `kind: 'place'`, or an address segment naming a task (§3)
 - `next/link` imported in the phone tree (§2)
 

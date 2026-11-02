@@ -41,7 +41,10 @@ export function SearchScreen() {
 
   useEffect(() => {
     if (!inFront) return
-    const timer = window.setTimeout(() => field.current?.focus(), AFTER_KEYBOARD_MS)
+    const timer = window.setTimeout(
+      () => field.current?.focus({ preventScroll: true }),
+      AFTER_KEYBOARD_MS,
+    )
     return () => window.clearTimeout(timer)
   }, [inFront])
 
@@ -61,13 +64,7 @@ export function SearchScreen() {
           className={styles.searchInput}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          onFocus={(event) => {
-            const target = event.currentTarget
-            window.setTimeout(
-              () => target.scrollIntoView({ block: 'center', behavior: 'smooth' }),
-              AFTER_KEYBOARD_MS,
-            )
-          }}
+          onFocus={(event) => clearOfKeyboard(event.currentTarget)}
           aria-label="Search everyone by name or room"
           placeholder="Name or room"
         />
@@ -125,6 +122,21 @@ export function SearchScreen() {
       </Loaded>
     </Screen>
   )
+}
+
+/**
+ * Bring a focused field to the middle of its own pane once the keyboard is up.
+ * The pane, not the page: inside a frame, scrolling the page would move the
+ * frame, and on the capture sheet it would carry the reader to another phone.
+ */
+function clearOfKeyboard(field: HTMLElement) {
+  window.setTimeout(() => {
+    const pane = field.closest('[data-scroll-pane]')
+    if (pane === null) return
+    const at = field.getBoundingClientRect()
+    const box = pane.getBoundingClientRect()
+    pane.scrollTop += at.top - box.top - box.height / 2 + at.height / 2
+  }, AFTER_KEYBOARD_MS)
 }
 
 function matches(person: Person, asked: string): boolean {

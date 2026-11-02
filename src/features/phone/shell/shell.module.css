@@ -5,16 +5,44 @@
  * Flex throughout, never grid: Figma has no grid.
  */
 
-/* §1. While the phone tree is mounted, the document itself does not scroll.
-   Set on <html> by PhoneApp and removed when it unmounts. */
+/* §1. While the phone stage is mounted, the document itself does not scroll.
+   Set on <html> by PhoneStage and removed when it unmounts. */
 .lockedRoot,
 .lockedRoot body {
-  height: 100dvh;
   overflow: hidden;
   overscroll-behavior: none;
 }
 
-/* The app fills the viewport: header, stack, tab bar. Fixed by construction. */
+/*
+ * The container the app sizes to. On a laptop: a plain neutral backdrop, the
+ * one fixed element in the phone tree, holding a 390 x 844 frame in its middle.
+ * On a phone the frame is the screen: the phone tree declares a 390-wide
+ * viewport (src/app/m/layout.tsx), so the frame's 390 is the viewport's whole
+ * width and the 100% caps take the rest. No width is asked anywhere.
+ */
+.stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--stage-ground);
+}
+
+/* The containing block for everything in the app, sheets included. */
+.frame {
+  position: relative;
+  flex: none;
+  width: 390px;
+  max-width: 100%;
+  height: 844px;
+  max-height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-page);
+}
+
+/* The app fills whatever holds it: header, stack, tab bar. */
 .app {
   /* How much of the bottom of the screen the floating tab bar covers. */
   --tab-clearance: calc(
@@ -22,11 +50,10 @@
       max(var(--space-20), env(safe-area-inset-bottom))
   );
 
-  position: fixed;
+  position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
-  height: 100dvh;
   background-color: var(--bg-page);
 }
 
@@ -341,8 +368,9 @@
 
 /* ---------------------------------------------------------------- sheet */
 
+/* Absolute within the app, so a sheet rises inside the phone, not the window. */
 .sheetOverlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 50;
   background-color: var(--stage-ground);
@@ -355,14 +383,14 @@
 }
 
 .sheet {
-  position: fixed;
+  position: absolute;
   right: 0;
   bottom: 0;
   left: 0;
   z-index: 51;
   display: flex;
   flex-direction: column;
-  max-height: 90dvh;
+  max-height: 90%;
   padding-bottom: max(var(--space-20), env(safe-area-inset-bottom));
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   background-color: var(--bg-surface);

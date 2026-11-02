@@ -22,6 +22,7 @@ import {
   type Person,
 } from '../phone-data'
 import { phoneIcons } from '../phone.icons'
+import type { Place } from '../phone-paths'
 import { byRoom, roomGroups } from '../rooms'
 import { Loaded } from '../ScreenStates'
 import { Screen } from '../shell/Screen'
@@ -35,7 +36,7 @@ interface PeopleData {
   notes: CareNote[]
 }
 
-type View = 'yours' | 'everyone'
+type View = Extract<Place, { kind: 'people' }>['view']
 
 /**
  * The people tab's root: Your list as work, Everyone as lookup, and the way
@@ -45,10 +46,10 @@ type View = 'yours' | 'everyone'
  * underline strip, because they are different data about the same home and
  * neither is a place you go into. Search is a place: it is pushed.
  */
-export function PeopleScreen() {
+export function PeopleScreen({ view: opensOn }: { view: View }) {
   const { activeSite } = useSession()
   const viewer = useViewer()
-  const [view, setView] = useState<View>('yours')
+  const [view, setView] = useState<View>(opensOn)
   const [at] = useState(() => now().toISOString() as IsoDateTime)
 
   const load = useCallback(

@@ -23,13 +23,14 @@ export type TabId = 'today' | 'people'
 
 export type Place =
   | { kind: 'today' }
-  | { kind: 'people' }
+  /** Your list or Everyone: two views of the people tab's root, not two places. */
+  | { kind: 'people'; view: 'yours' | 'everyone' }
   | { kind: 'search' }
   | { kind: 'record'; id: ResidentId }
 
 export const ROOT_OF: Record<TabId, Place> = {
   today: { kind: 'today' },
-  people: { kind: 'people' },
+  people: { kind: 'people', view: 'yours' },
 }
 
 export function pathOf(place: Place): string {
@@ -37,7 +38,7 @@ export function pathOf(place: Place): string {
     case 'today':
       return '/m'
     case 'people':
-      return '/m/people'
+      return place.view === 'everyone' ? '/m/everyone' : '/m/people'
     case 'search':
       return '/m/search'
     case 'record':
@@ -64,7 +65,10 @@ export function stackOf(pathname: string): { tab: TabId; places: Place[] } {
         tab: 'people',
         places: [ROOT_OF.people, { kind: 'record', id: second as ResidentId }],
       }
-    return { tab: 'people', places: [ROOT_OF.people] }
+    return {
+      tab: 'people',
+      places: [{ kind: 'people', view: first === 'everyone' ? 'everyone' : 'yours' }],
+    }
   }
   return { tab: 'today', places: [ROOT_OF.today] }
 }

@@ -1,7 +1,6 @@
 import {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -29,7 +28,7 @@ import { PeopleScreen } from '../screens/PeopleScreen'
 import { RecordScreen } from '../screens/RecordScreen'
 import { SearchScreen } from '../screens/SearchScreen'
 import { TodayScreen } from '../screens/TodayScreen'
-import { InFrontContext, PhoneNavContext, type PhoneNav } from './nav'
+import { FrameContext, InFrontContext, PhoneNavContext, type PhoneNav } from './nav'
 import { Sheet } from './Sheet'
 import {
   initialStacks,
@@ -60,23 +59,30 @@ const TABS: TabId[] = ['today', 'people']
  * a history entry so the system back gesture pops; a tab switch replaces the
  * address without adding one, as a phone's tabs do.
  */
-export function PhoneApp({ children }: { children?: ReactNode }) {
+export function PhoneApp({
+  address,
+  children,
+}: {
+  /**
+   * Where the app starts, for a frame on the capture sheet. When given, the app
+   * neither reads nor writes the browser's address: six frames on one page
+   * cannot all own it. Absent, the address is the stack's copy, as on `/m`.
+   */
+  address?: string
+  children?: ReactNode
+}) {
   return (
     <RequireSignIn>
-      <Phone>{children}</Phone>
+      <Phone address={address}>{children}</Phone>
     </RequireSignIn>
   )
 }
 
-function Phone({ children }: { children?: ReactNode }) {
-  useLayoutEffect(() => {
-    const root = document.documentElement
-    root.classList.add(styles.lockedRoot)
-    return () => root.classList.remove(styles.lockedRoot)
-  }, [])
-
+function Phone({ address, children }: { address?: string; children?: ReactNode }) {
+  const follows = address === undefined
+  const [frame, setFrame] = useState<HTMLElement | null>(null)
   const [state, setState] = useState<Stacks>(() =>
-    initialStacks(window.location.pathname),
+    initialStacks(address ?? window.location.pathname),
   )
   const [leaving, setLeaving] = useState<{ tab: TabId; entry: Entry }[]>([])
   const [entering, setEntering] = useState<string | null>(null)
@@ -113,6 +119,7 @@ function Phone({ children }: { children?: ReactNode }) {
   }, [commit, retire])
 
   useEffect(() => {
+    if (!follows) return
     const onPop = () => {
       pushed.current = Math.max(0, pushed.current - 1)
       const next = popHere()
@@ -121,7 +128,7 @@ function Phone({ children }: { children?: ReactNode }) {
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
-  }, [popHere])
+  }, [follows, popHere])
 
   const nav = useMemo<PhoneNav>(
     () => ({
@@ -129,16 +136,17 @@ function Phone({ children }: { children?: ReactNode }) {
         const next = push(current.current, place)
         commit(next)
         setEntering(topOf(next).key)
+        if (!follows) return
         pushed.current += 1
         window.history.pushState(null, '', pathOf(place))
       },
       back: () => {
-        if (pushed.current > 0) {
+        if (follows && pushed.current > 0) {
           window.history.back()
           return
         }
         const next = popHere()
-        if (next !== undefined)
+        if (next !== undefined && follows)
           window.history.replaceState(null, '', pathOf(topOf(next).place))
       },
       switchTab: (tab: TabId) => {
@@ -148,80 +156,82 @@ function Phone({ children }: { children?: ReactNode }) {
         setEntering(null)
         retire(tab, popped)
         pushed.current = 0
-        window.history.replaceState(null, '', pathOf(topOf(next).place))
+        if (follows) window.history.replaceState(null, '', pathOf(topOf(next).place))
       },
     }),
-    [commit, popHere, retire],
+    [commit, follows, popHere, retire],
   )
 
   return (
     <PhoneNavContext.Provider value={nav}>
-      <div className={styles.app}>
-        <div className={styles.notices}>
-          <SessionExpiry />
+      <FrameContext.Provider value={frame}>
+        <div className={styles.app} ref={setFrame}>
+          <div className={styles.notices}>
+            <SessionExpiry />
+          </div>
+          <div className={styles.stackArea}>
+            {TABS.map((tab) => {
+              const showing = tab === state.active
+              const stack = state.stacks[tab]
+              const going = leaving
+                .filter((item) => item.tab === tab)
+                .map((item) => item.entry)
+              return (
+                <div
+                  key={tab}
+                  className={
+                    showing ? styles.tabLayer : `${styles.tabLayer} ${styles.tabHidden}`
+                  }
+                  inert={!showing}
+                  data-tab={tab}
+                >
+                  {!visited.includes(tab)
+                    ? null
+                    : [
+                        ...stack.map((entry, index) => ({
+                          entry,
+                          at:
+                            index === stack.length - 1
+                              ? ('top' as const)
+                              : ('under' as const),
+                        })),
+                        ...going.map((entry) => ({ entry, at: 'leaving' as const })),
+                      ].map(({ entry, at }) => {
+                        /*
+                         * One list, keyed by entry, so a popped screen stays the same
+                         * instance while it slides out rather than remounting and
+                         * reading its record again.
+                         */
+                        const className = [
+                          styles.entry,
+                          at === 'under' ? styles.under : styles.top,
+                          at === 'top' && entry.key === entering ? styles.entering : '',
+                          at === 'leaving' ? styles.leaving : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' ')
+                        return (
+                          <div
+                            key={entry.key}
+                            className={className}
+                            inert={at !== 'top'}
+                            aria-hidden={at === 'leaving' ? true : undefined}
+                            data-entry={entry.place.kind}
+                          >
+                            <InFrontContext.Provider value={showing && at === 'top'}>
+                              <PlaceScreen place={entry.place} />
+                            </InFrontContext.Provider>
+                          </div>
+                        )
+                      })}
+                </div>
+              )
+            })}
+          </div>
+          <TabBar active={state.active} onTap={nav.switchTab} />
+          {children}
         </div>
-        <div className={styles.stackArea}>
-          {TABS.map((tab) => {
-            const showing = tab === state.active
-            const stack = state.stacks[tab]
-            const going = leaving
-              .filter((item) => item.tab === tab)
-              .map((item) => item.entry)
-            return (
-              <div
-                key={tab}
-                className={
-                  showing ? styles.tabLayer : `${styles.tabLayer} ${styles.tabHidden}`
-                }
-                inert={!showing}
-                data-tab={tab}
-              >
-                {!visited.includes(tab)
-                  ? null
-                  : [
-                      ...stack.map((entry, index) => ({
-                        entry,
-                        at:
-                          index === stack.length - 1
-                            ? ('top' as const)
-                            : ('under' as const),
-                      })),
-                      ...going.map((entry) => ({ entry, at: 'leaving' as const })),
-                    ].map(({ entry, at }) => {
-                      /*
-                       * One list, keyed by entry, so a popped screen stays the same
-                       * instance while it slides out rather than remounting and
-                       * reading its record again.
-                       */
-                      const className = [
-                        styles.entry,
-                        at === 'under' ? styles.under : styles.top,
-                        at === 'top' && entry.key === entering ? styles.entering : '',
-                        at === 'leaving' ? styles.leaving : '',
-                      ]
-                        .filter(Boolean)
-                        .join(' ')
-                      return (
-                        <div
-                          key={entry.key}
-                          className={className}
-                          inert={at !== 'top'}
-                          aria-hidden={at === 'leaving' ? true : undefined}
-                          data-entry={entry.place.kind}
-                        >
-                          <InFrontContext.Provider value={showing && at === 'top'}>
-                            <PlaceScreen place={entry.place} />
-                          </InFrontContext.Provider>
-                        </div>
-                      )
-                    })}
-              </div>
-            )
-          })}
-        </div>
-        <TabBar active={state.active} onTap={nav.switchTab} />
-        {children}
-      </div>
+      </FrameContext.Provider>
     </PhoneNavContext.Provider>
   )
 }
@@ -231,7 +241,7 @@ function PlaceScreen({ place }: { place: Place }) {
     case 'today':
       return <TodayScreen />
     case 'people':
-      return <PeopleScreen />
+      return <PeopleScreen view={place.view} />
     case 'search':
       return <SearchScreen />
     case 'record':

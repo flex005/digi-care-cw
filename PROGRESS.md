@@ -2512,3 +2512,17 @@ A care worker's late figure is now 0 or 1 on these fixtures; a senior carer's is
 - **Not seen:** headless Chrome reports no safe-area insets, so `env(safe-area-inset-*)` is zero in every picture and the padding is `max(20px, 0)`. Only a phone shows whether it clears the home indicator.
 
 None of the defects above was visible to the 41 jsdom tests over the same screens.
+
+---
+
+## The phone frame, and the capture sheet (02/11/2026)
+
+**For html.to.design, which reads the live DOM.** `/m` now draws the app in a 390 × 844 frame (28px radius, the page shadow) centred on the document viewer's dark neutral stage; `/m/sheet` draws all six phone screens side by side, each in its own frame, each the real `PhoneApp` started at an address and signed in as a named person in its own session, none touching the browser's address.
+
+**The layout correction.** The app used to measure the viewport: `.app` was `position: fixed` at `100dvh`, and sheets portalled to `<body>` as `position: fixed`. Inside a centred frame those resolve against the window. Now the frame is `position: relative` with a definite size, the app is `position: absolute` inside it, sheets portal into the app element and are absolute, and no viewport unit is left anywhere in the phone tree. The only `position: fixed` is `.stage`, the backdrop.
+
+**One shell, two containers, no branch on width.** The frame is 390 × 844 capped at 100% of its container. The phone tree declares a 390-wide viewport, which desktop browsers ignore and phones honour by laying out at 390 and scaling to the glass, so on a phone the frame is the screen. **Next carried the root's `initial-scale=1` into that tag**, which would have laid a 430-wide phone out at 430 and overflowed a 375; found by reading the emitted HTML, removed by declaring `initialScale: undefined` (Next copies every key a child names). Desktop routes still emit `width=device-width, initial-scale=1`.
+
+**Measured in headless Chrome, not assumed:** laptop 1440 × 900, frame at (525, 28), 390 × 844, header at its top edge, tab bar ending at its bottom edge, document not scrolling, the Medication sheet inside the frame and flush with its bottom. Phone emulation at 430 and 375: layout viewport 390, frame full width; height capped at 844 against an 845–846 viewport, so about a pixel of backdrop top and bottom, and the 28px corners show a speck at the four corners of a rectangular viewport. Costs stated in docs/MOBILE_APP_SHELL.md: a phone wider than 390 shows the app scaled up rather than more of it.
+
+**Guard after the change:** 3 stylesheets, 105 rules; 1 scrolling overflow, still `.pane`; 0 viewport units; 1 `position: fixed`, on `.stage`; root locked; both safe areas set. New rules mutated and failing: `height: 100dvh` on `.app`, `position: fixed` on the tab bar and on the sheet, `width: 100vw` on the capture sheet, the root lock loosened. The capture sheet's test fails when `PhoneApp` ignores its address.
