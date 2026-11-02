@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "predev": "npm run icons",
-    "dev": "next dev",
+    "dev": "next dev -H 0.0.0.0 -p 3000",
     "prebuild": "npm run icons",
     "build": "next build",
     "start": "next start",
