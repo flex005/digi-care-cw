@@ -149,7 +149,6 @@ export const ROUTES: RouteDeclaration[] = [
    */
   { path: '/m/[[...path]]', screen: 'phoneAddress', inShell: false },
   /* Every phone screen in its own frame, for one Figma capture. Not a place in the app. */
-  { path: '/m/sheet', screen: 'phoneSheet', inShell: false },
 ]
 
 export const isBuilt = (module: NavModuleId): boolean =>

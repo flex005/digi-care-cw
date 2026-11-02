@@ -2,7 +2,7 @@ import type { Viewport } from 'next'
 import type { ReactNode } from 'react'
 
 /**
- * The phone tree's viewport, for the app and its capture sheet alike.
+ * The phone tree's viewport.
  *
  * **390 wide, so a phone lays the app out at the width it is designed at** and
  * scales it to its screen: the frame the app sits in is 390 wide and never

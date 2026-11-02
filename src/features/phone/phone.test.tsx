@@ -5,10 +5,8 @@ import { residentsBySite } from '@/data/fixtures/residents'
 import type { SiteId, StaffId } from '@/data/types'
 import { renderSignedIn } from '@/test/render-signed-in'
 import { NOTHING_OUTSTANDING } from './OutstandingLine'
-import { render } from '@testing-library/react'
 import { PhoneApp } from './shell/PhoneApp'
 import { PhoneStage } from './shell/PhoneStage'
-import { PhoneSheet } from './sheet/PhoneSheet'
 
 vi.mock('next/navigation', () => ({
   usePathname: () => window.location.pathname,
@@ -507,44 +505,5 @@ describe('the phone tab bar', () => {
     expect(
       within(nav).getByRole('button', { name: 'Medication, not built' }),
     ).toBeTruthy()
-  })
-})
-
-describe('the capture sheet', () => {
-  it('draws every phone screen in its own frame, each the real app, and leaves the address alone', async () => {
-    window.history.replaceState(null, '', '/m/sheet')
-    render(<PhoneSheet />)
-    const captions = await screen.findAllByText(/ · (Ngozi Eze|Kwame Osei)$/)
-    expect(captions.map((caption) => caption.textContent)).toEqual([
-      'Today · Ngozi Eze',
-      'Your list · Ngozi Eze',
-      'Everyone · Ngozi Eze',
-      'Search · Ngozi Eze',
-      'Nobody assigned · Kwame Osei',
-      'One resident · Ngozi Eze',
-    ])
-    const frames = [...document.querySelectorAll<HTMLElement>('[data-phone-frame]')]
-    expect(frames).toHaveLength(6)
-    await waitFor(() =>
-      expect(
-        frames.map((frame) => frame.querySelectorAll('[data-scroll-pane]').length),
-      ).toEqual([1, 1, 1, 2, 1, 2]),
-    )
-    expect(window.location.pathname).toBe('/m/sheet')
-    const [, , everyone, , nobody, record] = frames as [
-      HTMLElement,
-      HTMLElement,
-      HTMLElement,
-      HTMLElement,
-      HTMLElement,
-      HTMLElement,
-    ]
-    expect(
-      await within(everyone).findByText('28 residents at Rosewood Court, by room.'),
-    ).toBeTruthy()
-    expect(
-      await within(nobody).findByText('Nobody has given you a list of residents yet.'),
-    ).toBeTruthy()
-    expect(record.querySelector('[data-entry="record"]')).not.toBeNull()
   })
 })

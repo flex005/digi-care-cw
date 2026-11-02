@@ -127,7 +127,7 @@ export function SearchScreen() {
 /**
  * Bring a focused field to the middle of its own pane once the keyboard is up.
  * The pane, not the page: inside a frame, scrolling the page would move the
- * frame, and on the capture sheet it would carry the reader to another phone.
+ * frame.
  */
 function clearOfKeyboard(field: HTMLElement) {
   window.setTimeout(() => {

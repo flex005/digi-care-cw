@@ -452,11 +452,6 @@ const SCREENS = {
       import('@/features/phone/shell/PhoneStage').then((module) => module.PhoneStage),
     { ssr: false },
   ),
-  phoneSheet: dynamic(
-    () =>
-      import('@/features/phone/sheet/PhoneSheet').then((module) => module.PhoneSheet),
-    { ssr: false },
-  ),
   phoneAddress: dynamic(
     () =>
       import('@/features/phone/shell/PhoneAddress').then(

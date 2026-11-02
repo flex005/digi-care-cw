@@ -23,7 +23,7 @@ On a web page everything scrolls together, header included. Get this wrong and n
 
 No `vh`, `dvh` or `vw` anywhere in the phone tree: a unit read from the window inside a frame measures the wrong box. No device chrome is drawn around the frame (§12); safe-area insets resolve to zero inside it, which is correct.
 
-**`/m/sheet`** puts every phone screen side by side in its own frame for one Figma capture, as Specimens does for the desktop. Each frame is the real `PhoneApp`, started at an address, signed in as a named person in its own session, and none of them touches the browser's address.
+**Captured from `/m` itself**: one phone on the laptop screen, moved around by its own tab bar and taps, and captured with html.to.design on whichever screen it is showing. There is no page of several frames side by side; one was built (`/m/sheet`) and removed on 03/11/2026 as not wanted.
 
 ## 2. Screens are a stack, not links
 

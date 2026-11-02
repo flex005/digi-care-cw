@@ -2538,3 +2538,7 @@ Structure only, from a reference whose colour was not wanted; no colour, token, 
 - **The hatch is untouched.** Nothing in `unrecorded.module.css`, `<Unrecorded>` or `<GapCount>` changed. On Today it is now the loudest thing below the dark card, which is the intent.
 
 Before and after at 390, colour and greyscale, in the session's scratchpad (`shots/before`, `shots/after`).
+
+## `/m/sheet` removed (03/11/2026)
+
+Frank captures from `/m`: one phone, driven by its own tab bar, captured with html.to.design on whichever screen it shows. The six-frame page was never wanted; the brief that asked for its removal had not reached this build. Removed: the route, its `client-only` entry and `ROUTES` row, `src/features/phone/sheet/`, its test, and `PhoneApp`'s `address` prop with every branch that let a frame leave the browser's address alone, which existed only so six frames could share one page. Nothing linked to it. The fixed-width departure no longer cites it: its reason stands on a capture from `/m`.

@@ -59,30 +59,18 @@ const TABS: TabId[] = ['today', 'people']
  * a history entry so the system back gesture pops; a tab switch replaces the
  * address without adding one, as a phone's tabs do.
  */
-export function PhoneApp({
-  address,
-  children,
-}: {
-  /**
-   * Where the app starts, for a frame on the capture sheet. When given, the app
-   * neither reads nor writes the browser's address: six frames on one page
-   * cannot all own it. Absent, the address is the stack's copy, as on `/m`.
-   */
-  address?: string
-  children?: ReactNode
-}) {
+export function PhoneApp({ children }: { children?: ReactNode }) {
   return (
     <RequireSignIn>
-      <Phone address={address}>{children}</Phone>
+      <Phone>{children}</Phone>
     </RequireSignIn>
   )
 }
 
-function Phone({ address, children }: { address?: string; children?: ReactNode }) {
-  const follows = address === undefined
+function Phone({ children }: { children?: ReactNode }) {
   const [frame, setFrame] = useState<HTMLElement | null>(null)
   const [state, setState] = useState<Stacks>(() =>
-    initialStacks(address ?? window.location.pathname),
+    initialStacks(window.location.pathname),
   )
   const [leaving, setLeaving] = useState<{ tab: TabId; entry: Entry }[]>([])
   const [entering, setEntering] = useState<string | null>(null)
@@ -119,7 +107,6 @@ function Phone({ address, children }: { address?: string; children?: ReactNode }
   }, [commit, retire])
 
   useEffect(() => {
-    if (!follows) return
     const onPop = () => {
       pushed.current = Math.max(0, pushed.current - 1)
       const next = popHere()
@@ -128,7 +115,7 @@ function Phone({ address, children }: { address?: string; children?: ReactNode }
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
-  }, [follows, popHere])
+  }, [popHere])
 
   const nav = useMemo<PhoneNav>(
     () => ({
@@ -136,17 +123,16 @@ function Phone({ address, children }: { address?: string; children?: ReactNode }
         const next = push(current.current, place)
         commit(next)
         setEntering(topOf(next).key)
-        if (!follows) return
         pushed.current += 1
         window.history.pushState(null, '', pathOf(place))
       },
       back: () => {
-        if (follows && pushed.current > 0) {
+        if (pushed.current > 0) {
           window.history.back()
           return
         }
         const next = popHere()
-        if (next !== undefined && follows)
+        if (next !== undefined)
           window.history.replaceState(null, '', pathOf(topOf(next).place))
       },
       switchTab: (tab: TabId) => {
@@ -156,10 +142,10 @@ function Phone({ address, children }: { address?: string; children?: ReactNode }
         setEntering(null)
         retire(tab, popped)
         pushed.current = 0
-        if (follows) window.history.replaceState(null, '', pathOf(topOf(next).place))
+        window.history.replaceState(null, '', pathOf(topOf(next).place))
       },
     }),
-    [commit, follows, popHere, retire],
+    [commit, popHere, retire],
   )
 
   return (
