@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import type { AsyncResource } from '@/data/access/resource'
-import { Button } from '@/components/primitives'
 import { NotYourHome } from '@/components/status'
 import { assertNever } from '@/lib/assert-never'
+import shell from './shell/shell.module.css'
 import styles from './phone.module.css'
 
 /**
@@ -30,24 +30,24 @@ export function Loaded<T>({
       return <>{children(resource.data)}</>
     case 'loading':
       return (
-        <div className={styles.card}>
-          <p className={styles.status} role="status">
-            {loading}
-          </p>
-        </div>
+        <p className={styles.status} role="status">
+          {loading}
+        </p>
       )
     case 'refused':
       return <NotYourHome refusal={resource} />
     case 'error':
       return (
-        <div className={[styles.card, styles.cardPadded].join(' ')} role="alert">
+        <div className={styles.card} role="alert">
           <p className={styles.cardTitle}>{failed}</p>
           <p className={styles.body}>Nothing has been lost: this is a read.</p>
-          <div className={styles.actions}>
-            <Button variant="secondary" size="large" onClick={resource.retry}>
-              Try again
-            </Button>
-          </div>
+          <button
+            type="button"
+            className={`${styles.pill} ${shell.press}`}
+            onClick={resource.retry}
+          >
+            Try again
+          </button>
         </div>
       )
     default:

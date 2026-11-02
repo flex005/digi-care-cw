@@ -1,12 +1,12 @@
-import Link from 'next/link'
 import { useViewer } from '@/app/session/use-viewer'
 import { Icon } from '@/components/icon/Icon'
 import { Unrecorded } from '@/components/status'
 import { pluralise } from '@/lib/format'
 import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { listName, noListYetLine, type Person } from './phone-data'
-import { PHONE_PATHS } from './phone-paths'
 import { phoneIcons } from './phone.icons'
+import { StackLink } from './shell/StackLink'
+import shell from './shell/shell.module.css'
 import styles from './phone.module.css'
 
 /**
@@ -19,12 +19,16 @@ import styles from './phone.module.css'
  *
  * **It opens only if the record would**, asked of the role table: a row that
  * looked tappable and refused on arrival would be a control that does not do
- * what it shows. A row that does not open has no chevron and stays 48px tall,
- * so the list keeps one rhythm.
+ * what it shows. A row that does not open has no chevron and no pressed state,
+ * and stays 48px tall so the list keeps one rhythm.
  */
 export function LookupRow({ person }: { person: Person }) {
   const viewer = useViewer()
   const opens = viewer.ask('open_resident_record', person.id).kind === 'yes'
+  const room =
+    person.room.kind === 'recorded'
+      ? `, room ${person.room.value}`
+      : ', room not recorded'
   const content = (
     <>
       <span className={styles.rowText}>
@@ -41,13 +45,13 @@ export function LookupRow({ person }: { person: Person }) {
     </>
   )
   return opens ? (
-    <Link
-      href={PHONE_PATHS.record(person.id)}
-      className={styles.row}
-      aria-label={`${listName(person)}${person.room.kind === 'recorded' ? `, room ${person.room.value}` : ', room not recorded'}`}
+    <StackLink
+      to={{ kind: 'record', id: person.id }}
+      className={`${styles.row} ${shell.pressRow}`}
+      label={`${listName(person)}${room}`}
     >
       {content}
-    </Link>
+    </StackLink>
   ) : (
     <div className={styles.row}>{content}</div>
   )
@@ -69,7 +73,7 @@ export function OpensFromHere({ people }: { people: Person[] }) {
     VOCABULARY.subject.many,
   )
   return (
-    <p className={styles.quiet}>
+    <p className={`${styles.quiet} ${styles.gutter}`}>
       {viewer.scope.kind === 'not_decided'
         ? `None of these ${total} opens from here. ${noListYetLine}`
         : `${opening} of these ${total} open from here: the ones on your list.`}

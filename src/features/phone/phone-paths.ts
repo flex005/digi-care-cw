@@ -1,21 +1,70 @@
 import type { ResidentId } from '@/data/types'
 
 /**
- * Every address in the phone tree, written once.
+ * Every place the phone can show, and its address.
  *
- * **Under `/m`, beside the desktop's addresses rather than inside them**, so a
- * phone screen and a desktop screen can never answer the same URL. A record is
- * `/m/people/<id>`: the path does not say the subject term, because the term is
- * configurable and an address cannot follow a vocabulary chosen after it was
- * shared.
+ * **A place, never a task** (docs/MOBILE_APP_SHELL.md §3): writing, picking
+ * and confirming happen in a sheet over the place you are on. Each entry says
+ * so in `kind`, and `check-app-shell.mjs` fails on any other kind.
  *
- * `routes.ts` declares the same paths for the route test, which holds them
- * against the pages on disk.
+ * **Under `/m`, beside the desktop's addresses rather than inside them.** A
+ * record is `/m/people/<id>`: the path does not say the subject term, because
+ * the term is configurable and an address cannot follow a vocabulary chosen
+ * after it was shared.
  */
-export const PHONE_PATHS = {
-  today: '/m',
-  yourList: '/m/list',
-  everyone: '/m/everyone',
-  search: '/m/search',
-  record: (id: ResidentId) => `/m/people/${id}`,
+export const PHONE_PLACES = {
+  today: { kind: 'place', tab: 'today' },
+  people: { kind: 'place', tab: 'people' },
+  search: { kind: 'place', tab: 'people' },
+  record: { kind: 'place', tab: 'people' },
+} as const
+
+export type TabId = 'today' | 'people'
+
+export type Place =
+  | { kind: 'today' }
+  | { kind: 'people' }
+  | { kind: 'search' }
+  | { kind: 'record'; id: ResidentId }
+
+export const ROOT_OF: Record<TabId, Place> = {
+  today: { kind: 'today' },
+  people: { kind: 'people' },
+}
+
+export function pathOf(place: Place): string {
+  switch (place.kind) {
+    case 'today':
+      return '/m'
+    case 'people':
+      return '/m/people'
+    case 'search':
+      return '/m/search'
+    case 'record':
+      return `/m/people/${place.id}`
+  }
+}
+
+/**
+ * The stack an address stands for, when somebody arrives by it: the tab, and
+ * the places on it from the root up. A record opened from a link sits over its
+ * tab's root, so back has somewhere to go.
+ *
+ * Anything unrecognised opens Today rather than a not-found: an address under
+ * `/m` that names nothing is still the phone app.
+ */
+export function stackOf(pathname: string): { tab: TabId; places: Place[] } {
+  const parts = pathname.split('/').filter(Boolean).slice(1)
+  const [first, second] = parts
+  if (first === 'search')
+    return { tab: 'people', places: [ROOT_OF.people, { kind: 'search' }] }
+  if (first === 'people' || first === 'list' || first === 'everyone') {
+    if (first === 'people' && second !== undefined)
+      return {
+        tab: 'people',
+        places: [ROOT_OF.people, { kind: 'record', id: second as ResidentId }],
+      }
+    return { tab: 'people', places: [ROOT_OF.people] }
+  }
+  return { tab: 'today', places: [ROOT_OF.today] }
 }

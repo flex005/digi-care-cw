@@ -14,6 +14,7 @@ export const phoneIcons = {
   clear: 'add-remove-delete/cancel-01',
   back: 'arrows-sharp/arrow-left-01-sharp',
   open: 'arrows-sharp/arrow-right-01-sharp',
+  choose: 'arrows-sharp/arrow-down-01-sharp',
   allergy: 'alert-notification/alert-02',
   carePlan: 'note-task/note-03',
 } satisfies Record<string, IconName>

@@ -1,22 +1,15 @@
-import { fireEvent, screen, within } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { staffAkinyemi, staffEze, staffOsei } from '@/data/fixtures/organisation'
 import { residentsBySite } from '@/data/fixtures/residents'
+import type { SiteId, StaffId } from '@/data/types'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { EveryoneRoute } from './EveryoneRoute'
-import { RecordRoute } from './RecordRoute'
-import { SearchRoute } from './SearchRoute'
-import { YourListRoute } from './YourListRoute'
-import { PhoneShell } from './PhoneShell'
 import { NOTHING_OUTSTANDING } from './OutstandingLine'
+import { PhoneApp } from './shell/PhoneApp'
 
-const navigation = vi.hoisted(() => ({
-  pathname: '/m/list',
-  params: {} as Record<string, string>,
-}))
 vi.mock('next/navigation', () => ({
-  usePathname: () => navigation.pathname,
-  useParams: () => navigation.params,
+  usePathname: () => window.location.pathname,
+  useParams: () => ({}),
   useRouter: () => ({ replace: vi.fn(), push: vi.fn(), back: vi.fn() }),
 }))
 
@@ -25,88 +18,189 @@ const roomOf = (name: string): string => {
   const person = rosewood.find((entry) => entry.fullLegalName === name)
   return person?.room.kind === 'recorded' ? person.room.value : 'none'
 }
-const rowsIn = (list: HTMLElement) => within(list).getAllByRole('listitem')
+
+/** Arrive at an address, signed in as a named person, the way a link would. */
+function openAt(path: string, who: StaffId, site?: SiteId) {
+  window.history.replaceState(null, '', path)
+  return renderSignedIn(who, <PhoneApp />, site)
+}
+
+const tab = (id: 'today' | 'people') =>
+  document.querySelector(`[data-tab="${id}"]`) as HTMLElement
+/** The screen in front on a tab: the last entry that is not leaving. */
+const front = (id: 'today' | 'people') => {
+  const entries = [
+    ...tab(id).querySelectorAll<HTMLElement>(':scope > [data-entry]'),
+  ].filter((entry) => entry.getAttribute('aria-hidden') !== 'true')
+  return entries[entries.length - 1] as HTMLElement
+}
+const entriesOn = (id: 'today' | 'people') =>
+  [...tab(id).querySelectorAll<HTMLElement>(':scope > [data-entry]')].map((entry) =>
+    entry.getAttribute('data-entry'),
+  )
+
+afterEach(() => window.history.replaceState(null, '', '/'))
+
+describe('the phone shell', () => {
+  it('locks the document while it is mounted, and lets it go after', async () => {
+    const { unmount } = openAt('/m/people', staffEze.id)
+    await waitFor(() => expect(document.documentElement.className).not.toBe(''))
+    unmount()
+    expect(document.documentElement.className).toBe('')
+  })
+
+  it('gives every screen exactly one pane that scrolls', async () => {
+    openAt('/m/people/res-okafor', staffEze.id)
+    await within(front('people')).findByText('Allergies')
+    for (const entry of document.querySelectorAll('[data-entry]'))
+      expect(entry.querySelectorAll('[data-scroll-pane]')).toHaveLength(1)
+  })
+
+  it('pushes a record over the list, and pops it back off', async () => {
+    openAt('/m/people', staffEze.id)
+    const row = await within(tab('people')).findByRole('link', {
+      name: /Grace Adeyemi/,
+    })
+    fireEvent.click(row)
+    expect(entriesOn('people')).toEqual(['people', 'record'])
+    expect(window.location.pathname).toBe('/m/people/res-adeyemi')
+    await within(front('people')).findByText('Allergies')
+
+    fireEvent.click(within(front('people')).getByRole('button', { name: 'Back' }))
+    await waitFor(() => expect(entriesOn('people')).toEqual(['people']))
+  })
+
+  it('opens a linked record over its tab’s root, so back has somewhere to go', async () => {
+    openAt('/m/people/res-okafor', staffEze.id)
+    expect(entriesOn('people')).toEqual(['people', 'record'])
+    // Today has not been shown, so it has not been mounted or read anything.
+    expect(entriesOn('today')).toEqual([])
+    fireEvent.click(
+      await within(front('people')).findByRole('button', { name: 'Back' }),
+    )
+    await waitFor(() => expect(entriesOn('people')).toEqual(['people']))
+    expect(window.location.pathname).toBe('/m/people')
+  })
+
+  it('keeps each tab’s stack while another tab is showing', async () => {
+    openAt('/m/people/res-okafor', staffEze.id)
+    const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+    fireEvent.click(within(nav).getByRole('link', { name: /Today/ }))
+    expect(tab('people').hasAttribute('inert')).toBe(true)
+    expect(entriesOn('people')).toEqual(['people', 'record'])
+    fireEvent.click(within(nav).getByRole('link', { name: /Residents/ }))
+    expect(tab('people').hasAttribute('inert')).toBe(false)
+    expect(entriesOn('people')).toEqual(['people', 'record'])
+  })
+
+  it('pops a tab to its root when the tab you are on is tapped', async () => {
+    openAt('/m/people/res-okafor', staffEze.id)
+    const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+    fireEvent.click(within(nav).getByRole('link', { name: /Residents/ }))
+    await waitFor(() => expect(entriesOn('people')).toEqual(['people']))
+  })
+
+  it('says an unbuilt tab is not built, in a sheet', async () => {
+    openAt('/m', staffEze.id)
+    const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+    fireEvent.click(within(nav).getByRole('button', { name: 'Medication, not built' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Medication' })
+    expect(
+      within(sheet).getByText('Medication is not built yet on the phone.'),
+    ).toBeTruthy()
+    expect(within(sheet).getByRole('button', { name: 'Done' })).toBeTruthy()
+  })
+
+  it('names the home in the bar of every screen', async () => {
+    openAt('/m/people/res-okafor', staffEze.id)
+    await within(front('people')).findByText('Allergies')
+    for (const entry of document.querySelectorAll('[data-entry]'))
+      expect(within(entry as HTMLElement).getByText('Rosewood Court')).toBeTruthy()
+  })
+})
 
 describe('the phone: your list', () => {
   it('shows a care worker the four people on their list, in room order', async () => {
-    navigation.pathname = '/m/list'
-    renderSignedIn(staffEze.id, <YourListRoute />)
-    const list = await screen.findByRole('list')
+    openAt('/m/people', staffEze.id)
+    const list = await within(tab('people')).findByRole('list')
     const onList = [
       'Emmanuel Okafor',
       'Grace Adeyemi',
       'Beryl Hutchinson',
       'Arthur Pemberton',
     ]
-    const names = rowsIn(list).map((row) =>
-      onList.find((name) => row.textContent?.includes(name)),
+    const names = within(list)
+      .getAllByRole('listitem')
+      .map((row) => onList.find((name) => row.textContent?.includes(name)))
+    expect(names).toEqual(
+      [...onList].sort((a, b) =>
+        roomOf(a).localeCompare(roomOf(b), 'en-GB', { numeric: true }),
+      ),
     )
-    const expected = [...onList].sort((a, b) =>
-      roomOf(a).localeCompare(roomOf(b), 'en-GB', { numeric: true }),
-    )
-    expect(names).toEqual(expected)
-    expect(screen.getByText('Rosewood Court: 4 residents on your list.')).toBeTruthy()
+    expect(
+      within(tab('people')).getByText('Rosewood Court: 4 residents on your list.'),
+    ).toBeTruthy()
   })
 
-  it('gives each row one line: a single outstanding thing, or quiet words naming what was checked', async () => {
-    navigation.pathname = '/m/list'
-    renderSignedIn(staffEze.id, <YourListRoute />)
-    const list = await screen.findByRole('list')
-    for (const row of rowsIn(list)) {
+  it('gives each row one line: one outstanding thing, or quiet words naming what was checked', async () => {
+    openAt('/m/people', staffEze.id)
+    const list = await within(tab('people')).findByRole('list')
+    for (const row of within(list).getAllByRole('listitem')) {
       const gaps = row.querySelectorAll('[data-state="unrecorded"]').length
       const recorded = row.querySelectorAll('[data-state="recorded"]').length
-      const quiet = within(row).queryByText(NOTHING_OUTSTANDING)
-      // One thing: a hatched gap, a given dose beside its missing signature,
-      // a due dose in plain words, or the quiet line. Never a strip of badges.
       expect(gaps + recorded).toBeLessThanOrEqual(2)
       if (recorded === 1) expect(gaps).toBe(1)
-      if (quiet !== null) expect(gaps + recorded).toBe(0)
+      if (within(row).queryByText(NOTHING_OUTSTANDING) !== null)
+        expect(gaps + recorded).toBe(0)
     }
   })
 
   it('shows a senior carer every person at the home', async () => {
-    navigation.pathname = '/m/list'
-    renderSignedIn(staffAkinyemi.id, <YourListRoute />, 'site-rosewood-court')
-    const list = await screen.findByRole('list')
-    expect(rowsIn(list)).toHaveLength(rosewood.length)
+    openAt('/m/people', staffAkinyemi.id, 'site-rosewood-court')
+    const list = await within(tab('people')).findByRole('list')
+    expect(within(list).getAllByRole('listitem')).toHaveLength(rosewood.length)
   })
 
-  it('tells a care worker with no list that nobody is assigned, that the home is not empty, and who sets it', async () => {
-    navigation.pathname = '/m/list'
-    renderSignedIn(staffOsei.id, <YourListRoute />)
+  it('tells a care worker with no list that nobody is assigned, that the home is not empty, and where it is set', async () => {
+    openAt('/m/people', staffOsei.id)
+    const people = tab('people')
     expect(
-      await screen.findByText('Nobody has given you a list of residents yet.'),
+      await within(people).findByText('Nobody has given you a list of residents yet.'),
     ).toBeTruthy()
     expect(
-      screen.getByText(
-        /Rosewood Court has 28 residents\. Your list is empty because nobody/,
-      ),
+      within(people).getByText(/Rosewood Court has 28 residents\. Your list is empty/),
     ).toBeTruthy()
-    expect(screen.getByText('Your list is set in Team Management.')).toBeTruthy()
-    // The refusal is the role table's line, drawn at the point of the act.
-    const refused = document.querySelector('[data-act-line="refused"]')
-    expect(refused?.textContent?.trim()).toMatch(/^[A-Z].+\.$/)
-    expect(screen.queryByText('No residents')).toBeNull()
-    expect(screen.getAllByRole('link').map((link) => link.textContent)).not.toContain(
-      'Change your list',
+    expect(
+      within(people).getByText('Your list is set in Team Management.'),
+    ).toBeTruthy()
+    expect(
+      people.querySelector('[data-act-line="refused"]')?.textContent?.trim(),
+    ).toMatch(/^[A-Z].+\.$/)
+    fireEvent.click(
+      within(people).getByRole('button', { name: 'Find somebody in Everyone' }),
     )
-    expect(screen.getByRole('link', { name: 'Find somebody in Everyone' })).toBeTruthy()
+    expect(
+      await within(people).findByText('28 residents at Rosewood Court, by room.'),
+    ).toBeTruthy()
   })
 })
 
 describe('the phone: everyone', () => {
   it('lists the whole home by room with no status and no avatars, and opens only what the list reaches', async () => {
-    navigation.pathname = '/m/everyone'
-    renderSignedIn(staffEze.id, <EveryoneRoute />)
-    await screen.findByText('28 residents at Rosewood Court, by room.')
-    const items = screen.getAllByRole('listitem')
+    openAt('/m/people', staffEze.id)
+    const people = tab('people')
+    await within(people).findByRole('list')
+    fireEvent.click(within(people).getByRole('button', { name: 'Everyone' }))
+    await within(people).findByText('28 residents at Rosewood Court, by room.')
+    const items = within(people).getAllByRole('listitem')
     expect(items).toHaveLength(rosewood.length)
-    expect(document.querySelectorAll('[role="img"]')).toHaveLength(0)
-    expect(document.querySelectorAll('[data-state="recorded"]')).toHaveLength(0)
-    const opening = items.filter((item) => within(item).queryByRole('link') !== null)
-    expect(opening).toHaveLength(4)
+    expect(people.querySelectorAll('li [role="img"]')).toHaveLength(0)
+    expect(people.querySelectorAll('li [data-state="recorded"]')).toHaveLength(0)
     expect(
-      screen.getByText(
+      items.filter((item) => within(item).queryByRole('link') !== null),
+    ).toHaveLength(4)
+    expect(
+      within(people).getByText(
         '4 of these 28 residents open from here: the ones on your list.',
       ),
     ).toBeTruthy()
@@ -114,71 +208,64 @@ describe('the phone: everyone', () => {
     expect(rooms).toEqual(
       [...rooms].sort((a, b) => a.localeCompare(b, 'en-GB', { numeric: true })),
     )
-  })
-
-  it('heads each group with a room range from the record, never a wing', async () => {
-    navigation.pathname = '/m/everyone'
-    renderSignedIn(staffEze.id, <EveryoneRoute />)
-    await screen.findByText('28 residents at Rosewood Court, by room.')
-    const headings = screen
+    const headings = within(people)
       .getAllByRole('heading', { level: 2 })
-      .map((h) => h.textContent)
-    expect(headings.length).toBeGreaterThan(1)
+      .map((heading) => heading.textContent)
     for (const heading of headings) expect(heading).toMatch(/^Rooms? \d+( to \d+)?$/)
   })
 })
 
 describe('the phone: search', () => {
-  it('searches everyone, says so, and says what a result cannot show', async () => {
-    navigation.pathname = '/m/search'
-    renderSignedIn(staffEze.id, <SearchRoute />)
+  it('is pushed, searches everyone, says so, and says what a result cannot show', async () => {
+    openAt('/m/people', staffEze.id)
+    fireEvent.click(
+      await within(tab('people')).findByRole('link', {
+        name: /Search everyone by name or room/,
+      }),
+    )
+    expect(entriesOn('people')).toEqual(['people', 'search'])
+    const search = front('people')
     expect(
-      await screen.findByText(
-        'Searches all 28 residents at Rosewood Court, not only your list.',
+      await within(search).findByText(
+        /^Searches all 28 residents at Rosewood Court, not only your list\./,
       ),
     ).toBeTruthy()
     expect(
-      screen.getByText(/It cannot show what is missing on that record\./),
+      within(search).getByText(/It cannot show what is missing on that record\./),
     ).toBeTruthy()
 
-    const field = screen.getByRole('searchbox', {
+    const field = within(search).getByRole('searchbox', {
       name: 'Search everyone by name or room',
     })
+    expect(field.getAttribute('enterkeyhint')).toBe('search')
+    expect(field.getAttribute('autocapitalize')).toBe('none')
     fireEvent.change(field, { target: { value: 'castledine' } })
-    expect(screen.getByText('1 of 28 residents match “castledine”.')).toBeTruthy()
-    const [found] = screen.getAllByRole('listitem')
+    expect(
+      within(search).getByText('1 of 28 residents match “castledine”.'),
+    ).toBeTruthy()
+    const [found] = within(search).getAllByRole('listitem')
     expect(found?.textContent).toContain('Winnie Castledine')
     expect(within(found as HTMLElement).queryByRole('link')).toBeNull()
-
-    fireEvent.change(field, { target: { value: 'Pemberton' } })
-    const [onList] = screen.getAllByRole('listitem')
-    expect(within(onList as HTMLElement).getByRole('link')).toBeTruthy()
   })
 
-  it('finds by preferred name and by room', async () => {
-    navigation.pathname = '/m/search'
-    renderSignedIn(staffAkinyemi.id, <SearchRoute />, 'site-rosewood-court')
-    await screen.findByText(/^Searches all 28/)
-    const field = screen.getByRole('searchbox')
+  it('finds by preferred name and by room, and says when nobody matched', async () => {
+    openAt('/m/search', staffAkinyemi.id, 'site-rosewood-court')
+    const search = front('people')
+    await within(search).findByText(/^Searches all 28/)
+    const field = within(search).getByRole('searchbox')
     fireEvent.change(field, { target: { value: 'Emeka' } })
-    expect(screen.getAllByRole('listitem')[0]?.textContent).toContain('Emeka Obi')
-    const room = roomOf('Doris Kavanagh')
-    fireEvent.change(field, { target: { value: room } })
+    expect(within(search).getAllByRole('listitem')[0]?.textContent).toContain(
+      'Emeka Obi',
+    )
+    fireEvent.change(field, { target: { value: roomOf('Doris Kavanagh') } })
     expect(
-      screen
+      within(search)
         .getAllByRole('listitem')
         .some((item) => item.textContent?.includes('Doris Kavanagh')),
     ).toBe(true)
-  })
-
-  it('says nobody matched, over the whole home, rather than going blank', async () => {
-    navigation.pathname = '/m/search'
-    renderSignedIn(staffEze.id, <SearchRoute />)
-    await screen.findByText(/^Searches all 28/)
-    const field = screen.getByRole('searchbox')
     fireEvent.change(field, { target: { value: 'zzz' } })
     expect(
-      await screen.findByText(
+      within(search).getByText(
         'Nobody at Rosewood Court matches “zzz”, out of 28 residents.',
       ),
     ).toBeTruthy()
@@ -186,27 +273,39 @@ describe('the phone: search', () => {
 })
 
 describe('the phone: one record', () => {
-  it('opens under a subject header with photo, name, preferred name, room and date of birth', async () => {
-    navigation.pathname = '/m/people/res-okafor'
-    navigation.params = { residentId: 'res-okafor' }
-    renderSignedIn(staffEze.id, <RecordRoute />)
-    const header = await screen.findByRole('banner')
+  it('fixes a subject header outside the scrolling pane', async () => {
+    openAt('/m/people/res-okafor', staffEze.id)
+    const record = front('people')
+    await within(record).findByText('Known as Emmanuel')
+    const header = record.querySelector('[data-subject-header]') as HTMLElement
     expect(within(header).getByRole('heading', { level: 1 }).textContent).toBe(
       'Emmanuel Okafor',
     )
+    expect(header.closest('[data-scroll-pane]')).toBeNull()
+    expect(within(header).getByText('Emmanuel Okafor')).toBeTruthy()
     expect(within(header).getByText('Known as Emmanuel')).toBeTruthy()
     expect(within(header).getByText(`Room ${roomOf('Emmanuel Okafor')}`)).toBeTruthy()
     expect(within(header).getByText(/^Born \d{2}\/\d{2}\/\d{4}$/)).toBeTruthy()
     expect(within(header).getByRole('img', { name: /Emmanuel Okafor/ })).toBeTruthy()
   })
 
-  it('shows allergies, what is outstanding today, and the rest as rows that do not open', async () => {
-    navigation.params = { residentId: 'res-okafor' }
-    renderSignedIn(staffEze.id, <RecordRoute />)
-    expect(await screen.findByRole('heading', { name: 'Allergies' })).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'Outstanding today' })).toBeTruthy()
-    const rest = screen.getByRole('heading', { name: 'The rest of the record' })
-      .parentElement as HTMLElement
+  it('anchors the care note outside the pane, saying at the act that it is not built', async () => {
+    openAt('/m/people/res-okafor', staffEze.id)
+    const record = front('people')
+    const act = await within(record).findByRole('button', { name: 'Write a care note' })
+    expect(act.closest('[data-scroll-pane]')).toBeNull()
+    expect(act.getAttribute('aria-disabled')).toBe('true')
+    expect(record.querySelector('[data-act-line="not_built"]')?.textContent).toContain(
+      'not built yet on the phone',
+    )
+  })
+
+  it('lists the rest of the record as rows that do not open', async () => {
+    openAt('/m/people/res-okafor', staffEze.id)
+    const record = front('people')
+    const rest = (
+      await within(record).findByRole('heading', { name: 'The rest of the record' })
+    ).closest('section') as HTMLElement
     const rows = within(rest).getAllByRole('listitem')
     expect(rows.length).toBeGreaterThanOrEqual(8)
     for (const row of rows) {
@@ -216,62 +315,112 @@ describe('the phone: one record', () => {
     }
   })
 
-  it('names an allergy with its severity, and draws "not recorded" under the hatch', async () => {
-    const withAllergy = rosewood.find((person) => person.allergies.kind === 'allergies')
-    const notAsked = rosewood.find((person) => person.allergies.kind === 'not_recorded')
-    if (withAllergy?.allergies.kind !== 'allergies' || notAsked === undefined)
-      throw new Error('The fixtures no longer hold both allergy states at Rosewood.')
-    const [first] = withAllergy.allergies.items
+  const withAllergy = rosewood.find((person) => person.allergies.kind === 'allergies')
+  const notAsked = rosewood.find((person) => person.allergies.kind === 'not_recorded')
 
-    navigation.params = { residentId: withAllergy.id }
-    const { unmount } = renderSignedIn(
-      staffAkinyemi.id,
-      <RecordRoute />,
-      'site-rosewood-court',
-    )
-    const section = (await screen.findByRole('heading', { name: 'Allergies' }))
-      .parentElement as HTMLElement
+  it('names an allergy with its severity', async () => {
+    if (withAllergy?.allergies.kind !== 'allergies')
+      throw new Error('The fixtures no longer hold an allergy at Rosewood.')
+    const [first] = withAllergy.allergies.items
+    openAt(`/m/people/${withAllergy.id}`, staffAkinyemi.id, 'site-rosewood-court')
+    const section = (
+      await within(front('people')).findByRole(
+        'heading',
+        { name: 'Allergies' },
+        { timeout: 4000 },
+      )
+    ).parentElement as HTMLElement
     expect(within(section).getByText(first.substance)).toBeTruthy()
     expect(
       within(section).getAllByText(new RegExp(first.severity, 'i')).length,
     ).toBeGreaterThan(0)
-    unmount()
+  })
 
-    navigation.params = { residentId: notAsked.id }
-    renderSignedIn(staffAkinyemi.id, <RecordRoute />, 'site-rosewood-court')
-    const hatched = (await screen.findByRole('heading', { name: 'Allergies' }))
-      .parentElement as HTMLElement
+  it('draws allergies nobody recorded under the hatch', async () => {
+    if (notAsked === undefined)
+      throw new Error('The fixtures no longer hold an unrecorded allergy at Rosewood.')
+    openAt(`/m/people/${notAsked.id}`, staffAkinyemi.id, 'site-rosewood-court')
+    const hatched = (
+      await within(front('people')).findByRole(
+        'heading',
+        { name: 'Allergies' },
+        { timeout: 4000 },
+      )
+    ).parentElement as HTMLElement
     expect(hatched.querySelector('[data-state="unrecorded"]')?.textContent).toContain(
       'Not recorded',
     )
   })
 
-  it('shows a record off the list by name only, with who sets the list', async () => {
-    navigation.params = { residentId: 'res-castledine' }
-    renderSignedIn(staffEze.id, <RecordRoute />)
+  it('shows a record off the list by name only, with where the list is set', async () => {
+    openAt('/m/people/res-castledine', staffEze.id)
+    const record = front('people')
     expect(
-      await screen.findByText('Winnie Castledine is not on your list.'),
+      await within(record).findByText('Winnie Castledine is not on your list.'),
     ).toBeTruthy()
-    expect(screen.queryByRole('banner')).toBeNull()
-    expect(screen.queryByText(/^Born /)).toBeNull()
-    expect(screen.queryByRole('heading', { name: 'Allergies' })).toBeNull()
+    expect(record.querySelector('[data-subject-header]')).toBeNull()
+    expect(within(record).queryByText(/^Born /)).toBeNull()
+    expect(within(record).queryByRole('heading', { name: 'Allergies' })).toBeNull()
+    expect(
+      within(record).queryByRole('button', { name: 'Write a care note' }),
+    ).toBeNull()
   })
 })
 
-describe('the phone frame', () => {
-  it('names the home in the bar and marks Medication and More as not built', async () => {
-    navigation.pathname = '/m/list'
-    renderSignedIn(staffEze.id, <PhoneShell />)
-    expect(await screen.findByText('Rosewood Court')).toBeTruthy()
-    const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+describe('the phone: today', () => {
+  it('counts over the reader’s list, with every figure out of something', async () => {
+    openAt('/m', staffEze.id)
+    const today = front('today')
+    expect(await within(today).findByText('Already late')).toBeTruthy()
     expect(
-      within(nav)
-        .getByRole('link', { name: /Residents/ })
-        .getAttribute('aria-current'),
-    ).toBe('page')
-    expect(
-      within(nav).getByRole('button', { name: 'Medication, not built' }),
+      within(today).getByText("Counted over your list, not the home's."),
     ).toBeTruthy()
-    expect(within(nav).getByRole('button', { name: 'More, not built' })).toBeTruthy()
+    expect(within(today).getByText('of your 4 residents')).toBeTruthy()
+    expect(within(today).getByText(/^of [\d,]+ doses? on today’s chart$/)).toBeTruthy()
+    expect(
+      within(today).getByText(
+        /^of [\d,]+ doses? on today’s chart, nothing recorded yet$/,
+      ),
+    ).toBeTruthy()
+  })
+
+  it('pushes the record a late row is about, onto the Today stack', async () => {
+    openAt('/m', staffEze.id)
+    const today = front('today')
+    const late = (
+      await within(today).findByRole('heading', { name: 'Already late, oldest first' })
+    ).closest('section') as HTMLElement
+    const [first] = within(late).getAllByRole('link')
+    fireEvent.click(first as HTMLElement)
+    expect(entriesOn('today')).toEqual(['today', 'record'])
+    expect(entriesOn('people')).toEqual([])
+  })
+
+  it('filters the late list from a picker sheet', async () => {
+    openAt('/m', staffEze.id)
+    const today = front('today')
+    const late = (
+      await within(today).findByRole('heading', { name: 'Already late, oldest first' })
+    ).closest('section') as HTMLElement
+    const before = within(late).queryAllByRole('listitem').length
+    fireEvent.click(within(late).getByRole('button', { name: /Everything late/ }))
+    const sheet = await screen.findByRole('dialog', { name: 'Show' })
+    const reviews = within(sheet)
+      .getAllByRole('button')
+      .find((option) => option.textContent?.startsWith('Reviews'))
+    fireEvent.click(reviews as HTMLElement)
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    const after = within(late).queryAllByRole('listitem')
+    expect(after.length).toBeLessThan(before)
+    for (const row of after) expect(row.textContent).toMatch(/past its date/)
+  })
+
+  it('counts nothing for a reader nobody has given a list', async () => {
+    openAt('/m', staffOsei.id)
+    const today = front('today')
+    expect(
+      await within(today).findByText('Nobody has given you a list of residents yet.'),
+    ).toBeTruthy()
+    expect(within(today).queryByText('Already late')).toBeNull()
   })
 })

@@ -1,11 +1,10 @@
-import { useParams, useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
 import { getCareNotes, getMarRecords, getResident } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import { now } from '@/data/fixtures/clock'
 import type { AllergyStatus, CareNote, IsoDateTime, ResidentId } from '@/data/types'
-import { useSession, useSiteFormat } from '@/app/session/use-session'
 import type { Answer } from '@/app/session/capabilities'
+import { useSession, useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { Icon } from '@/components/icon/Icon'
 import type { IconName } from '@/components/icon/registry.names.generated'
@@ -15,19 +14,20 @@ import { StatusPill, Unrecorded } from '@/components/status'
 import { assertNever } from '@/lib/assert-never'
 import { formatDate } from '@/lib/format'
 import { VOCABULARY } from '@/lib/vocabulary-choice'
-import { NOTHING_OUTSTANDING, OutstandingLine } from './OutstandingLine'
-import { outstandingFor, type Outstanding } from './outstanding'
+import { NOTHING_OUTSTANDING, OutstandingLine } from '../OutstandingLine'
+import { outstandingFor, type Outstanding } from '../outstanding'
 import {
   listName,
   noListYetLine,
   notOnYourListLine,
   type DoseRecord,
   type Person,
-} from './phone-data'
-import { PHONE_PATHS } from './phone-paths'
-import { phoneIcons } from './phone.icons'
-import { Loaded } from './ScreenStates'
-import styles from './phone.module.css'
+} from '../phone-data'
+import { phoneIcons } from '../phone.icons'
+import { Loaded } from '../ScreenStates'
+import { Screen } from '../shell/Screen'
+import shell from '../shell/shell.module.css'
+import styles from '../phone.module.css'
 
 interface RecordData {
   person: Person
@@ -36,24 +36,20 @@ interface RecordData {
 }
 
 /**
- * One person's record, on a phone.
+ * One person's record, pushed over the list it was opened from.
  *
  * **The subject header never scrolls away**: photo, name, preferred name, room
- * and date of birth, stuck under the bar, because every write this record will
- * grow is made under it and a wrong-subject write is the worst failure open to
- * it (CLAUDE.md §2). **Who it is comes from the address**, never from the list
- * it was opened from.
+ * and date of birth sit between the bar and the pane (CLAUDE.md §2). **Who it
+ * is comes from the place on the stack**, which came from the row tapped or the
+ * address, never from what was on screen before.
  *
- * Then, in the order somebody at the door needs them: allergies, with their
- * severity; what is outstanding today; and the rest of the record as rows that
- * say they are not built yet rather than looking as if they open.
+ * Then: allergies with their severity, what is outstanding today, and the rest
+ * of the record as rows saying they are not built. The one primary act, a care
+ * note, is anchored at the bottom and says it is not built yet, at the act.
  *
- * **Asked of the role table before anything is read beyond the name**: a
- * record off the reader's list shows that it is, by name, and nothing else.
+ * **Asked of the role table before anything is read beyond the name.**
  */
-export function RecordRoute() {
-  const params = useParams<{ residentId: string }>()
-  const id = params.residentId as ResidentId
+export function RecordScreen({ id }: { id: ResidentId }) {
   const { activeSite } = useSession()
   const viewer = useViewer()
   const [at] = useState(() => now().toISOString() as IsoDateTime)
@@ -80,10 +76,23 @@ export function RecordRoute() {
     [id, opens],
   )
   const resource = useResource<RecordData>(load, [id, opens])
+  const ready = resource.kind === 'ready' ? resource.data : undefined
 
   return (
-    <>
-      <BackButton />
+    <Screen
+      title={ready === undefined ? VOCABULARY.subject.One : listName(ready.person)}
+      heading={ready !== undefined && opens ? 'elsewhere' : 'title'}
+      subject={
+        ready !== undefined && opens ? (
+          <SubjectHeader person={ready.person} />
+        ) : undefined
+      }
+      primary={
+        opens && ready !== undefined ? (
+          <CareNoteAct id={id} name={listName(ready.person)} />
+        ) : undefined
+      }
+    >
       <Loaded
         resource={resource}
         loading={`Loading the ${VOCABULARY.subject.ones} record…`}
@@ -94,9 +103,8 @@ export function RecordRoute() {
             <NotOnYourListCard answer={answer} name={listName(data.person)} />
           ) : (
             <>
-              <SubjectHeader person={data.person} />
               <Allergies status={data.person.allergies} />
-              <section className={[styles.card, styles.cardPadded].join(' ')}>
+              <section className={styles.card}>
                 <h2 className={styles.cardTitle}>Outstanding today</h2>
                 <OutstandingToday
                   items={outstandingFor({
@@ -113,34 +121,13 @@ export function RecordRoute() {
           )
         }
       </Loaded>
-    </>
-  )
-}
-
-/**
- * Back to wherever the reader came from in this tab, or to their list when the
- * record was opened from a link. Navigation, not identity: the subject is the
- * address, whatever this does.
- */
-function BackButton() {
-  const router = useRouter()
-  return (
-    <button
-      type="button"
-      className={styles.back}
-      onClick={() =>
-        window.history.length > 1 ? router.back() : router.push(PHONE_PATHS.yourList)
-      }
-    >
-      <Icon name={phoneIcons.back} size={20} />
-      Back
-    </button>
+    </Screen>
   )
 }
 
 function SubjectHeader({ person }: { person: Person }) {
   return (
-    <header className={styles.subject} data-subject-header>
+    <div className={styles.subject} data-subject-header>
       <Avatar photo={person.photo} name={person.fullLegalName} size="large" />
       <div className={styles.subjectText}>
         <h1 className={styles.subjectName}>{person.fullLegalName}</h1>
@@ -154,73 +141,98 @@ function SubjectHeader({ person }: { person: Person }) {
           <span>Born {formatDate(person.dateOfBirth)}</span>
         </p>
       </div>
-    </header>
+    </div>
   )
 }
 
 /**
- * Allergies, in the three states the record holds and never two.
- *
- * **Nobody asked takes the hatch. A recorded "none known" is quiet**, with who
- * recorded it and when, because it is a complete record and a green badge
- * would make it the loudest thing on a screen where nothing is wrong. **An
- * allergy is critical**, with its severity as a word beside the substance so
- * it is read rather than inferred from a colour.
+ * The primary act, in the thumb zone. **The line saying what it does not do
+ * sits at the act**, not behind a tap (CLAUDE.md §6): the composer is not
+ * built, and where the role table refuses, its words say so instead.
+ */
+function CareNoteAct({ id, name }: { id: ResidentId; name: string }) {
+  const viewer = useViewer()
+  const answer = viewer.ask('write_care_note', id)
+  if (answer.kind !== 'yes')
+    return (
+      <ActLine
+        kind={
+          answer.kind === 'not_stated' || answer.kind === 'contradicted'
+            ? 'not_stated'
+            : 'refused'
+        }
+      >
+        {refusalOf(answer, name)}
+      </ActLine>
+    )
+  return (
+    <>
+      <ActLine kind="not_built">
+        The care note composer is not built yet on the phone.
+      </ActLine>
+      <button type="button" className={shell.primary} aria-disabled="true">
+        Write a care note
+      </button>
+    </>
+  )
+}
+
+/**
+ * Allergies, in the three states the record holds. **Nobody asked takes the
+ * hatch; a recorded "none known" is quiet**, with who and when; **an allergy is
+ * critical**, with its severity as a word beside the substance.
  */
 function Allergies({ status }: { status: AllergyStatus }) {
   const format = useSiteFormat()
   const recorded = (by: string, at: IsoDateTime) =>
     `Recorded ${format.instantDate(at)} · ${by}`
-
+  const body = () => {
+    switch (status.kind) {
+      case 'not_recorded':
+        return (
+          <Unrecorded
+            variant="panel"
+            label="Not recorded"
+            detail="Nobody has recorded whether they have any allergies. That is not the same as none."
+          />
+        )
+      case 'none_known':
+        return (
+          <div className={styles.item}>
+            <p className={styles.body}>No known allergies</p>
+            <p className={styles.byline}>
+              {recorded(status.recordedBy.displayName, status.recordedAt)}
+            </p>
+          </div>
+        )
+      case 'allergies':
+        return (
+          <>
+            <ul className={styles.items}>
+              {status.items.map((allergy) => (
+                <li key={allergy.substance} className={styles.item}>
+                  <StatusPill
+                    tone="critical"
+                    label={allergy.substance}
+                    detail={SEVERITY[allergy.severity]}
+                  />
+                  <span className={styles.quiet}>Reaction: {allergy.reaction}</span>
+                </li>
+              ))}
+            </ul>
+            <p className={styles.byline}>
+              {recorded(status.recordedBy.displayName, status.recordedAt)}
+            </p>
+          </>
+        )
+      default:
+        return assertNever(status)
+    }
+  }
   return (
-    <section
-      className={[styles.card, styles.cardPadded].join(' ')}
-      data-allergies={status.kind}
-    >
+    <section className={styles.card} data-allergies={status.kind}>
       <h2 className={styles.cardTitle}>Allergies</h2>
-      {(() => {
-        switch (status.kind) {
-          case 'not_recorded':
-            return (
-              <Unrecorded
-                variant="panel"
-                label="Not recorded"
-                detail="Nobody has recorded whether they have any allergies. That is not the same as none."
-              />
-            )
-          case 'none_known':
-            return (
-              <div className={styles.item}>
-                <p className={styles.body}>No known allergies</p>
-                <p className={styles.byline}>
-                  {recorded(status.recordedBy.displayName, status.recordedAt)}
-                </p>
-              </div>
-            )
-          case 'allergies':
-            return (
-              <>
-                <ul className={styles.items}>
-                  {status.items.map((allergy) => (
-                    <li key={allergy.substance} className={styles.item}>
-                      <StatusPill
-                        tone="critical"
-                        label={allergy.substance}
-                        detail={SEVERITY[allergy.severity]}
-                      />
-                      <span className={styles.quiet}>Reaction: {allergy.reaction}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className={styles.byline}>
-                  {recorded(status.recordedBy.displayName, status.recordedAt)}
-                </p>
-              </>
-            )
-          default:
-            return assertNever(status)
-        }
-      })()}
+      {body()}
     </section>
   )
 }
@@ -249,16 +261,10 @@ function OutstandingToday({ items }: { items: Outstanding[] }) {
 }
 
 /**
- * The rest of the record, named and not yet reachable from the phone.
- *
- * **Listed rather than left out**, because absence from a list is the same bug
- * as a blank cell, and **not drawn as controls**: no chevron, no target, a
- * plain "Not built yet" on each.
- *
- * **Named by their owners**: care notes and the records section by the desktop
- * navigation, so the two products call each module the same thing, and
- * medication and the care plan by the vocabulary, which is what their names
- * are configured in.
+ * The rest of the record, listed rather than left out and not drawn as
+ * controls: no chevron, no target, "Not built yet" on each. Named by their
+ * owners — the desktop navigation, and the vocabulary for medication and the
+ * care plan.
  */
 function TheRest() {
   const fromNav = (picked: (item: NavItem) => boolean) =>
@@ -270,11 +276,13 @@ function TheRest() {
     ...fromNav((item) => item.section === 'records'),
   ]
   return (
-    <section className={styles.card}>
-      <h2 className={[styles.cardTitle, styles.cardHead].join(' ')}>
-        The rest of the record
-      </h2>
-      <ul className={styles.rows}>
+    <section aria-labelledby="the-rest">
+      <div className={styles.sectionHead}>
+        <h2 id="the-rest" className={styles.sectionTitle}>
+          The rest of the record
+        </h2>
+      </div>
+      <ul className={styles.list}>
         {rows.map((row) => (
           <li key={row.label} className={styles.moduleRow}>
             <Icon name={row.icon} size={20} />
@@ -289,10 +297,7 @@ function TheRest() {
 
 /**
  * A record the reader's list does not reach: who, by name, and nothing else.
- *
- * **Scope, never blame, and never a claim the record is missing.** Neither the
- * hatch nor caution: nothing is missing and nothing is wrong. It says where a
- * list is set and, asked of the role table, that this reader cannot set it.
+ * Neither the hatch nor caution: nothing is missing and nothing is wrong.
  */
 function NotOnYourListCard({
   answer,
@@ -304,11 +309,8 @@ function NotOnYourListCard({
   const viewer = useViewer()
   const setting = viewer.ask('open_settings_and_team')
   return (
-    <div
-      className={[styles.card, styles.cardPadded].join(' ')}
-      data-not-on-list={answer.kind}
-    >
-      <p className={styles.cardTitle}>{headline(answer, name)}</p>
+    <div className={styles.card} data-not-on-list={answer.kind}>
+      <p className={styles.cardTitle}>{refusalOf(answer, name)}</p>
       <p className={styles.body}>
         Their record does not open for you. Your list is set in Team Management.
       </p>
@@ -319,7 +321,7 @@ function NotOnYourListCard({
   )
 }
 
-function headline(answer: Exclude<Answer, { kind: 'yes' }>, name: string): string {
+function refusalOf(answer: Exclude<Answer, { kind: 'yes' }>, name: string): string {
   switch (answer.kind) {
     case 'not_on_your_list':
       return notOnYourListLine(name)

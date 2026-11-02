@@ -2439,3 +2439,28 @@ A second route tree under `/m` (`src/app/m/`, screens in `src/features/phone/`),
 **Four existing tests fail on today's date, not on this change**: `report.test.tsx` and `round-window.test.tsx` expect BST times (`T20:20`, got `T19:20`) and the UK left BST on 25/10. Confirmed by running them with this change's tracked edits stashed. The same offset shows on the phone as a 14:00 window "until 14:00 GMT" while the moved-clock line reads 14:20 in the viewer's zone.
 
 **Not yet done for this phase:** the seven-state and both-roles screenshot review at 390 and 1440 in greyscale; a vocabulary test rendering the phone under a different term set.
+
+---
+
+## The phone app as an app: the shell, Today and Residents (02/11/2026)
+
+The first phone phase read as a responsive web page at phone width. This one rebuilds it against a standing reference, `docs/MOBILE_APP_SHELL.md`, and a guard for its mechanical half, `scripts/check-app-shell.mjs`.
+
+**What the shell does that a responsive page does not.** The document never scrolls: `html` and `body` are locked at `100dvh` while the phone tree is mounted, and each screen has exactly one pane that scrolls, with its overscroll contained. Tapping a row pushes a screen in from the right and back pops it to the right; each tab keeps its own stack and scroll while another is showing; a task rises as a sheet over the place you are on.
+
+**One route, the app in the layout.** `src/app/m/[[...path]]` receives every address and draws nothing; `PhoneApp` lives in `src/app/m/layout.tsx`, so moving between places never replaces the document. The stack is the source of truth and the address a copy: push adds a history entry, tab switches replace it, the system back gesture pops. A tab mounts its stack the first time it is shown.
+
+**Today** is the dashboard counted over the reader's list from the same owners the desktop dashboard asks (`dueSoon`, `dosesPastTheirWindow`, `withoutNoteToday`, the late-item builders), with the late list's filter in a picker sheet. Late rows push the record they are about onto the Today stack; a handover belongs to a shift and has none.
+
+**Decisions.**
+- The gutter is 16px (`--layout-gutter-compact`), not the brief's 18px: the spacing scale is 4px with one named exception, and a new step is a token (§9). Frank's call.
+- Due-soon carries a dose denominator ("of 40 doses on today's chart") rather than the desktop's "across 3 residents of 4": the owner names its field `residents`, and reading it would have raised the vocabulary ratchet again.
+- The care note is the record's one primary act, anchored at the bottom, disabled, with "not built yet on the phone" at the act. The composer is out of scope.
+
+**The guard, and the mutation that found a hole in it.** Fourteen mutations, each confirmed landed in a rule body and reversed by the exact reverse edit: `max-width` on the app, an auto margin, `:hover`, the tab bar's safe area, the bar's safe area, a second scroller, the pane's overscroll, a breakpoint `@media`, the root lock, a place declared as a form, a task address, `next/link` in a screen, and a route named `new`. **The bar's safe-area mutation passed the first version**: it matched `env(safe-area-inset-top)` anywhere in the rule, and the bar's `min-height` still mentioned it after the padding lost it. It reads the padding now, and both safe-area mutations fail. Same family as the session-losses import hole: a guard reading more generously than the rule.
+
+**Contention, again.** The first full run failed four tests in files nobody had touched: every phone test mounted both tabs, so a residents test also read Today's round, omissions and handover board. Lazy tabs fixed it and are what a phone does anyway. The allergy test that rendered the app twice was split rather than given a longer timeout.
+
+**Still failing, unchanged:** the four BST-dated tests (clocks went back 25/10), and the vocabulary ratchet at the same +2 as the first phone phase.
+
+**Not seen in a browser this phase**: the browser connection was gone. Pushes, the sheet's drag and the tab scroll memory are covered by tests only as far as jsdom can see them, which excludes animation and real scrolling.

@@ -142,16 +142,12 @@ export const ROUTES: RouteDeclaration[] = [
   { path: '/profile', screen: 'profile', module: 'profile', inShell: true },
   { path: '/specimens', screen: 'specimens', module: 'specimens', inShell: true },
   /*
-   * The phone app: a second tree beside the desktop one, in its own frame
-   * (`PhoneShell`) rather than the desktop shell, so `inShell` is false. No
-   * `module`: the desktop navigation does not point here, and the phone's own
-   * tabs are drawn from `features/phone/phone-paths.ts`.
+   * The phone app: one address that receives every place under `/m`, in its
+   * own frame rather than the desktop shell, so `inShell` is false. The places
+   * themselves are declared in `features/phone/phone-paths.ts`, and the app in
+   * the layout turns an address into a stack (docs/MOBILE_APP_SHELL.md §2).
    */
-  { path: '/m', screen: 'phoneToday', inShell: false },
-  { path: '/m/list', screen: 'phoneYourList', inShell: false },
-  { path: '/m/everyone', screen: 'phoneEveryone', inShell: false },
-  { path: '/m/search', screen: 'phoneSearch', inShell: false },
-  { path: '/m/people/[residentId]', screen: 'phoneRecord', inShell: false },
+  { path: '/m/[[...path]]', screen: 'phoneAddress', inShell: false },
 ]
 
 export const isBuilt = (module: NavModuleId): boolean =>

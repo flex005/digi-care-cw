@@ -23,5 +23,8 @@ export { listName } from '@/features/residents/list-name'
 export {
   noListYetLine,
   notOnYourListLine,
+  scopeDenominator,
   scopeLine,
+  scopeNote,
+  scopeReaches,
 } from '@/app/session/resident-scope'
