@@ -40,7 +40,15 @@ A `max-width` in `ch` is a reading measure on a line of text, and `100%` only st
 
 ## 5. Safe areas are real
 
-The tab bar takes `padding-bottom: max(var(--space-20), env(safe-area-inset-bottom))`; the bar at the top of each screen takes `env(safe-area-inset-top)`; a sheet takes the bottom inset under its last control. **None of these do anything unless the viewport says `viewport-fit=cover`**, which `src/app/m/layout.tsx` declares for the phone tree only. Without them the tab bar sits under the home indicator on every modern phone.
+The tab bar's floating container takes `padding-bottom: max(var(--space-20), env(safe-area-inset-bottom))`; the bar at the top of each screen takes `env(safe-area-inset-top)`; a sheet takes the bottom inset under its last control. **None of these do anything unless the viewport says `viewport-fit=cover`**, which `src/app/m/layout.tsx` declares for the phone tree only. Without them the tab bar sits under the home indicator on every modern phone.
+
+### The tab bar is a floating pill
+
+**It floats**: a white pill in the 16px gutter with a soft shadow, over the content, not a full-width bar welded to the bottom edge. That is the part that reads as an app rather than a website footer. The pane's last row and a screen's primary action both clear it (`--tab-clearance`).
+
+- Four equal tabs, 52px tall, icon above an 11px label. The tab you are on is a filled `--purple-600` pill inside the bar, white, weight 700; the others are `--ink-700`, weight 600.
+- **One badge, on Medication**, because it is the only thing on a clock: doses due now or in the next two hours, on your list, today, the same figure as Today's tile. A badge is a bare number, so its denominator and scope are in the tab's accessible name and in the sheet the tab opens.
+- **Three departures from the brief, each from a standing rule:** 8px inner padding, not 7, and a 20px badge, not 19, because the spacing scale is 4px (CLAUDE.md §4); and the badge is `--status-critical-ink`, not the critical fill, because white on the fill is about 4.2:1, under the 4.5:1 an 11px label needs.
 
 ## 6. Pressed, not hovered
 

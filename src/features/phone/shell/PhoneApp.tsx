@@ -12,8 +12,17 @@ import { SessionExpiry } from '@/components/shell/SessionExpiry'
 import { Icon } from '@/components/icon/Icon'
 import type { IconName } from '@/components/icon/registry.names.generated'
 import { ActLine } from '@/components/primitives'
+import { useSession } from '@/app/session/use-session'
+import { useViewer } from '@/app/session/use-viewer'
+import { getRound } from '@/data/access/client'
+import { useResource } from '@/data/access/use-resource'
+import { now } from '@/data/fixtures/clock'
+import type { IsoDateTime } from '@/data/types'
+import { dueSoon } from '@/features/dashboard/dashboard-figures'
+import { formatCount, pluralise, zonedDate } from '@/lib/format'
 import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { assertNever } from '@/lib/assert-never'
+import { scopeReaches, type DoseRecord } from '../phone-data'
 import { pathOf, ROOT_OF, type Place, type TabId } from '../phone-paths'
 import { phoneIcons } from '../phone.icons'
 import { PeopleScreen } from '../screens/PeopleScreen'
@@ -234,7 +243,14 @@ function PlaceScreen({ place }: { place: Place }) {
 
 type TabItem =
   | { kind: 'built'; tab: TabId; label: string; icon: IconName }
-  | { kind: 'not_built'; label: string; icon: IconName; note: string }
+  | {
+      kind: 'not_built'
+      label: string
+      icon: IconName
+      note: string
+      /** Whether it carries the count of doses on a clock. One tab does. */
+      clock: boolean
+    }
 
 const TAB_ITEMS = (): TabItem[] => [
   { kind: 'built', tab: 'today', label: 'Today', icon: phoneIcons.today },
@@ -249,6 +265,7 @@ const TAB_ITEMS = (): TabItem[] => [
     label: VOCABULARY.medication.One,
     icon: phoneIcons.dose,
     note: '',
+    clock: true,
   },
   {
     kind: 'not_built',
@@ -256,62 +273,113 @@ const TAB_ITEMS = (): TabItem[] => [
     icon: phoneIcons.more,
     /* More is where signing out lives on a phone (AUTH-09), and it is not built. */
     note: ' Reloading the page signs you out.',
+    clock: false,
   },
 ]
 
+type DueCount =
+  { kind: 'counted'; due: number; onChart: number } | { kind: 'not_counted' }
+
 /**
- * The tab bar: fixed, edge to edge, clear of the home indicator. A tab not
- * built yet opens a short sheet saying so, which is what a phone does with
- * anything short (docs/MOBILE_APP_SHELL.md §3). Tapping the tab you are on
- * pops it to its root.
+ * The one count the tab bar carries: doses due now or in the next two hours,
+ * on the reader's list, today — the same figure Today's tile shows, from the
+ * same owner. **Not counted** while the round loads or for a reader with no
+ * list, and then no badge is drawn and the tab's name says nothing about doses.
+ */
+function useDueCount(): DueCount {
+  const { activeSite } = useSession()
+  const viewer = useViewer()
+  const [at] = useState(() => now().toISOString() as IsoDateTime)
+  const load = useCallback(
+    () => getRound(activeSite.id).then(({ records }) => records),
+    [activeSite.id],
+  )
+  const resource = useResource<DoseRecord[]>(load, [activeSite.id])
+  if (resource.kind !== 'ready' || viewer.scope.kind === 'not_decided')
+    return { kind: 'not_counted' }
+  const today = zonedDate(at, activeSite.timeZone)
+  const todays = resource.data.filter(
+    (record) => record.date === today && scopeReaches(viewer.scope, record.residentId),
+  )
+  return { kind: 'counted', due: dueSoon(todays, at).doses, onChart: todays.length }
+}
+
+/** The count in words, with what it is out of and what it is over. */
+const dueSentence = (count: Extract<DueCount, { kind: 'counted' }>): string =>
+  `${count.due} of ${pluralise(count.onChart, 'dose')} on today’s chart due now or in the next 2 hours, on your list.`
+
+/**
+ * The tab bar: a white pill floating in the gutter, clear of the home
+ * indicator, the tab you are on a filled purple pill inside it. A tab not
+ * built yet opens a short sheet saying so (docs/MOBILE_APP_SHELL.md §3).
+ * Tapping the tab you are on pops it to its root.
+ *
+ * **One badge, on Medication**, because doses are the only thing here on a
+ * clock. A badge is a bare number by nature, so its denominator and scope are
+ * in the tab's accessible name and in the sheet it opens.
  */
 function TabBar({ active, onTap }: { active: TabId; onTap: (tab: TabId) => void }) {
   const [open, setOpen] = useState(false)
   /* Kept after closing, so the sheet keeps its words while it falls. */
   const [shown, setShown] = useState<Extract<TabItem, { kind: 'not_built' }>>()
+  const count = useDueCount()
+  const badged = (item: Extract<TabItem, { kind: 'not_built' }>) =>
+    item.clock && count.kind === 'counted' && count.due > 0 ? count : undefined
+
   return (
     <nav className={styles.tabBar} aria-label="Main navigation">
-      {TAB_ITEMS().map((item) =>
-        item.kind === 'built' ? (
-          <a
-            key={item.label}
-            href={pathOf(ROOT_OF[item.tab])}
-            className={[
-              styles.tab,
-              styles.press,
-              item.tab === active ? styles.tabActive : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-            aria-current={item.tab === active ? 'page' : undefined}
-            onClick={(event) => {
-              event.preventDefault()
-              onTap(item.tab)
-            }}
-          >
-            <Icon name={item.icon} size={24} />
-            <span className={styles.tabLabel}>{item.label}</span>
-          </a>
-        ) : (
-          <button
-            key={item.label}
-            type="button"
-            className={`${styles.tab} ${styles.press} ${styles.tabNotBuilt}`}
-            aria-label={`${item.label}, not built`}
-            aria-haspopup="dialog"
-            data-built="false"
-            onClick={() => {
-              setShown(item)
-              setOpen(true)
-            }}
-          >
-            <Icon name={item.icon} size={24} />
-            <span className={styles.tabLabel}>{item.label}</span>
-          </button>
-        ),
-      )}
+      <div className={styles.tabPill}>
+        {TAB_ITEMS().map((item) => {
+          if (item.kind === 'built')
+            return (
+              <a
+                key={item.label}
+                href={pathOf(ROOT_OF[item.tab])}
+                className={[
+                  styles.tab,
+                  styles.press,
+                  item.tab === active ? styles.tabActive : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                aria-current={item.tab === active ? 'page' : undefined}
+                onClick={(event) => {
+                  event.preventDefault()
+                  onTap(item.tab)
+                }}
+              >
+                <Icon name={item.icon} size={24} />
+                <span className={styles.tabLabel}>{item.label}</span>
+              </a>
+            )
+          const badge = badged(item)
+          return (
+            <button
+              key={item.label}
+              type="button"
+              className={`${styles.tab} ${styles.press}`}
+              aria-label={`${item.label}, not built${badge === undefined ? '' : `. ${dueSentence(badge)}`}`}
+              aria-haspopup="dialog"
+              data-built="false"
+              onClick={() => {
+                setShown(item)
+                setOpen(true)
+              }}
+            >
+              <Icon name={item.icon} size={24} />
+              <span className={styles.tabLabel}>{item.label}</span>
+              {badge === undefined ? null : (
+                <span className={styles.tabBadge} aria-hidden="true" data-badge>
+                  {formatCount(badge.due)}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
       {shown === undefined ? null : (
         <Sheet open={open} onOpenChange={setOpen} title={shown.label} cancel="Done">
+          {shown.clock && count.kind === 'counted' ? <p>{dueSentence(count)}</p> : null}
           <ActLine kind="not_built">{`${shown.label} is not built yet on the phone.${shown.note}`}</ActLine>
         </Sheet>
       )}

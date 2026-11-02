@@ -17,6 +17,7 @@ import type {
   ResidentId,
 } from '@/data/types'
 import { useSession, useSignedIn } from '@/app/session/use-session'
+import type { Answer } from '@/app/session/capabilities'
 import { useViewer } from '@/app/session/use-viewer'
 import { Icon } from '@/components/icon/Icon'
 import { ActionCard } from '@/components/layout/ActionCard'
@@ -37,6 +38,7 @@ import { withoutNoteToday } from '@/features/notes/care-notes-views'
 import { formatCount, formatLateness, pluralise, zonedDate } from '@/lib/format'
 import { SHIFT_NAMES, shiftAt } from '@/lib/shift'
 import { VOCABULARY } from '@/lib/vocabulary-choice'
+import { assertNever } from '@/lib/assert-never'
 import {
   noListYetLine,
   scopeDenominator,
@@ -93,9 +95,7 @@ export function TodayScreen() {
         getResidentsBySite(activeSite.id),
         getRound(activeSite.id).then(({ records }) => records),
         getCareNotesForSite(activeSite.id),
-        getOmissions(activeSite.id, ninetyDaysBefore(at)).then(
-          ({ omissions }) => omissions,
-        ),
+        getOmissions(activeSite.id, aDayBefore(at)).then(({ omissions }) => omissions),
         getHandoverBoard(activeSite.id)
           .then((board): TodayData['unsigned'] => board.unsigned)
           .catch((): TodayData['unsigned'] => 'no_board'),
@@ -161,28 +161,65 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
   const quiet = withoutNoteToday(mine, data.notes, activeSite.timeZone, at).length
 
   /*
-   * Each late thing with who it is about, so a row can push that record. Built
-   * per person and per omission from the dashboard's own builders, rather than
-   * read back out of an item's id.
+   * **What this reader can act on now, and nothing wider.** The first version
+   * counted ninety days of omissions, every review past its date and every
+   * unsigned handover the home has, so a senior carer saw 1,018 "late": true
+   * arithmetic over a population nobody on a shift can act on. Each part is
+   * now scoped, and says its scope:
+   *
+   * - doses: today's, still open, on the reader's list;
+   * - reviews: on the list, and only where the role table lets this reader
+   *   conduct one, because a list of acts somebody may not take is not theirs;
+   * - handovers: today's, and only for a reader who may sign one.
+   *
+   * Each late thing keeps who it is about, so a row can push that record.
    */
   const about = new Map<string, ResidentId>()
   const late: LateItem[] = []
   for (const omission of data.omissions) {
     if (!ids.has(omission.record.residentId)) continue
+    if (omission.record.date !== today || omission.closure.kind !== 'open') continue
     for (const item of fromOmissions([omission])) {
       about.set(item.id, omission.record.residentId)
       late.push(item)
     }
   }
-  for (const person of mine)
-    for (const item of fromReviews([person], today)) {
-      about.set(item.id, person.id)
-      late.push(item)
+  const reviewing = viewer.ask('conduct_review')
+  if (reviewing.kind === 'yes')
+    for (const person of mine) {
+      if (viewer.ask('conduct_review', person.id).kind !== 'yes') continue
+      for (const item of fromReviews([person], today)) {
+        about.set(item.id, person.id)
+        late.push(item)
+      }
     }
-  if (data.unsigned !== 'no_board') late.push(...fromHandovers(data.unsigned, today))
+  const signing = viewer.ask('sign_handover')
+  if (signing.kind === 'yes' && data.unsigned !== 'no_board')
+    late.push(
+      ...fromHandovers(
+        data.unsigned.filter((session) => session.date === today),
+        today,
+      ),
+    )
   const lateItems = byOldest(late)
   const shown = ofKind(lateItems, filter)
   const chosen = LATE_FILTERS.find((entry) => entry.id === filter) ?? LATE_FILTERS[0]
+  const [doseKind, reviewKind, handoverKind] = LATE_FILTERS.filter(
+    (entry) => entry.id !== 'everything',
+  ).map((entry) => ofKind(lateItems, entry.id).length)
+
+  /* Each part of the figure, with its own scope, or why it is not counted. */
+  const parts = [
+    `${pluralise(doseKind ?? 0, 'dose')} missed today, of ${pluralise(todays.length, 'dose')} on today’s chart`,
+    reviewing.kind === 'yes'
+      ? `${pluralise(reviewKind ?? 0, 'review')} past its date`
+      : `Reviews are not counted: ${reasonOf(reviewing)}`,
+    data.unsigned === 'no_board'
+      ? 'No handover board at this home, so no handover is counted'
+      : signing.kind === 'yes'
+        ? `${pluralise(handoverKind ?? 0, 'handover')} from today not countersigned`
+        : `Handovers are not counted: ${reasonOf(signing)}`,
+  ]
 
   return (
     <>
@@ -190,22 +227,19 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
         <ActionCard
           kicker="Already late"
           figure={formatCount(lateItems.length)}
-          of={`${lateItems.length === 1 ? 'thing' : 'things'} past its date`}
+          of={`${lateItems.length === 1 ? 'thing' : 'things'} late that you can act on now`}
           detail={
-            <p>
-              {LATE_FILTERS.filter((entry) => entry.id !== 'everything')
-                .map(
-                  (entry) =>
-                    `${entry.label} ${formatCount(ofKind(lateItems, entry.id).length)}`,
-                )
-                .join(' · ')}
-            </p>
+            <ul className={styles.items}>
+              {parts.map((part) => (
+                <li key={part}>{part}</li>
+              ))}
+            </ul>
           }
           footLabel="Read in this order"
           footValue="Longest past its date first"
           action={
             lateItems.length === 0 ? (
-              <span>Nothing is past its date</span>
+              <span>Nothing is late for you to act on</span>
             ) : (
               <button
                 type="button"
@@ -224,9 +258,6 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
       </div>
       <p className={`${styles.quiet} ${styles.gutter}`}>
         {scopeNote(viewer.scope, activeSite.name)}
-        {data.unsigned === 'no_board'
-          ? ' This home has no handover board, so no handover is counted.'
-          : ''}
       </p>
 
       <div className={styles.tiles}>
@@ -389,7 +420,27 @@ function NothingCounted({ atHome }: { atHome: number }) {
   )
 }
 
-/** Ninety days of omissions, the window the desktop dashboard reads. */
-function ninetyDaysBefore(at: IsoDateTime): IsoDateTime {
-  return new Date(new Date(at).getTime() - 90 * 86_400_000).toISOString() as IsoDateTime
+/**
+ * A day of omissions, enough to hold all of today in the home's zone: today's
+ * are picked out by their date, and nothing older is read.
+ */
+function aDayBefore(at: IsoDateTime): IsoDateTime {
+  return new Date(new Date(at).getTime() - 86_400_000).toISOString() as IsoDateTime
+}
+
+/** The role table's line for an act this reader may not take. */
+function reasonOf(answer: Exclude<Answer, { kind: 'yes' }>): string {
+  switch (answer.kind) {
+    case 'not_your_role':
+    case 'not_the_author':
+      return answer.reason
+    case 'not_stated':
+    case 'contradicted':
+      return answer.question
+    case 'not_on_your_list':
+    case 'no_list_yet':
+      return noListYetLine
+    default:
+      return assertNever(answer)
+  }
 }

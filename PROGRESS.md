@@ -2464,3 +2464,32 @@ The first phone phase read as a responsive web page at phone width. This one reb
 **Still failing, unchanged:** the four BST-dated tests (clocks went back 25/10), and the vocabulary ratchet at the same +2 as the first phone phase.
 
 **Not seen in a browser this phase**: the browser connection was gone. Pushes, the sheet's drag and the tab scroll memory are covered by tests only as far as jsdom can see them, which excludes animation and real scrolling.
+
+---
+
+## Phone: the late figure's population, and the floating tab bar (02/11/2026)
+
+**A four-figure count was a scope defect.** Today's "Already late" counted ninety days of omissions, every review past its date and every unsigned handover the home has ever had: **1,018 for a senior carer, 161 for Ngozi Eze**. Measured against the fixtures: 1,018 omissions across the home in 90 days, 161 on Eze's four residents; 8 open omissions today across the home, 1 on Eze's list; 10 reviews past their date across the home, 0 on Eze's list; 1 unsigned handover in all history, 0 from today. No fixture was touched.
+
+It now counts what this reader can act on now: doses missed **today**, still open, on their list; reviews on their list only where the role table lets them conduct one (`conduct_review`); handovers from **today** only for a reader who may sign one (`sign_handover`). Each part is listed under the figure with its own scope, and a part left out says why in the role table's words.
+
+| Count | Population | Filter it carries |
+|---|---|---|
+| Today: Already late (fixed) | doses missed today, open, on your list; reviews you may conduct; today's handovers you may sign | each part listed in the card; scope note beneath |
+| Today: Due now or in the next 2 hours | doses on today's chart, on your list | "of N doses on today's chart, nothing recorded yet" |
+| Today: Not written up today | your list, today | "of your N residents" |
+| Today: Doses past their window | doses on today's chart, on your list | "of N doses on today's chart" |
+| Today: late list rows, picker counts | the same as Already late | "N of M" in the picker |
+| Tab bar: Medication badge (new) | as Due now, on your list, today | in the accessible name and the sheet |
+| People: subtitle | your list / the home | `scopeLine` / "28 residents at Rosewood Court, by room" |
+| People: "N of these M open from here" | the home, or search results | the list it opens |
+| Your list row: "and N more" | one person, today | the row's own subject |
+| Record: "2 of 5 doses not recorded" | one person, one round, today | the round |
+| Search: "N of 28 match" | the home | the query |
+| Nobody assigned: "has 28 residents" | the home | the home's name |
+
+A care worker's late figure is now 0 or 1 on these fixtures; a senior carer's is the home's open omissions today plus ten reviews: a real finding, uncapped.
+
+**The floating pill**: white, in the gutter, soft shadow, 52px tabs, the active one a filled purple pill. One badge, on Medication. Departures, each from a standing rule: 8px padding not 7 and a 20px badge not 19 (the 4px scale), and the badge on `--status-critical-ink` because white on the critical fill is about 4.2:1 at 11px.
+
+**Mutations:** restoring ninety days and dropping the today filter fails both late-scope tests; a badge on More fails the badge test; removing the floating container's safe area fails the guard. **Not observable with these fixtures**: a care worker counted reviews they may not conduct — Eze's list has no overdue reviews, so removing the role check changes nothing a test can see.

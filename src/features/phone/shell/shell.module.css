@@ -16,6 +16,12 @@
 
 /* The app fills the viewport: header, stack, tab bar. Fixed by construction. */
 .app {
+  /* How much of the bottom of the screen the floating tab bar covers. */
+  --tab-clearance: calc(
+    var(--space-48) + var(--space-4) + var(--space-8) * 2 +
+      max(var(--space-20), env(safe-area-inset-bottom))
+  );
+
   position: fixed;
   inset: 0;
   display: flex;
@@ -185,11 +191,12 @@
   -webkit-overflow-scrolling: touch;
 }
 
+/* Clear of the floating tab bar, so the last row can be scrolled above it. */
 .paneBody {
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
-  padding-bottom: var(--space-32);
+  padding-bottom: calc(var(--tab-clearance) + var(--space-16));
 }
 
 .largeTitle {
@@ -218,7 +225,8 @@
   flex: none;
   flex-direction: column;
   gap: var(--space-8);
-  padding: var(--space-12) var(--layout-gutter-compact);
+  padding: var(--space-12) var(--layout-gutter-compact)
+    calc(var(--tab-clearance) + var(--space-12));
   border-top: 1px solid var(--border-subtle);
   background-color: var(--bg-surface);
 }
@@ -245,17 +253,34 @@
 
 /* -------------------------------------------------------------- tab bar */
 
-/* §5. Clear of the home indicator on every phone that has one. */
+/*
+ * §5. A pill that floats over the content in the gutter, clear of the home
+ * indicator: the container is the gutter and the safe area, and lets taps
+ * through; the pill inside it is the bar.
+ */
 .tabBar {
-  display: flex;
-  flex: none;
-  padding: var(--space-4) var(--space-8)
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 4;
+  padding: 0 var(--layout-gutter-compact)
     max(var(--space-20), env(safe-area-inset-bottom));
-  border-top: 1px solid var(--border-subtle);
-  background-color: var(--bg-surface);
+  pointer-events: none;
 }
 
+.tabPill {
+  display: flex;
+  padding: var(--space-8);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-overlay);
+  pointer-events: auto;
+}
+
+/* 52px: a thumb target, icon above an 11px label. */
 .tab {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -263,8 +288,9 @@
   align-items: center;
   justify-content: center;
   min-width: 0;
-  min-height: var(--space-48);
-  color: var(--ink-500);
+  min-height: calc(var(--space-48) + var(--space-4));
+  border-radius: var(--radius-pill);
+  color: var(--ink-700);
   font-size: var(--text-micro-size);
   line-height: var(--text-micro-line);
   font-weight: var(--weight-semibold);
@@ -273,11 +299,9 @@
 }
 
 .tabActive {
-  color: var(--purple-600);
-}
-
-.tabNotBuilt {
-  color: var(--ink-400);
+  background-color: var(--purple-600);
+  color: var(--bg-surface);
+  font-weight: var(--weight-bold);
 }
 
 .tabLabel {
@@ -285,6 +309,27 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* A count on a clock, on one tab only. The critical ink rather than the
+   critical fill: white on the fill is under 4.5:1 at this size. */
+.tabBadge {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--space-20);
+  height: var(--space-20);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  background-color: var(--status-critical-ink);
+  color: var(--bg-surface);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------------------------------------------------------------- sheet */

@@ -368,6 +368,9 @@ describe('the phone: one record', () => {
 })
 
 describe('the phone: today', () => {
+  const figureOf = (card: HTMLElement) =>
+    Number(card.querySelector('[data-numeric]')?.textContent?.replace(/,/g, ''))
+
   it('counts over the reader’s list, with every figure out of something', async () => {
     openAt('/m', staffEze.id)
     const today = front('today')
@@ -384,8 +387,33 @@ describe('the phone: today', () => {
     ).toBeTruthy()
   })
 
-  it('pushes the record a late row is about, onto the Today stack', async () => {
+  it('counts late only what this reader can act on now, and says what it leaves out', async () => {
     openAt('/m', staffEze.id)
+    const card = (await within(front('today')).findByText('Already late')).closest(
+      '[data-action-card]',
+    ) as HTMLElement
+    expect(
+      within(card).getByText(/missed today, of [\d,]+ doses? on today’s chart$/),
+    ).toBeTruthy()
+    expect(within(card).getByText(/^Reviews are not counted: .+\.$/)).toBeTruthy()
+    expect(within(card).getByText(/^Handovers are not counted: .+\.$/)).toBeTruthy()
+    // Four residents and one day: a care worker's late figure is a handful.
+    expect(figureOf(card)).toBeLessThan(40)
+  })
+
+  it('counts a senior carer’s reviews, and no history beyond today', async () => {
+    openAt('/m', staffAkinyemi.id, 'site-rosewood-court')
+    const card = (await within(front('today')).findByText('Already late')).closest(
+      '[data-action-card]',
+    ) as HTMLElement
+    expect(within(card).getByText(/^[\d,]+ reviews? past its date$/)).toBeTruthy()
+    expect(within(card).queryByText(/^Reviews are not counted/)).toBeNull()
+    // Ninety days of omissions put 1,018 here; one day at one home cannot.
+    expect(figureOf(card)).toBeLessThan(100)
+  })
+
+  it('pushes the record a late row is about, onto the Today stack', async () => {
+    openAt('/m', staffAkinyemi.id, 'site-rosewood-court')
     const today = front('today')
     const late = (
       await within(today).findByRole('heading', { name: 'Already late, oldest first' })
@@ -397,12 +425,11 @@ describe('the phone: today', () => {
   })
 
   it('filters the late list from a picker sheet', async () => {
-    openAt('/m', staffEze.id)
+    openAt('/m', staffAkinyemi.id, 'site-rosewood-court')
     const today = front('today')
     const late = (
       await within(today).findByRole('heading', { name: 'Already late, oldest first' })
     ).closest('section') as HTMLElement
-    const before = within(late).queryAllByRole('listitem').length
     fireEvent.click(within(late).getByRole('button', { name: /Everything late/ }))
     const sheet = await screen.findByRole('dialog', { name: 'Show' })
     const reviews = within(sheet)
@@ -411,8 +438,8 @@ describe('the phone: today', () => {
     fireEvent.click(reviews as HTMLElement)
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     const after = within(late).queryAllByRole('listitem')
-    expect(after.length).toBeLessThan(before)
-    for (const row of after) expect(row.textContent).toMatch(/past its date/)
+    expect(after.length).toBeGreaterThan(0)
+    for (const row of after) expect(row.textContent).toMatch(/past its (review )?date/)
   })
 
   it('counts nothing for a reader nobody has given a list', async () => {
@@ -422,5 +449,46 @@ describe('the phone: today', () => {
       await within(today).findByText('Nobody has given you a list of residents yet.'),
     ).toBeTruthy()
     expect(within(today).queryByText('Already late')).toBeNull()
+  })
+})
+
+describe('the phone tab bar', () => {
+  it('carries a badge on Medication only, its denominator and scope in the name', async () => {
+    // The fixture clock sits in the nearest round running, so a whole home has
+    // doses in their window.
+    openAt('/m/people', staffAkinyemi.id, 'site-rosewood-court')
+    const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+    const badge = await waitFor(
+      () => {
+        const found = nav.querySelector('[data-badge]')
+        if (found === null) throw new Error('no badge yet')
+        return found
+      },
+      { timeout: 4000 },
+    )
+    expect(nav.querySelectorAll('[data-badge]')).toHaveLength(1)
+    const tabButton = badge.closest('button') as HTMLElement
+    expect(tabButton.getAttribute('aria-label')).toBe(
+      `Medication, not built. ${badge.textContent} of ${
+        /of ([\d,]+ doses?) on/.exec(tabButton.getAttribute('aria-label') ?? '')?.[1]
+      } on today’s chart due now or in the next 2 hours, on your list.`,
+    )
+    fireEvent.click(tabButton)
+    const sheet = await screen.findByRole('dialog', { name: 'Medication' })
+    expect(
+      within(sheet).getByText(/due now or in the next 2 hours, on your list\.$/),
+    ).toBeTruthy()
+  })
+
+  it('draws no badge for a reader with no list', async () => {
+    openAt('/m/people', staffOsei.id)
+    await within(tab('people')).findByText(
+      'Nobody has given you a list of residents yet.',
+    )
+    const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+    expect(nav.querySelectorAll('[data-badge]')).toHaveLength(0)
+    expect(
+      within(nav).getByRole('button', { name: 'Medication, not built' }),
+    ).toBeTruthy()
   })
 })
