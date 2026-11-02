@@ -52,6 +52,7 @@ import {
   careNotesToday,
   carePlanDomains,
   consents,
+  currentRound,
   dosesPastTheirWindow,
   dueSoon,
   flaggedForAttention,
@@ -527,16 +528,4 @@ function IncidentsBar({ incidents }: { incidents: Incident[] }) {
 /** Ninety days of omissions, the window the omissions screen itself reads. */
 function ninetyDaysBefore(at: IsoDateTime): IsoDateTime {
   return new Date(new Date(at).getTime() - 90 * 86_400_000).toISOString() as IsoDateTime
-}
-
-/** The round whose hour the home is in, for the column that is marked current. */
-function currentRound(at: IsoDateTime, timeZone: string): string | undefined {
-  const wall = new Date(at)
-  const minutes = wall.getHours() * 60 + wall.getMinutes()
-  void timeZone
-  return [...ROUND_TIMES].reverse().find((round) => {
-    const [hours, mins] = round.split(':').map(Number)
-    const start = (hours ?? 0) * 60 + (mins ?? 0)
-    return minutes >= start && minutes < start + 60
-  })
 }

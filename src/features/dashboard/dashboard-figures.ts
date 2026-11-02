@@ -7,6 +7,8 @@ import type {
   ResidentId,
 } from '@/data/types'
 import type { MarRecord } from '@/data/fixtures/medications'
+import { roundInProgressAt } from '@/data/fixtures/rounds'
+import { zonedWallClock, type TimeZone } from '@/lib/format'
 import { MEDICATION_LOOKAHEAD_HOURS } from '@/lib/shift'
 import {
   carePlanGaps,
@@ -211,3 +213,17 @@ export function roundCounts(
 /** The residents a figure is counted over, as ids, for a scoped filter. */
 export const idsOf = (residents: Resident[]): Set<ResidentId> =>
   new Set(residents.map((resident) => resident.id))
+
+/**
+ * The round the home is in at an instant, for the column marked current, **on
+ * the home's clock**.
+ *
+ * It read `getHours()`, the machine's clock, and was handed the site's zone and
+ * discarded it (`void timeZone`). On a machine an hour ahead of UTC all year
+ * that agreed with London in summer and marked no round at all at 20:20 in
+ * winter. Which round is running is asked of `roundInProgressAt`, its owner.
+ */
+export function currentRound(at: IsoDateTime, timeZone: TimeZone): string | undefined {
+  const wall = new Date(zonedWallClock(at, timeZone))
+  return roundInProgressAt(wall.getUTCHours() * 60 + wall.getUTCMinutes())
+}

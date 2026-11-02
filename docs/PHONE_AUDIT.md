@@ -134,7 +134,7 @@ Today's figures come from the desktop dashboard's own functions, so the two cann
 
 **Known wrong**
 - **`SessionExpiry` carries `@media (width < 1024px)`.** Inside the frame on a laptop the query sees the 1440 window, so the expiry bar is drawn in its desktop form inside a phone. On a real phone it is drawn compact. Not looked at; `check-app-shell` cannot see it, because it reads only the phone's own stylesheets.
-- **Dose windows read an hour off since the clocks went back (25/10/2026).** At a 20:20 clock the record says "1 of 2 doses due now, 20:00 round, until 20:00 GMT": due now, in a window that closed twenty minutes earlier. It comes from the fixtures, which is shared ground with the Admin build, and is unfixed.
+- ~~Dose windows an hour off since 25/10/2026~~ **Fixed 03/11/2026**: the fixture generator built every wall-clock time on the machine's clock. It now builds them on the home's (`src/data/fixtures/home-zone.ts`), held by a pair of tests either side of the clock change on four machine zones (`dose-window.test.ts`). See PROGRESS.md.
 - **The record's name appears twice**, in the bar title and in the subject header directly below it.
 
 **Not built, and says so**
