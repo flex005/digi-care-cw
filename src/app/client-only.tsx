@@ -447,6 +447,32 @@ const SCREENS = {
       import('@/features/home/NotFoundRoute').then((module) => module.NotFoundRoute),
     { ssr: false },
   ),
+  phoneShell: dynamic(
+    () => import('@/features/phone/PhoneShell').then((module) => module.PhoneShell),
+    { ssr: false },
+  ),
+  phoneToday: dynamic(
+    () => import('@/features/phone/TodayRoute').then((module) => module.TodayRoute),
+    { ssr: false },
+  ),
+  phoneYourList: dynamic(
+    () =>
+      import('@/features/phone/YourListRoute').then((module) => module.YourListRoute),
+    { ssr: false },
+  ),
+  phoneEveryone: dynamic(
+    () =>
+      import('@/features/phone/EveryoneRoute').then((module) => module.EveryoneRoute),
+    { ssr: false },
+  ),
+  phoneSearch: dynamic(
+    () => import('@/features/phone/SearchRoute').then((module) => module.SearchRoute),
+    { ssr: false },
+  ),
+  phoneRecord: dynamic(
+    () => import('@/features/phone/RecordRoute').then((module) => module.RecordRoute),
+    { ssr: false },
+  ),
 } satisfies Record<string, Screen>
 
 export type ScreenId = keyof typeof SCREENS

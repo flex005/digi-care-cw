@@ -2419,3 +2419,23 @@ understanding as the guard, so both knew about `’s` and both missed `’`. It 
 by reading the rendered string back and asking what it says under every term — the move
 that found the double-printed dose. **Mutating proves a guard can fail on the case you
 thought of; reading the output back finds the case you did not.**
+
+---
+
+## The phone app, Residents (02/11/2026)
+
+A second route tree under `/m` (`src/app/m/`, screens in `src/features/phone/`), in its own frame (`PhoneShell`), changing no existing route, component or test. Five screens: Your list, Everyone, Search, nobody assigned (a state of Your list), one record. Today is a placeholder; Medication and More say "not built" when tapped.
+
+**Why `/m`.** Short to type on a phone, and a phone screen and a desktop screen can never answer the same URL. A record is `/m/people/<id>`: the path does not carry the subject term, because the term is configurable.
+
+**What the brief got wrong against the record.** "All 40": Rosewood has 28 (32 across both homes). `ROSEWOOD_PEOPLE` is not exported; screens read `getResidentsBySite`. No wings exist, so groups are room ranges. The attached mockup file did not arrive; the brief text was built from.
+
+**What is outstanding** is four things and only four (`outstanding.ts`): an open omission, a given dose waiting for its second signature, a dose due now or within the look-ahead, and no care note today. Each asks the owner the dashboard asks. The quiet line names all four, because "nothing outstanding" alone would claim more than was checked. A closed omission is not outstanding.
+
+**The vocabulary ratchet rose by 2, and is left red.** It counts the term wherever it appears, import paths included, and `listName` and the scope wordings (`noListYetLine`, `scopeLine`) live in files whose names say "resident". Funnelled through one re-export in `phone-data.ts`, that is 2 counts; zero needs either a second owner of those wordings or a change to the guard, and both are worse than the number. `BEST` was not raised. Every other occurrence was designed out: types derived from the loaders (`Person`, `DoseRecord`), `getMarRecords(...).then(({ records }) => records)`, module labels from `NAV_ITEMS` sections and `VOCABULARY`, and the record's own not-on-list card rather than the desktop's (whose `resident=` prop counts).
+
+**Mutations, each confirmed landed and reversed by the same exact replacement:** room order reversed (4 tests fail), every lookup row opening (2), due ranked above missed (1), closed omissions counted (1), the empty state's refusal drawn as not-built (1).
+
+**Four existing tests fail on today's date, not on this change**: `report.test.tsx` and `round-window.test.tsx` expect BST times (`T20:20`, got `T19:20`) and the UK left BST on 25/10. Confirmed by running them with this change's tracked edits stashed. The same offset shows on the phone as a 14:00 window "until 14:00 GMT" while the moved-clock line reads 14:20 in the viewer's zone.
+
+**Not yet done for this phase:** the seven-state and both-roles screenshot review at 390 and 1440 in greyscale; a vocabulary test rendering the phone under a different term set.
