@@ -199,6 +199,13 @@
   padding-bottom: calc(var(--tab-clearance) + var(--space-16));
 }
 
+/* A screen with a primary action: the dock already clears the tab bar, so the
+   pane only needs its own breathing room. Clearing it twice left a band of
+   empty page above the dock, seen in a screenshot. */
+.paneBodyDocked {
+  padding-bottom: var(--space-32);
+}
+
 .largeTitle {
   display: flex;
   flex-direction: column;

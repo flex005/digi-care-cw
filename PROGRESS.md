@@ -2493,3 +2493,22 @@ A care worker's late figure is now 0 or 1 on these fixtures; a senior carer's is
 **The floating pill**: white, in the gutter, soft shadow, 52px tabs, the active one a filled purple pill. One badge, on Medication. Departures, each from a standing rule: 8px padding not 7 and a 20px badge not 19 (the 4px scale), and the badge on `--status-critical-ink` because white on the critical fill is about 4.2:1 at 11px.
 
 **Mutations:** restoring ninety days and dropping the today filter fails both late-scope tests; a badge on More fails the badge test; removing the floating container's safe area fails the guard. **Not observable with these fixtures**: a care worker counted reviews they may not conduct — Eze's list has no overdue reviews, so removing the role check changes nothing a test can see.
+
+---
+
+## The ratchet's +2, the four date tests, and the phone build looked at (02/11/2026)
+
+**The +2 was the phone branch, not main.** Measured in a clean worktree: 6766fa3 2167 (before later conversions lowered the best), e981c4f 2159, bbf234a 2159, 1fc183c 2161, 59c70c7 2161, 393bb6f 2161. The terminology close-out was green as reported. The two words are module specifiers in `src/features/phone/phone-data.ts`: `'@/features/residents/list-name'` and `'@/app/session/resident-scope'`. No vocabulary converts a path, and the ratchet itself places such words as "paths and specifiers — can never be converted", so the best moved to 2161 with both named beside it. Mutated: a hardcoded "Resident" in the search placeholder fails it at 2162. §8 entry written.
+
+**The four date tests are pinned to instants**: `round-window.test.tsx` at 16/09/2026 19:30 BST, `report.test.tsx` at 20:20 BST, both with a `Z`, each with its reason. Every other date in both files derives from the clock. They failed with `?at=HH:MM` and pass with the instant, which is the evidence the pin is live. §8 entry written.
+
+**Screenshots, headless Chrome at 390 × 844, @2x, colour and greyscale**, driven through the DevTools protocol from sign-in onward without a reload, as Ngozi Eze and Kwame Osei. What the pictures showed:
+
+- The pill floats in the gutter with its shadow; content scrolls behind it, the last row clears it, the active tab is a filled purple pill, the badge sits top-right of Medication and only there; Osei has no badge.
+- In greyscale the hatch carries every gap on its own: the two Today tiles, the missed dose, the missing second signature beside a "Given" pill that reads as recorded, and the nobody-assigned panel. The late row's red "Today" turns grey and still says "Today".
+- **Found and fixed:** the search field drew two clear controls (the browser's own beside ours); a record with a primary action scrolled to a band of empty page above the dock, because the pane and the dock both cleared the tab bar.
+- **Found, not fixed, shared fixtures:** since the clocks went back, Okafor's 20:00 doses read "from 19:00 GMT" — the fixture windows sit an hour early against the home's clock.
+- **Worth Frank's eye:** a root screen's bar is a white band holding only the home's name until the large title scrolls under it.
+- **Not seen:** headless Chrome reports no safe-area insets, so `env(safe-area-inset-*)` is zero in every picture and the padding is `max(20px, 0)`. Only a phone shows whether it clears the home indicator.
+
+None of the defects above was visible to the 41 jsdom tests over the same screens.

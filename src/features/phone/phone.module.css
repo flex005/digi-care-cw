@@ -261,6 +261,12 @@
   outline: none;
 }
 
+/* The browser draws its own clear control on a search field; ours is the one
+   48px target, so the native one goes. Seen only in a screenshot. */
+.searchInput::-webkit-search-cancel-button {
+  appearance: none;
+}
+
 .clear {
   display: flex;
   align-items: center;

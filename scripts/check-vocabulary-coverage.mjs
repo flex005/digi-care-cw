@@ -138,7 +138,18 @@ const BASELINE_TSX_ONLY_FILES = 85
  * forgives a regression.** The success line says when it is stale and by how
  * much, so a phase that converted something lowers it in the same commit.
  */
-const BEST = 2159
+/*
+ * **Raised once, from 2159 to 2161, on 02/11/2026, and this is why.** The phone
+ * tree (1fc183c) re-exports two owners through `src/features/phone/phone-data.ts`,
+ * and their module specifiers say the subject term: `'@/features/residents/list-name'`
+ * and `'@/app/session/resident-scope'`. A file path cannot ask the vocabulary, and
+ * this check already places such words as "paths and specifiers — can never be
+ * converted". The alternatives were a second owner of `listName` and the scope
+ * wordings, or a guard taught to skip specifiers, and both were worse than two.
+ * The rise sat red across three phone phases before it was settled; see
+ * CLAUDE.md §8. Any further rise is a regression as before.
+ */
+const BEST = 2161
 
 /**
  * Where copy lives, and therefore where this counts.

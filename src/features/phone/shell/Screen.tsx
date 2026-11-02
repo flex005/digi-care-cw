@@ -86,7 +86,13 @@ export function Screen({
             : undefined
         }
       >
-        <div className={styles.paneBody}>
+        <div
+          className={
+            primary === undefined
+              ? styles.paneBody
+              : `${styles.paneBody} ${styles.paneBodyDocked}`
+          }
+        >
           {root ? (
             <div className={styles.largeTitle}>
               <h1 className={styles.largeTitleText}>{title}</h1>

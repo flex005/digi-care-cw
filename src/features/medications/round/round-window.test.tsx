@@ -6,9 +6,17 @@ import { vi } from 'vitest'
  * giving a drug early is a clinical decision and nothing in this product can
  * make one. `round.test.tsx` is the same screen twenty minutes *into* the
  * round, where the answers are live.
+ *
+ * **Pinned to an instant, not a time of day.** `?at=19:30` named the hour and
+ * left the date to the real clock, read in the machine's zone: 19:30 on a UTC+1
+ * machine was 19:30 at Rosewood while the UK was on BST, and an hour early once
+ * the clocks went back on 25/10/2026, which put the window "open" and failed
+ * three tests on a tree nobody had touched. 16/09/2026 at 19:30 BST, written
+ * with a `Z` for the reason `mar.test.tsx` gives. Everything else here reads
+ * the fixture clock, so it moves with the pin.
  */
 vi.hoisted(() => {
-  window.history.replaceState(null, '', '/medications/round?at=19:30')
+  window.history.replaceState(null, '', '/medications/round?at=2026-09-16T18:30:00Z')
 })
 
 import { screen, within } from '@testing-library/react'
