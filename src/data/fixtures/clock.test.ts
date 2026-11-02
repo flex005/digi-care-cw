@@ -9,6 +9,7 @@ import {
   clockHref,
   now,
 } from './clock'
+import { homeMinutesOfDay } from './home-zone'
 import { ROUND_TIMES, roundInProgressAt } from './rounds'
 import { NOW } from './generate'
 
@@ -45,8 +46,9 @@ describe('the record and the screens read one clock', () => {
      * against an instant that does not announce itself is the reassurance
      * failure with the reader's own change as the cause.
      */
-    const minutes = GENERATED_AT.getHours() * 60 + GENERATED_AT.getMinutes()
-    expect(roundInProgressAt(minutes)).toBeDefined()
+    // On the home's clock. This read `getHours()`, the machine's, and agreed
+    // with a clock built on the machine's too.
+    expect(roundInProgressAt(homeMinutesOfDay(GENERATED_AT))).toBeDefined()
 
     /*
      * **One assertion per reason, and none of them derived from the code that
@@ -60,8 +62,7 @@ describe('the record and the screens read one clock', () => {
     expect(CLOCK_REQUEST.kind).toBe('nothing_asked')
     expect(CLOCK_REASON).toBe(CLOCK_INSTANT)
 
-    const realIsLive =
-      roundInProgressAt(REAL_NOW.getHours() * 60 + REAL_NOW.getMinutes()) !== undefined
+    const realIsLive = roundInProgressAt(homeMinutesOfDay(REAL_NOW)) !== undefined
 
     if (CLOCK_REASON === 'real') {
       expect(realIsLive).toBe(true)
@@ -71,9 +72,10 @@ describe('the record and the screens read one clock', () => {
       expect(CLOCK_REASON).toBe('nearest_round')
       expect(realIsLive).toBe(false)
       // Twenty minutes into the most recent round, which is what moved it.
-      expect(GENERATED_AT.getMinutes()).toBe(20)
+      const minutes = homeMinutesOfDay(GENERATED_AT)
+      expect(minutes % 60).toBe(20)
       expect(ROUND_TIMES).toContain(
-        `${String(GENERATED_AT.getHours()).padStart(2, '0')}:00`,
+        `${String(Math.floor(minutes / 60)).padStart(2, '0')}:00`,
       )
       expect(CLOCK_IS_OVERRIDDEN).toBe(true)
     }

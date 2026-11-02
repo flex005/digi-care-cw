@@ -7,7 +7,10 @@ import {
   REAL_NOW,
   clockHref,
 } from '@/data/fixtures/clock'
+import { HOME_ZONE, homeMinutesOfDay } from '@/data/fixtures/home-zone'
 import { roundInProgressAt } from '@/data/fixtures/rounds'
+import type { IsoDateTime } from '@/data/types'
+import { formatTime } from '@/lib/format'
 import {
   VOCABULARY_NEEDS_SAYING,
   VOCABULARY_REQUEST,
@@ -15,8 +18,8 @@ import {
 } from '@/lib/vocabulary-choice'
 import styles from './MovedClockLine.module.css'
 
-const hhmm = (at: Date) =>
-  `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`
+/** On the home's clock, which is the one the record was built on, never the machine's. */
+const hhmm = (at: Date) => formatTime(at.toISOString() as IsoDateTime, HOME_ZONE)
 
 /**
  * What about this record is not the default, said in one quiet line.
@@ -39,9 +42,7 @@ const hhmm = (at: Date) =>
 export function MovedClockLine() {
   if (!CLOCK_NEEDS_SAYING && !VOCABULARY_NEEDS_SAYING) return null
 
-  const round = roundInProgressAt(
-    GENERATED_AT.getHours() * 60 + GENERATED_AT.getMinutes(),
-  )
+  const round = roundInProgressAt(homeMinutesOfDay(GENERATED_AT))
 
   /*
    * **Whether the clock moved at all.** A refusal does not move it, so where a

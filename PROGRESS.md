@@ -2419,3 +2419,42 @@ understanding as the guard, so both knew about `’s` and both missed `’`. It 
 by reading the rendered string back and asking what it says under every term — the move
 that found the double-printed dose. **Mutating proves a guard can fail on the case you
 thought of; reading the output back finds the case you did not.**
+## Dose windows on the home's clock (03/11/2026)
+
+**The defect.** Since the UK left BST on 25/10/2026, every fixture time built from a clock time sat an hour early against Rosewood: Okafor's 20:00 doses read "from 19:00 GMT", and at 20:20 a dose was "due now, until 20:00". It is wrong in both builds, because the generator is shared.
+
+**The cause.** `atTime` in `generate.ts` was documented "in the site's zone" and called `setHours`, which uses the machine's zone. This machine is Africa/Lagos, UTC+1 all year, which agreed with London only while London was on BST. `daysAgo`, `monthsAgo` and `toIsoDate` did their arithmetic on the machine's calendar too. So did `clock.ts`: `?at=HH:MM`, the nearest-round fallback, and the live-round check.
+
+**What kind of instant each one is**, said before any value changed:
+- **A round, a window start, a care note's hour, an incident's hour:** wall-clock appointments on the home's clock. Their UTC instant must move with the clocks. Built wrong.
+- **A signature or an administration:** an event instant, placed minutes after the event it records. Correct once the event was.
+- **A window close (+1 hour) or an incident's `dueBy` (+48 hours):** elapsed durations. Zone-independent, and left alone.
+
+**The fix.** One owner, `src/data/fixtures/home-zone.ts`. It holds `HOME_ZONE` and builds every wall-clock instant through `instantFromZonedWallClock`. A fixture test fails if a site is ever in another zone.
+- `atTime`, `daysAgo`, `monthsAgo` and `toIsoDate` use it.
+- So do `clock.ts`, the omission round label in `medications.ts`, and the moved-clock line, which printed `getHours()`: "Real time" was the machine's.
+- So does the dashboard's current round, which took the site's zone and discarded it (`void timeZone`). It now lives in `dashboard-figures.ts` and asks `roundInProgressAt`, its owner, instead of repeating it.
+
+**The tests, and what they caught.**
+- **The pair:** `dose-window.test.ts` reads Okafor's 20:00 doses at 19:30 home time in September (BST) and in November (GMT), and requires the same local window both times. It runs on four machine zones, because on a London machine the old code was right by accident. `current-round.test.ts` does the same for the dashboard.
+- **The fixture check:** every MAR record's round equals its own due instant on its site's clock.
+- **Tests that agreed with the defect.** Three tests worked out their expected hour with `getHours()`, so they agreed with the defect by construction (CLAUDE.md §8). Two of the clock line's instants had no zone, which is half a pin. All are now on the home's clock, plus two winter cases for the line.
+
+**Mutated, each landed in code and reversed by exact replacement:**
+- `atTime` back on the machine's clock: the pair fails on Lagos, UTC and New York, and passes on London as predicted. The fixture check fails.
+- Only BST windows drifting: all four zones fail. Only GMT windows drifting: all four fail.
+- The line's render, the `?at=HH:MM` parse and the nearest round, each back on the machine's clock: a winter case fails each.
+- The current round on the machine's clock: three zones fail.
+- The omission label on the machine's clock: the fixture check fails.
+- A second site in Europe/Dublin: the zone check fails.
+
+**Checked for the same drift: 26 machine-zone reads in 10 files, plus every caller of the helpers.**
+- **Fixed:** 9 places, covering every `atTime` caller (35, including rounds, care notes, incidents and handovers).
+- **Left, and why:**
+  - **The sign-in lockout's "try again at":** not clinical. It is the reader's own clock, before any home is chosen.
+  - **Generated dates of birth:** calendar dates, now keyed through the home's day.
+  - **`ageFrom`:** compares a date of birth with the machine's today. It is off by a day only within an hour of midnight on a birthday. Raised, not fixed.
+  - **`nextReviewFrom`:** takes the **UTC** day of an instant, not the home's. A review completed between 00:00 and 01:00 BST is dated the day before, so its next due date is a day early. This is a different class from this defect: UTC rather than the machine, and a date rather than an hour. Raised, not fixed.
+- **Correct already:** incident `dueBy` and window closes (elapsed durations); shift and waking-hour arithmetic (`zonedWallClock`); lateness in days (between `IsoDate`s).
+
+**Not done here: the Admin & Manager build** (`~/Documents/digi-care`) shares `generate.ts` and `clock.ts`, and has the same defect until the same change is made there.
