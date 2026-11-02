@@ -552,3 +552,13 @@ A second route tree beside the desktop one, authorised as additive. Residents on
 - **"Your list is set in Team Management", refused through `open_settings_and_team`.** No act in `CARE_ACTS` is "change a care worker's list"; Table 3's "Settings / Team Management: Admin only" is the row that holds it, and the Admin build edits assignments there (TM-03). The fixtures show managers deciding assignments, so who actually sets a list is a question for the two PRDs together.
 - **Medication and More are drawn and not built**, and say so in a sheet when tapped. Today is built from the second phone phase.
 - **The phone gutter is 16px, not the 18px its brief asked for.** The spacing scale is 4px with one named exception (CLAUDE.md §4); an 18px step is a token decision. See `docs/MOBILE_APP_SHELL.md` §4.
+- **The phone pages lay out at a fixed 390px and let the device scale that to fit. Not to be copied into the real app.** On a handset wider than 390 the whole app is drawn bigger rather than showing more; on one narrower, smaller. It is done by the phone tree's viewport, in `src/app/m/layout.tsx`:
+
+  ```ts
+  width: 390,
+  initialScale: undefined,
+  ```
+
+  The second line exists because Next.js merges a child layout's viewport into the root layout's, and the root declares `width=device-width, initial-scale=1` for the desktop build. Left inherited, `initial-scale=1` beside `width=390` makes a 430-wide phone lay out at 430 and a 375-wide one overflow sideways. Naming the key as `undefined` removes it from the emitted tag, which reads `width=390, viewport-fit=cover`; that was checked in the HTML Next served, not assumed.
+
+  **Right here**, because this build is a design specification and a Figma capture of it is the deliverable. A fixed layout width makes every capture pixel-identical whatever device or window it is taken on, which is the whole point of `/m/sheet`, and it lets one shell fill a phone screen and sit in a 390 × 844 frame on a laptop with no width branch (`docs/MOBILE_APP_SHELL.md` §1). **Wrong in a shipping app**, where a larger screen should show more, not bigger: the real product should declare `width=device-width, initial-scale=1` and lay out fluidly at whatever width it is given. Whoever builds it should find this decision here rather than inherit the behaviour from the spec.
