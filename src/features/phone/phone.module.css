@@ -15,19 +15,22 @@
   padding: 0 var(--layout-gutter-compact);
 }
 
+/* A section heading in sentence case, bold, left; anything that continues
+   the section sits quietly at the right of the same line. Never an uppercase,
+   letter-spaced eyebrow. */
 .sectionHead {
   display: flex;
   gap: var(--space-8);
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-8) var(--layout-gutter-compact) 0;
+  padding: var(--space-16) var(--layout-gutter-compact) 0;
 }
 
 .sectionTitle {
-  color: var(--ink-500);
-  font-size: var(--text-caption-size);
-  line-height: var(--text-caption-line);
-  font-weight: var(--weight-semibold);
+  color: var(--ink-900);
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
+  font-weight: var(--weight-bold);
 }
 
 /* A full-bleed list: white, the full width, a hairline above and below. */
@@ -113,15 +116,24 @@
   box-shadow: var(--shadow-card);
 }
 
+/* A card's title and the grey line under it differ by two steps and a lot of
+   weight and tone; size is not doing the work. */
 .cardTitle {
   color: var(--ink-900);
-  font-size: var(--text-h3-size);
-  line-height: var(--text-h3-line);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
   font-weight: var(--weight-bold);
 }
 
 .body {
-  color: var(--ink-700);
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* A recorded, unremarkable value: plain text, not a pill. */
+.value {
+  color: var(--ink-900);
   font-size: var(--text-body-size);
   line-height: var(--text-body-line);
 }
@@ -322,7 +334,6 @@
   color: var(--ink-700);
   font-size: var(--text-body-size);
   line-height: var(--text-body-line);
-  font-weight: var(--weight-medium);
 }
 
 .moduleName {
@@ -341,6 +352,19 @@
   padding: 0 var(--layout-gutter-compact);
 }
 
+/*
+ * The dark card's label, in sentence case on the phone. ActionCard is shared
+ * with the desktop, where its kicker stays as it is; this reaches only the
+ * card inside Today's lead, by the attribute the card already carries.
+ */
+.lead [data-action-card] > p:first-child {
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 .tiles {
   display: flex;
   flex-wrap: wrap;
@@ -354,29 +378,29 @@
   flex-direction: column;
   gap: var(--space-4);
   min-width: 0;
-  padding: var(--space-16);
-  border-radius: var(--radius-lg);
+  padding: var(--space-20);
+  border-radius: var(--radius-xl);
   background-color: var(--bg-surface);
   box-shadow: var(--shadow-card);
 }
 
 .tileLabel {
-  color: var(--ink-500);
-  font-size: var(--text-caption-size);
-  line-height: var(--text-caption-line);
+  color: var(--ink-900);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
   font-weight: var(--weight-semibold);
 }
 
 .tileFigure {
   color: var(--ink-900);
-  font-size: var(--text-figure-size);
-  line-height: var(--text-figure-line);
-  font-weight: var(--weight-extrabold);
+  font-size: var(--text-h1-size);
+  line-height: var(--text-h1-line);
+  font-weight: var(--weight-bold);
   font-variant-numeric: tabular-nums;
 }
 
 .tileOf {
-  color: var(--ink-700);
+  color: var(--ink-500);
   font-size: var(--text-body-sm-size);
   line-height: var(--text-body-sm-line);
 }
@@ -399,12 +423,13 @@
   gap: var(--space-4);
   align-items: center;
   min-height: var(--space-48);
+  margin-right: calc(var(--space-12) * -1);
   padding: 0 var(--space-12);
   border-radius: var(--radius-pill);
   color: var(--purple-600);
   font-size: var(--text-body-sm-size);
   line-height: var(--text-body-sm-line);
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-medium);
 }
 
 .lateWhen {

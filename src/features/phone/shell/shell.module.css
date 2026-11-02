@@ -146,41 +146,59 @@
   min-width: 0;
 }
 
-/* §7. A compact bar: back on the left, the title, at most one action. */
+/*
+ * §7. A compact bar, left aligned: a small back chevron immediately before the
+ * title, at most one action on the right. No rule under it: the white bar on
+ * the grey page is edge enough.
+ */
 .bar {
   display: flex;
   flex: none;
-  gap: var(--space-4);
+  gap: var(--space-8);
   align-items: center;
-  min-height: calc(var(--space-48) + env(safe-area-inset-top));
-  padding: env(safe-area-inset-top) var(--space-4) 0;
-  border-bottom: 1px solid var(--border-subtle);
+  min-height: calc(var(--space-48) + var(--space-8) + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) var(--layout-gutter-compact) 0;
   background-color: var(--bg-surface);
+}
+
+/*
+ * The drawn chevron is 20px; the thing you tap is 48. The negative margins
+ * give the slack back, so the mark sits on the gutter and 8px from the title
+ * while the target stays a thumb's width.
+ */
+.barBack {
+  --back-slack: calc((var(--space-48) - var(--space-20)) / -2);
+
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-48);
+  height: var(--space-48);
+  margin: 0 var(--back-slack);
+  border-radius: var(--radius-pill);
+  color: var(--ink-700);
 }
 
 .barSide {
   display: flex;
   flex: none;
   align-items: center;
-  justify-content: center;
-  width: var(--space-48);
 }
 
 .barMiddle {
   display: flex;
   flex: 1;
   flex-direction: column;
-  align-items: center;
   min-width: 0;
-  text-align: center;
 }
 
 .barTitle {
   max-width: 100%;
   overflow: hidden;
   color: var(--ink-900);
-  font-size: var(--text-body-size);
-  line-height: var(--text-body-line);
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
   font-weight: var(--weight-bold);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -194,19 +212,43 @@
 /* The home, on every screen, under the title. CLAUDE.md §2. */
 .barHome {
   color: var(--ink-500);
-  font-size: var(--text-micro-size);
-  line-height: var(--text-micro-line);
-  font-weight: var(--weight-semibold);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
 }
 
-.barButton {
+/*
+ * A root screen headed by the reader: initials, their name, and a small grey
+ * line that names the shift and the home. The person is the heading.
+ */
+.personBar {
+  gap: var(--space-12);
+  min-height: calc(var(--space-64) + var(--space-8) + env(safe-area-inset-top));
+}
+
+.personText {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--space-48);
-  height: var(--space-48);
-  border-radius: var(--radius-pill);
-  color: var(--purple-600);
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.personName {
+  color: var(--ink-900);
+  font-size: var(--text-h2-size);
+  line-height: var(--text-h2-line);
+  font-weight: var(--weight-bold);
+}
+
+.personLine {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.personActions {
+  display: flex;
+  flex: none;
+  gap: var(--space-8);
 }
 
 /* §1. The one pane that scrolls. Every screen has exactly one. */
@@ -223,6 +265,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
+  padding-top: var(--space-16);
   padding-bottom: calc(var(--tab-clearance) + var(--space-16));
 }
 
@@ -237,14 +280,14 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: var(--space-16) var(--layout-gutter-compact) 0;
+  padding: 0 var(--layout-gutter-compact);
 }
 
 .largeTitleText {
   color: var(--ink-900);
-  font-size: var(--text-display-size);
-  line-height: var(--text-display-line);
-  font-weight: var(--weight-extrabold);
+  font-size: var(--text-h1-size);
+  line-height: var(--text-h1-line);
+  font-weight: var(--weight-bold);
 }
 
 .largeTitleSub {
@@ -324,7 +367,7 @@
   min-width: 0;
   min-height: calc(var(--space-48) + var(--space-4));
   border-radius: var(--radius-pill);
-  color: var(--ink-700);
+  color: var(--ink-500);
   font-size: var(--text-micro-size);
   line-height: var(--text-micro-line);
   font-weight: var(--weight-semibold);
@@ -332,9 +375,13 @@
   user-select: none;
 }
 
+/*
+ * The tab you are on, by colour and weight alone. The icon set has no solid
+ * variants, so there is no filled icon to switch to, and none is faked: no
+ * thicker stroke, no filled path, no dot.
+ */
 .tabActive {
-  background-color: var(--purple-600);
-  color: var(--bg-surface);
+  color: var(--purple-600);
   font-weight: var(--weight-bold);
 }
 

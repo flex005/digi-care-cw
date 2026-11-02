@@ -42,7 +42,6 @@ import { assertNever } from '@/lib/assert-never'
 import {
   noListYetLine,
   scopeDenominator,
-  scopeLine,
   scopeNote,
   scopeReaches,
   type DoseRecord,
@@ -114,15 +113,9 @@ export function TodayScreen() {
     <Screen
       root
       title={`Hello, ${firstName}`}
-      subtitle={`${SHIFT_NAMES[shiftAt(at, activeSite.timeZone)]} shift · ${
-        resource.kind === 'ready'
-          ? scopeLine(
-              viewer.scope,
-              resource.data.people.map((person) => person.id),
-              activeSite.name,
-            )
-          : activeSite.name
-      }`}
+      person={{
+        line: `${SHIFT_NAMES[shiftAt(at, activeSite.timeZone)]} shift · ${activeSite.name}`,
+      }}
     >
       <div className={styles.gutter}>
         <MovedClockLine />

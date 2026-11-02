@@ -377,6 +377,17 @@ describe('the phone: today', () => {
   const figureOf = (card: HTMLElement) =>
     Number(card.querySelector('[data-numeric]')?.textContent?.replace(/,/g, ''))
 
+  it('is headed by the reader, with the shift and the home under their name', async () => {
+    openAt('/m', staffEze.id)
+    const header = front('today').querySelector('header') as HTMLElement
+    expect(within(header).getByRole('heading', { level: 1 }).textContent).toBe(
+      'Hello, Ngozi',
+    )
+    expect(within(header).getByText(/^\w+ shift · Rosewood Court$/)).toBeTruthy()
+    expect(within(header).getByRole('img', { name: /Ngozi Eze/ })).toBeTruthy()
+    expect(within(header).queryByRole('button')).toBeNull()
+  })
+
   it('counts over the reader’s list, with every figure out of something', async () => {
     openAt('/m', staffEze.id)
     const today = front('today')

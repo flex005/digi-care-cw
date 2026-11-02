@@ -2526,3 +2526,15 @@ None of the defects above was visible to the 41 jsdom tests over the same screen
 **Measured in headless Chrome, not assumed:** laptop 1440 × 900, frame at (525, 28), 390 × 844, header at its top edge, tab bar ending at its bottom edge, document not scrolling, the Medication sheet inside the frame and flush with its bottom. Phone emulation at 430 and 375: layout viewport 390, frame full width; height capped at 844 against an 845–846 viewport, so about a pixel of backdrop top and bottom, and the 28px corners show a speck at the four corners of a rectangular viewport. Costs stated in docs/MOBILE_APP_SHELL.md: a phone wider than 390 shows the app scaled up rather than more of it.
 
 **Guard after the change:** 3 stylesheets, 105 rules; 1 scrolling overflow, still `.pane`; 0 viewport units; 1 `position: fixed`, on `.stage`; root locked; both safe areas set. New rules mutated and failing: `height: 100dvh` on `.app`, `position: fixed` on the tab bar and on the sheet, `width: 100vw` on the capture sheet, the root lock loosened. The capture sheet's test fails when `PhoneApp` ignores its address.
+
+## The phone, restyled "demure" (02/11/2026)
+
+Structure only, from a reference whose colour was not wanted; no colour, token, screen or copy changed beyond the headings and Today's line.
+
+- **Today is headed by the reader.** `Screen` takes `person`: a brand-tone `Avatar` with the reader's initials (the desktop account pill's own tone), "Hello, Ngozi" as the h1 at 20px bold, and a 13px line naming the shift and the home. It is the bar, so it does not scroll and the home stays on screen (CLAUDE.md §2). A test holds the heading, the line and the absence of buttons; mutated by dropping the home from the line, it failed. **The first mutation did not land**: a `grep -c` on a pattern holding `·` and `${…}` counted 0 and the `sed` after it changed nothing, so its pass reported on untouched code. Redone as an exact replacement asserted to occur once, it failed as it should. §8's first entry, again.
+- **A pushed screen's bar is left aligned**, a 20px chevron 8px before a 17px title, the home under it at 12px. The 48px target is kept with negative margins equal to the slack. No rule under the bar.
+- **Headings, cards, tiles quieter.** Section titles 12px grey to 17px bold ink; card titles 17 to 15 bold, descriptions 15 to 13 grey; tile figures 40 extrabold to 24 bold (the dark card keeps `--text-hero`); Residents' large title 32 extrabold to 24 bold. The pane gained 16px at its top, which the person bar needed and the record's first card was missing (it sat against the subject band).
+- **The tab bar marks the active tab by colour and weight only**; the filled pill is gone, inactive tabs are `--ink-500`.
+- **The hatch is untouched.** Nothing in `unrecorded.module.css`, `<Unrecorded>` or `<GapCount>` changed. On Today it is now the loudest thing below the dark card, which is the intent.
+
+Before and after at 390, colour and greyscale, in the session's scratchpad (`shots/before`, `shots/after`).

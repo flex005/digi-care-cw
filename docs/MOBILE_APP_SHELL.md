@@ -56,7 +56,7 @@ The tab bar's floating container takes `padding-bottom: max(var(--space-20), env
 
 **It floats**: a white pill in the 16px gutter with a soft shadow, over the content, not a full-width bar welded to the bottom edge. That is the part that reads as an app rather than a website footer. The pane's last row and a screen's primary action both clear it (`--tab-clearance`).
 
-- Four equal tabs, 52px tall, icon above an 11px label. The tab you are on is a filled `--purple-600` pill inside the bar, white, weight 700; the others are `--ink-700`, weight 600.
+- Four equal tabs, 52px tall, icon above an 11px label. **The tab you are on is marked by colour and weight alone**: icon and label in `--purple-600`, the label at 700; the others `--ink-500` at 600. The reference's line-for-inactive, solid-for-active icons are not available: the Aligned Line Icons set has no solid variants and CLAUDE.md §3 forbids taking one from anywhere else. A solid icon is never faked, by a thicker stroke, a filled path, or a dot under the tab. (Until 02/11/2026 the active tab was a filled purple pill; Frank asked for it to go in the "demure" restyle.)
 - **One badge, on Medication**, because it is the only thing on a clock: doses due now or in the next two hours, on your list, today, the same figure as Today's tile. A badge is a bare number, so its denominator and scope are in the tab's accessible name and in the sheet the tab opens.
 - **Three departures from the brief, each from a standing rule:** 8px inner padding, not 7, and a 20px badge, not 19, because the spacing scale is 4px (CLAUDE.md §4); and the badge is `--status-critical-ink`, not the critical fill, because white on the fill is about 4.2:1, under the 4.5:1 an 11px label needs.
 
@@ -68,9 +68,15 @@ Desktop primitives used inside the phone tree bring their own stylesheets; a con
 
 ## 7. The title bar is not a document heading
 
-A screen has a compact bar: back chevron on the left, title in the middle, at most one action on the right. **A root screen has a large title in its content that collapses into the bar as it scrolls away.** No breadcrumbs, no logo linking home, no footer, no "back to top".
+**A pushed screen's bar is left aligned: a small back chevron immediately before the title, on the same line**, 20px drawn, 8px from the title, and at most one action on the right. The chevron's tap target stays 48px; negative margins hand the slack back so the drawn mark sits on the gutter. No breadcrumbs, no logo linking home, no footer, no "back to top".
 
-**The home is always in the bar** (CLAUDE.md §2), as a caption under the title, on every screen.
+**Today is headed by the reader, not a title** (`Screen`'s `person`): their initials in a 48px circle, "Hello, <first name>" in bold at 20px, and under it a 13px grey line naming the shift and the home. The bar does not scroll, so the home is always on screen. Room is left for at most two 44px round icon buttons on the right; none is drawn, because there is no act on Today to put in one, and an icon button that does nothing would need an ActLine to say so. **Another root screen** (Residents) has a 24px bold title in its content that collapses into the bar as it scrolls away.
+
+**The home is always in the bar** (CLAUDE.md §2): as a caption under the title, or in the reader's line on Today.
+
+### Quiet, by weight and tone
+
+Frank's word for the phone is "demure": lots of white, small secondary text, weight and colour doing the work instead of size and chrome. Section headings are sentence case, bold, 17px, left, with anything that continues the section quietly on the right of the same line at 13px; **never an uppercase, letter-spaced eyebrow**. A card's title is 15px bold over a 13px grey line. A row is a circle, a 15px semibold name over a 13px grey line, and any value on the right. **The hatch does not get quieter with the rest** (CLAUDE.md §1): it keeps its weight, its dashed edge and its band, and if it is now the loudest thing on a screen, that is the design working.
 
 ## 8. One primary action, in the thumb zone
 

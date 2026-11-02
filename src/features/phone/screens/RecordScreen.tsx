@@ -128,7 +128,7 @@ export function RecordScreen({ id }: { id: ResidentId }) {
 function SubjectHeader({ person }: { person: Person }) {
   return (
     <div className={styles.subject} data-subject-header>
-      <Avatar photo={person.photo} name={person.fullLegalName} size="large" />
+      <Avatar photo={person.photo} name={person.fullLegalName} size="medium" />
       <div className={styles.subjectText}>
         <h1 className={styles.subjectName}>{person.fullLegalName}</h1>
         <p className={styles.subjectFacts}>
@@ -199,7 +199,7 @@ function Allergies({ status }: { status: AllergyStatus }) {
       case 'none_known':
         return (
           <div className={styles.item}>
-            <p className={styles.body}>No known allergies</p>
+            <p className={styles.value}>No known allergies</p>
             <p className={styles.byline}>
               {recorded(status.recordedBy.displayName, status.recordedAt)}
             </p>
