@@ -2581,4 +2581,14 @@ Frank captures from `/m`: one phone, driven by its own tab bar, captured with ht
   - **`nextReviewFrom`:** takes the **UTC** day of an instant, not the home's. A review completed between 00:00 and 01:00 BST is dated the day before, so its next due date is a day early. This is a different class from this defect: UTC rather than the machine, and a date rather than an hour. Raised, not fixed.
 - **Correct already:** incident `dueBy` and window closes (elapsed durations); shift and waking-hour arithmetic (`zonedWallClock`); lateness in days (between `IsoDate`s); the phone's outstanding list (`zonedDate`).
 
-**Not done here: the Admin & Manager build** (`~/Documents/digi-care`) shares `generate.ts` and `clock.ts`, and has the same defect until the same change is made there.
+**Not done here: the Admin & Manager build** (`~/Documents/digi-care`) shares `generate.ts` and `clock.ts`, and has the same defect until the same change is made there. *(Ported there 03/11/2026, branch `home-clock`, 1cc71f9; see the Admin-owes table in DEPARTURES.md.)*
+
+## The hour-drift fix, ported to the Admin build (03/11/2026)
+
+Ported to `~/Documents/digi-care` on branch `home-clock` (1cc71f9), as the same `home-zone.ts` rather than a second fix. The Admin-owes table in DEPARTURES.md has the row, marked closed. **There was no row before**: this fix's PROGRESS entry recorded the debt, and the table, which exists so debts are not scattered across entries, never got it. That is the table's own failure mode, caught on the way out.
+
+**What the port found that bears on this build:**
+- **Machine-clock reads.** The inventory here searched for `get`/`set` calls and missed `toTimeString`. Re-searched with the wider pattern, this build has none, so the 26 stands for that class. It did not count the other class at all: 7 `toISOString().slice(0, 10)` reads here.
+  - Some are calendar arithmetic on UTC-midnight dates, which is correct.
+  - Some are `nextReviewFrom`'s UTC day, already raised.
+- **The live-round check in `clock.ts`** (whether the real time is mid-round) is held by no test here. It needs a case at 14:30 home time in winter on a machine an hour ahead, where the banner must stay silent. The Admin build now has that case in its banner test; this build's clock-line test does not.
