@@ -12,12 +12,13 @@ Rules for everything under `/m` (`src/app/m/`, `src/features/phone/`). CLAUDE.md
 
 On a web page everything scrolls together, header included. Get this wrong and nothing else here rescues it.
 
-- Each screen on a stack has its own `.pane`, and only the top one is visible, so at any moment one pane scrolls. A second scrolling element inside a screen is a finding.
+- **One scrolling pane per layer.** Each screen on a stack has its own `.pane`, and only the top one is visible. A full-height sheet is a layer over the screen, not a pane inside it, and its body is the `.pane` of that layer. A second scrolling element inside a screen, or inside a sheet, is a finding.
+- **While a full-height sheet is open, the screen beneath is locked**: its tab is made `inert` and its pane stops scrolling, and both are restored when the sheet closes (`Sheet.tsx`). Without the lock, "one per layer" would quietly become two. At any moment the person can scroll exactly one thing. A test opens the composer and checks the lock, and fails when the lock is removed.
 - The shell is a flex column filling **its container**: header, stack, tab bar. Fixed by construction, not by `position: fixed` on each part.
 
 ### The app sizes to its container, never the viewport
 
-**On a laptop the container is a 390 × 844 frame; on a phone it is the screen. One shell, two containers, and no branch on width.** The frame (`.frame`) is 390 × 844 with `max-width` and `max-height` of 100%, `position: relative`, 28px radius and the page shadow, centred on `.stage`, a plain dark backdrop and the one `position: fixed` element in the tree. Everything in the app is `position: absolute` within the frame or in its flex flow: the header, the floating tab bar, and sheets, which portal into the frame rather than `<body>` so they rise inside the phone.
+**On a laptop the container is a 390 × 844 frame; on a phone it is the screen. One shell, two containers, and no branch on width.** The frame (`.frame`) is 390 × 844 with `max-width` and `max-height` of 100%, `position: relative`, square (the reference's phone corner is mockup chrome, `docs/PHONE_VISUAL_BASELINE.md` rule 3) and the page shadow, centred on `.stage`, a plain dark backdrop and the one `position: fixed` element in the tree. Everything in the app is `position: absolute` within the frame or in its flex flow: the header, the floating tab bar, and sheets, which portal into the frame rather than `<body>` so they rise inside the phone.
 
 **What makes it the screen on a phone is the viewport, not a query.** `src/app/m/layout.tsx` declares a 390-wide viewport. A phone lays the page out at 390 and scales it to its glass, so the frame's 390 is the viewport's whole width and the 100% caps take the height. A desktop browser ignores the declaration, so the frame stays a frame. The cost is stated: a phone wider than 390 shows the app scaled up rather than showing more of it, and a phone whose scaled height exceeds 844 shows a strip of backdrop below. A `@media` query would have been the obvious alternative and fails `check-app-shell`.
 
