@@ -74,3 +74,17 @@ export function roomGroups(people: Person[]): RoomGroup[] {
     groups.push({ kind: 'room_not_recorded', key: 'not-recorded', people: notRecorded })
   return groups
 }
+
+/**
+ * Whether a person matches what was typed: their legal name, their preferred
+ * name or their room. One rule for search and for the care note picker, so a
+ * name found in one is found in the other.
+ */
+export function matchesNameOrRoom(person: Person, asked: string): boolean {
+  const needle = asked.toLocaleLowerCase('en-GB')
+  return [
+    person.fullLegalName,
+    person.preferredName,
+    person.room.kind === 'recorded' ? person.room.value : '',
+  ].some((value) => value.toLocaleLowerCase('en-GB').includes(needle))
+}

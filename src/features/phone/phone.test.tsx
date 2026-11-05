@@ -297,18 +297,17 @@ describe('the phone: one record', () => {
     expect(within(header).getByRole('img', { name: /Emmanuel Okafor/ })).toBeTruthy()
   })
 
-  it('anchors the care note outside the pane, saying at the act that it is not built', async () => {
+  it('anchors writing a care note outside the pane, as an act that opens a sheet', async () => {
     openAt('/m/people/res-okafor', staffEze.id)
     const record = front('people')
     const act = await within(record).findByRole('button', { name: 'Write a care note' })
     expect(act.closest('[data-scroll-pane]')).toBeNull()
-    expect(act.getAttribute('aria-disabled')).toBe('true')
-    expect(record.querySelector('[data-act-line="not_built"]')?.textContent).toContain(
-      'not built yet on the phone',
-    )
+    expect(act.getAttribute('aria-disabled')).toBeNull()
+    expect(act.getAttribute('aria-haspopup')).toBe('dialog')
+    expect(record.querySelector('[data-act-line="not_built"]')).toBeNull()
   })
 
-  it('lists the rest of the record as rows that do not open', async () => {
+  it('lists the rest of the record: care notes open, and every other row says it is not built', async () => {
     openAt('/m/people/res-okafor', staffEze.id)
     const record = front('people')
     const rest = (
@@ -316,7 +315,12 @@ describe('the phone: one record', () => {
     ).closest('section') as HTMLElement
     const rows = within(rest).getAllByRole('listitem')
     expect(rows.length).toBeGreaterThanOrEqual(8)
-    for (const row of rows) {
+    const [notes, ...others] = rows
+    expect(
+      within(notes as HTMLElement).getByRole('link', { name: /Care notes/ }),
+    ).toBeTruthy()
+    expect(within(notes as HTMLElement).queryByText('Not built yet')).toBeNull()
+    for (const row of others) {
       expect(within(row).getByText('Not built yet')).toBeTruthy()
       expect(within(row).queryByRole('link')).toBeNull()
       expect(within(row).queryByRole('button')).toBeNull()
@@ -530,20 +534,17 @@ describe('the phone tab bar', () => {
     ).toBeTruthy()
   })
 
-  it('opens the centre action as a sheet, leaving the tab and the address alone', async () => {
+  it('draws the centre action between Residents and Medication, as an act and not a tab', async () => {
     openAt('/m/people', staffEze.id)
     const nav = screen.getByRole('navigation', { name: 'Main navigation' })
-    const centre = within(nav).getByRole('button', { name: 'Care notes, not built' })
-    // Between Residents and Medication, and drawn with no label.
+    const centre = within(nav).getByRole('button', { name: 'Write a care note' })
     const slots = [...(nav.firstElementChild?.children ?? [])]
     expect(slots.indexOf(centre)).toBe(2)
     expect(centre.textContent).toBe('')
+    expect(centre.getAttribute('aria-current')).toBeNull()
     fireEvent.click(centre)
-    const sheet = await screen.findByRole('dialog', { name: 'Care notes' })
     expect(
-      within(sheet).getByText(
-        'Care notes — not built yet on the phone. A care note can be written in the desktop build.',
-      ),
+      await screen.findByRole('dialog', { name: 'Who is this note about?' }),
     ).toBeTruthy()
     expect(window.location.pathname).toBe('/m/people')
     expect(nav.querySelector('[aria-current="page"]')?.textContent).toBe('Residents')

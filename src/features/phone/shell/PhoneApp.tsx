@@ -23,12 +23,22 @@ import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { assertNever } from '@/lib/assert-never'
 import { scopeReaches, type DoseRecord } from '../phone-data'
 import { pathOf, ROOT_OF, type Place, type TabId } from '../phone-paths'
+import { notBuiltOnPhone } from '../not-built'
 import { phoneIcons } from '../phone.icons'
 import { PeopleScreen } from '../screens/PeopleScreen'
 import { RecordScreen } from '../screens/RecordScreen'
 import { SearchScreen } from '../screens/SearchScreen'
+import { NotesScreen } from '../screens/NotesScreen'
 import { TodayScreen } from '../screens/TodayScreen'
-import { FrameContext, InFrontContext, PhoneNavContext, type PhoneNav } from './nav'
+import { NotePickerSheet } from '../notes/NotePickerSheet'
+import { requestComposer } from '../notes/compose-request'
+import {
+  FrameContext,
+  InFrontContext,
+  PhoneNavContext,
+  usePhoneNav,
+  type PhoneNav,
+} from './nav'
 import { Sheet } from './Sheet'
 import {
   initialStacks,
@@ -230,6 +240,8 @@ function PlaceScreen({ place }: { place: Place }) {
       return <PeopleScreen view={place.view} />
     case 'search':
       return <SearchScreen />
+    case 'notes':
+      return <NotesScreen id={place.id} />
     case 'record':
       return <RecordScreen id={place.id} />
     default:
@@ -239,6 +251,12 @@ function PlaceScreen({ place }: { place: Place }) {
 
 type TabItem =
   | { kind: 'built'; tab: TabId; label: string; icon: IconName }
+  /**
+   * The raised centre action: an icon alone in a purple circle, its label only
+   * in its accessible name. An act, not a tab: it opens a sheet and leaves the
+   * tab and the address where they were.
+   */
+  | { kind: 'act'; label: string; icon: IconName }
   | {
       kind: 'not_built'
       label: string
@@ -246,11 +264,6 @@ type TabItem =
       note: string
       /** Whether it carries the count of doses on a clock. One tab does. */
       clock: boolean
-      /**
-       * A tab with its label under its icon, or the raised centre action: an
-       * icon alone in a purple circle, its label only in its accessible name.
-       */
-      face: 'labelled' | 'raised'
     }
 
 const TAB_ITEMS = (): TabItem[] => [
@@ -261,22 +274,13 @@ const TAB_ITEMS = (): TabItem[] => [
     label: VOCABULARY.subject.Many,
     icon: phoneIcons.people,
   },
-  {
-    kind: 'not_built',
-    label: 'Care notes',
-    icon: phoneIcons.writeNote,
-    /* Writing a care note is the phone's next module, and the desktop has it. */
-    note: ' A care note can be written in the desktop build.',
-    clock: false,
-    face: 'raised',
-  },
+  { kind: 'act', label: 'Write a care note', icon: phoneIcons.writeNote },
   {
     kind: 'not_built',
     label: VOCABULARY.medication.One,
     icon: phoneIcons.dose,
     note: '',
     clock: true,
-    face: 'labelled',
   },
   {
     kind: 'not_built',
@@ -285,7 +289,6 @@ const TAB_ITEMS = (): TabItem[] => [
     /* More is where signing out lives on a phone (AUTH-09), and it is not built. */
     note: ' Reloading the page signs you out.',
     clock: false,
-    face: 'labelled',
   },
 ]
 
@@ -326,9 +329,10 @@ const dueSentence = (count: Extract<DueCount, { kind: 'counted' }>): string =>
  * built yet opens a short sheet saying so (docs/MOBILE_APP_SHELL.md §3).
  * Tapping the tab you are on pops it to its root.
  *
- * **The raised centre action is not a tab.** It writes a care note, which is
- * not built, so it opens the same sheet the other unbuilt slots do: the active
- * tab and the address stay where they were.
+ * **The raised centre action is not a tab.** It writes a care note: it opens
+ * "Who is this note about?", and choosing somebody pushes their record onto
+ * the tab you are on with the composer over it. Until then the active tab and
+ * the address stay where they were.
  *
  * **One badge, on Medication**, because doses are the only thing here on a
  * clock. A badge is a bare number by nature, so its denominator and scope are
@@ -339,6 +343,8 @@ function TabBar({ active, onTap }: { active: TabId; onTap: (tab: TabId) => void 
   /* Kept after closing, so the sheet keeps its words while it falls. */
   const [shown, setShown] = useState<Extract<TabItem, { kind: 'not_built' }>>()
   const count = useDueCount()
+  const nav = usePhoneNav()
+  const [picking, setPicking] = useState(false)
   const badged = (item: Extract<TabItem, { kind: 'not_built' }>) =>
     item.clock && count.kind === 'counted' && count.due > 0 ? count : undefined
 
@@ -368,24 +374,20 @@ function TabBar({ active, onTap }: { active: TabId; onTap: (tab: TabId) => void 
                 <span className={styles.tabLabel}>{item.label}</span>
               </a>
             )
-          const badge = badged(item)
-          if (item.face === 'raised')
+          if (item.kind === 'act')
             return (
               <button
                 key={item.label}
                 type="button"
                 className={`${styles.centre} ${styles.press}`}
-                aria-label={`${item.label}, not built`}
+                aria-label={item.label}
                 aria-haspopup="dialog"
-                data-built="false"
-                onClick={() => {
-                  setShown(item)
-                  setOpen(true)
-                }}
+                onClick={() => setPicking(true)}
               >
                 <Icon name={item.icon} size={24} />
               </button>
             )
+          const badge = badged(item)
           return (
             <button
               key={item.label}
@@ -410,12 +412,19 @@ function TabBar({ active, onTap }: { active: TabId; onTap: (tab: TabId) => void 
           )
         })}
       </div>
+      <NotePickerSheet
+        open={picking}
+        onOpenChange={setPicking}
+        onChosen={(id) => {
+          setPicking(false)
+          requestComposer(id)
+          nav.push({ kind: 'record', id })
+        }}
+      />
       {shown === undefined ? null : (
         <Sheet open={open} onOpenChange={setOpen} title={shown.label} cancel="Done">
           {shown.clock && count.kind === 'counted' ? <p>{dueSentence(count)}</p> : null}
-          {/* A dash, not a verb: "is" would have to agree with a label that may be
-              plural or a configured term, and the template cannot know which. */}
-          <ActLine kind="not_built">{`${shown.label} — not built yet on the phone.${shown.note}`}</ActLine>
+          <ActLine kind="not_built">{`${notBuiltOnPhone(shown.label)}${shown.note}`}</ActLine>
         </Sheet>
       )}
     </nav>

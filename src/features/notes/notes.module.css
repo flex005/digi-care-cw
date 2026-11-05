@@ -370,6 +370,15 @@
   text-transform: uppercase;
 }
 
+/* The phone's form of a note's parts: the labels in sentence case, as every
+   label on the phone is (docs/PHONE_VISUAL_BASELINE.md). Reached only by a
+   part drawn with form="phone"; the desktop's labels are unchanged. */
+.phoneForm .overrideLabel,
+.phoneForm .reasonLabel {
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 .flagRecord {
   display: flex;
   flex-direction: column;

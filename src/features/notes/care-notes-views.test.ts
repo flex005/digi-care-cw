@@ -115,6 +115,28 @@ describe('the care notes views', () => {
     expect(quiet[1]?.last).toBe(yesterday)
   })
 
+  it('does not count a correction written today as writing anybody up today', () => {
+    const lastNight = note({
+      residentId: okafor.id,
+      recordedAt: '2026-09-16T20:00:00.000Z' as IsoDateTime,
+    })
+    const correction = note({ residentId: okafor.id, corrects: lastNight.id })
+    const quiet = withoutNoteToday([okafor], [lastNight, correction], ZONE, NOW)
+    expect(quiet.map((entry) => entry.resident.id)).toEqual([okafor.id])
+    // The last one is still the most recent note, which is the correction.
+    expect(quiet[0]?.last).toBe(correction)
+  })
+
+  it('still counts today’s note once it has been corrected', () => {
+    const original = note({
+      residentId: okafor.id,
+      recordedAt: '2026-09-17T09:00:00.000Z' as IsoDateTime,
+    })
+    const corrected = { ...original, supersededBy: 'note-test-later' as CareNoteId }
+    const correction = note({ residentId: okafor.id, corrects: original.id })
+    expect(withoutNoteToday([okafor], [corrected, correction], ZONE, NOW)).toEqual([])
+  })
+
   it('reckons today in the home’s day, not the machine’s', () => {
     // 23:30 UTC on the 16th is 00:30 on the 17th in London.
     const justAfterMidnight = note({
