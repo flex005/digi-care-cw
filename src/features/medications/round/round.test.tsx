@@ -38,7 +38,7 @@ import { resetMedicationPins, setMedicationPin } from '@/app/session/medication-
 import { noListYetLine, residentScopeFor } from '@/app/session/resident-scope'
 import { zonedDate } from '@/lib/format'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { DISCREPANCY_LINE } from './DoseRow'
+import { DISCREPANCY_LINE } from '../medication-words'
 import { OFF_LIST_LINE, RoundRoute } from './RoundRoute'
 
 const navigation = vi.hoisted(() => ({ pathname: '/medications/round', params: {} }))

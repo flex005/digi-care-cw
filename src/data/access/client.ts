@@ -73,6 +73,18 @@ import { acknowledge, keepReportedIncident } from './incident-store'
 import { organisation, sites, staff } from '../fixtures/organisation'
 import { configuredSites } from './settings-store'
 import { viewerHolds, viewerHomes } from './viewer-scope'
+import { memberById } from './team-store'
+import { assertNever } from '@/lib/assert-never'
+import {
+  answerFor,
+  isSignInRole,
+  signInRoleOf,
+  type Answer,
+} from '@/app/session/capabilities'
+import { residentScopeFor } from '@/app/session/resident-scope'
+import { DISCREPANCY_LINE } from '@/features/medications/medication-words'
+import { registerState } from '@/features/medications/register/register'
+import { windowOf } from '@/features/medications/round/round'
 import { RecordNotYours } from './record-not-yours'
 import { goalProgressNotes, goals, goalsFor } from '../fixtures/goals'
 import { activityById } from '../fixtures/activities'
@@ -1581,33 +1593,6 @@ export function getRound(
 }
 
 /**
- * Records a whole resident's round in one act.
- *
- * **One write, not one per dose.** A nurse signs for the doses in front of
- * them together; recording them one at a time would allow a half-signed round
- * — some doses attributed, some not — which is a state nobody chose and the
- * MAR grid would render as a mix of given and omitted.
- *
- * The signer and the moment come from the session and the clock.
- *
- * **Refused if the round is short a dose.** The expected set is derived here,
- * from the same medications and records the round was built from, rather than
- * taken from the caller — a caller that omits an unanswered dose would
- * otherwise record a complete-looking round that is missing one, and the MAR
- * grid would show the missing one as an omission with nobody's name on it.
- *
- * Also refused if a not-given has no reason. The UI disables the button before
- * this; the loader refuses anyway, because a disabled button is a courtesy and
- * this is the rule.
- *
- * **A controlled drug may be recorded with its second signature still to come**
- * (`required_not_recorded`), changed 17/09/2026 for the Care Worker PRD (MED-03):
- * Witness 1 records the dose and Witness 2 countersigns afterwards with their
- * own PIN. Until they do, the dose is half a record and every screen draws the
- * missing signature as its own gap beside "Given". The Admin build's round still
- * takes both signatures in one act; it simply never sends a dose without one.
- */
-/**
  * What a drug is standing at, or that nobody has counted it.
  *
  * The app's only way to ask. Reads through this session's counts, so an
@@ -1692,6 +1677,39 @@ export function openDosesAt(
     .map((medication) => medication.id)
 }
 
+/**
+ * Records a whole resident's round in one act.
+ *
+ * **One write, not one per dose.** A nurse signs for the doses in front of
+ * them together; recording them one at a time would allow a half-signed round
+ * — some doses attributed, some not — which is a state nobody chose and the
+ * MAR grid would render as a mix of given and omitted.
+ *
+ * The signer and the moment come from the session and the clock.
+ *
+ * **Refused if the round is short a dose.** The expected set is derived here,
+ * from the same medications and records the round was built from, rather than
+ * taken from the caller — a caller that omits an unanswered dose would
+ * otherwise record a complete-looking round that is missing one, and the MAR
+ * grid would show the missing one as an omission with nobody's name on it.
+ *
+ * Also refused if a not-given has no reason. The UI disables the button before
+ * this; the loader refuses anyway, because a disabled button is a courtesy and
+ * this is the rule.
+ *
+ * **And refused for anything the round screen refuses** (05/11/2026), because a
+ * rule held by a screen is held only on that screen, and the phone is a second
+ * one: a dose already on the record, a dose before its window opens, Given on a
+ * controlled drug whose count does not reconcile, a signer the role table
+ * refuses, and a dose signed in somebody else's name. `roundRefusal` holds them.
+ *
+ * **A controlled drug may be recorded with its second signature still to come**
+ * (`required_not_recorded`), changed 17/09/2026 for the Care Worker PRD (MED-03):
+ * Witness 1 records the dose and Witness 2 countersigns afterwards with their
+ * own PIN. Until they do, the dose is half a record and every screen draws the
+ * missing signature as its own gap beside "Given". The Admin build's round still
+ * takes both signatures in one act; it simply never sends a dose without one.
+ */
 export function recordRound(input: {
   residentId: ResidentId
   date: IsoDate
@@ -1713,6 +1731,8 @@ export function recordRound(input: {
     return reject(`No resident with id ${input.residentId}`)
   }
   if (input.doses.length === 0) return reject('A round with no doses is not a round')
+  const refusal = roundRefusal(input)
+  if (refusal !== 'none') return reject(refusal)
 
   // Every dose at this round, on this date, that nobody has recorded yet.
   const expected = openDosesAt(input.residentId, input.date, input.roundTime)
@@ -1771,6 +1791,128 @@ export function recordRound(input: {
     recordAdministration(dose.medicationId, input.date, input.roundTime, dose.state)
   }
   return resolve(input.doses.length)
+}
+
+/**
+ * Why a resident's round cannot be written, or `none`. Every rule the round
+ * screen holds is held here too, asked of the same owners the screen asks
+ * (`windowOf`, `registerState`, the role table), so the two cannot disagree and
+ * no screen is the only thing holding one.
+ *
+ * - **A recorded dose is never written over.** The session overlay replaces
+ *   whatever is keyed at a cell, so a second answer would put a new name on a
+ *   dose somebody else gave, and the first record would be gone.
+ * - **An omission is not answered late.** Its window closed with nothing in it;
+ *   a record written now is a record written after the event, which is what
+ *   closing an omission is careful not to be.
+ * - **Nothing before its window opens**: giving a drug early is a clinical
+ *   decision, and nothing in this product can make one.
+ * - **The role table is asked about the signer**, dose by dose, controlled
+ *   drugs under their own act.
+ * - **A controlled drug whose count does not reconcile cannot be given**, in
+ *   MED-03's words. Not given stays open: it is not an administration.
+ * - **Each answer is signed by the person recording it.** The state arrives
+ *   built by the caller, and a dose given "by" anybody but the signer would be
+ *   a record in another person's name.
+ */
+function roundRefusal(input: {
+  residentId: ResidentId
+  date: IsoDate
+  roundTime: string
+  doses: { medicationId: MedicationId; state: MarCellState }[]
+  by: StaffRef
+  at: IsoDateTime
+}): string | 'none' {
+  const name = nameOf(input.residentId)
+  const signer = memberById(input.by.id)
+  if (signer === undefined || !isSignInRole(signer.role))
+    return `${input.by.displayName} does not sign in to this product, so cannot record a dose.`
+  const theirs = new Map(
+    medicationsFor(input.residentId).map((entry) => [entry.id, entry]),
+  )
+  const answered = new Set<MedicationId>()
+
+  for (const dose of input.doses) {
+    const medication = theirs.get(dose.medicationId)
+    if (medication === undefined)
+      return `${dose.medicationId} is not prescribed for ${name}.`
+    if (answered.has(medication.id))
+      return `${medication.name} is answered twice in one round for ${name}.`
+    answered.add(medication.id)
+
+    const record = patchedRecords().find(
+      (entry) =>
+        entry.medicationId === medication.id &&
+        entry.date === input.date &&
+        entry.roundTime === input.roundTime,
+    )
+    const at = `${medication.name} at ${input.roundTime} for ${name}`
+    if (record === undefined || record.state.kind === 'not_due')
+      return `${at} is not due, so there is nothing to record.`
+    switch (record.state.kind) {
+      case 'given':
+        return `${at} is already recorded as given, by ${record.state.givenBy.displayName}. A recorded dose is never written over.`
+      case 'not_given':
+        return `${at} is already recorded as not given, by ${record.state.recordedBy.displayName}. A recorded dose is never written over.`
+      case 'omitted':
+        return `${at} is an omission: its window closed with nothing recorded, and a record written now would be written after the event.`
+      case 'due':
+        if (windowOf(record.state, input.at) === 'not_open_yet')
+          return `${at} cannot be recorded before its window opens. Giving a drug early is a clinical decision, and nothing in this product can make one.`
+        break
+      default:
+        return assertNever(record.state)
+    }
+
+    const answer = answerFor(
+      signInRoleOf(signer),
+      residentScopeFor(signer),
+      medication.isControlledDrug ? 'record_controlled_drug_dose' : 'record_medication',
+      { kind: 'resident', id: input.residentId },
+      signer.id,
+    )
+    if (answer.kind !== 'yes')
+      return `${input.by.displayName} may not record ${at}: ${refusalReason(answer)}`
+
+    const signedBy =
+      dose.state.kind === 'given'
+        ? dose.state.givenBy
+        : dose.state.kind === 'not_given'
+          ? dose.state.recordedBy
+          : 'not_an_answer'
+    if (signedBy === 'not_an_answer')
+      return `${at} was sent as ${dose.state.kind}, which is not an answer to a dose.`
+    if (signedBy.id !== input.by.id)
+      return `${at} is signed in ${signedBy.displayName}’s name by ${input.by.displayName}. A dose is signed by the person recording it.`
+
+    if (
+      medication.isControlledDrug &&
+      dose.state.kind === 'given' &&
+      registerState(
+        patchedStockCounts().filter((count) => count.medicationId === medication.id),
+      ).kind === 'discrepancy'
+    )
+      return `${at} cannot be given. ${DISCREPANCY_LINE}`
+  }
+  return 'none'
+}
+
+/** The role table's reason, as a clause after "may not record …:". */
+function refusalReason(answer: Exclude<Answer, { kind: 'yes' }>): string {
+  switch (answer.kind) {
+    case 'not_your_role':
+    case 'not_the_author':
+      return answer.reason
+    case 'not_on_your_list':
+      return 'they are not on your list.'
+    case 'no_list_yet':
+      return 'nobody has given you a list yet.'
+    case 'not_stated':
+    case 'contradicted':
+      return answer.question
+    default:
+      return assertNever(answer)
+  }
 }
 
 /**
