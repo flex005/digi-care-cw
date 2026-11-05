@@ -118,6 +118,21 @@ describe('what is outstanding today', () => {
     ).toEqual([{ kind: 'no_note_today', last: 'never' }])
   })
 
+  it('counts a PRN given at a round as nothing owed at it', () => {
+    const salbutamol = 'med-res-okafor-salbutamol-inhaler'
+    const items = outstandingFor({
+      person,
+      records: [
+        dose('08:00', omitted()),
+        dose('08:00', given('not_required'), salbutamol),
+      ],
+      notes: [noteAt('2026-09-16T09:00:00.000Z')],
+      timeZone: zone,
+      at,
+    })
+    expect(items).toEqual([{ kind: 'doses_missed', round: '08:00', missed: 1, due: 1 }])
+  })
+
   it('reads only this person, and only today', () => {
     const someoneElse = {
       ...dose('08:00', omitted()),

@@ -1,4 +1,5 @@
 import type { CareNote, IsoDate, IsoDateTime } from '@/data/types'
+import { owedDoses } from '@/features/dashboard/dashboard-figures'
 import { withoutNoteToday } from '@/features/notes/care-notes-views'
 import { zonedDate, type TimeZone } from '@/lib/format'
 import { MEDICATION_LOOKAHEAD_HOURS } from '@/lib/shift'
@@ -47,11 +48,10 @@ export function outstandingFor(input: {
 }): Outstanding[] {
   const { person, timeZone, at } = input
   const today: IsoDate = zonedDate(at, timeZone)
-  const todays = input.records.filter(
-    (record) =>
-      record.residentId === person.id &&
-      record.date === today &&
-      record.state.kind !== 'not_due',
+  const todays = owedDoses(
+    input.records.filter(
+      (record) => record.residentId === person.id && record.date === today,
+    ),
   )
 
   const rounds = [...new Set(todays.map((record) => record.roundTime))].sort()

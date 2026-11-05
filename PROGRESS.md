@@ -2661,3 +2661,32 @@ Module 3's reading pass, before any code. The two findings are each fixed in the
 - **The data layer imports three rule owners from above it** (`capabilities`, `register`, `round`), each pure and none importing back, so no cycle. The alternative was a second copy of each rule in `client.ts`, which is the drift this exists to prevent.
 - **Each refusal is paired with the same call made properly**, so a test shows the defect is what was refused rather than the round. Six mutations, each confirmed landed in the code and not a comment: the given and not-given overwrite cases, the window comparison, the role check, the discrepancy kind and the signer check. Each turned its own test red and only its own (the role mutation turned both role tests red, which is both of the role table's refusals), and each was restored by reversing the edit.
 - **One contradiction left latent, and named rather than changed.** `openDosesAt` counts an omitted dose among the doses a round must answer, and the loader now refuses to answer an omission. A round holding both an omission and a dose still due could therefore never be recorded. It cannot occur here: every dose at one round shares one window, and the fixture clock does not move, so an omission and a due dose never share a round. A real build, with a clock that moves, must decide which way it goes.
+
+## A PRN is not scheduled: the chart corrected, and what moved (05/11/2026)
+
+**This corrects a modelling error. It is not fixture data trimmed to improve a figure**, which CLAUDE.md §6 forbids, and the distinction is the point of this entry. A PRN is by definition not scheduled: it has no due time, so it cannot fall due, cannot be omitted, and cannot be "not given" at a round nobody offered it at. Every PRN template carries `roundTimes` only because the type makes them non-empty, and the generator walked them as a schedule. No record somebody made is removed: **every PRN dose given stays exactly as drawn** (4,436 cells, identical before and after). What goes is a set of obligations the model invented — 347 omissions, 406 refusals and 12 open windows on as-required drugs, each now `not_due`.
+
+- **How.** `asRequired` in `medications.ts` runs after every draw, so each drug's RNG stream is bit-for-bit what it was. **No scheduled drug's cell moved**: 8,470 given, 738 not given, 734 omitted, 19 due and 214 not due, before and after. `fellDueAt` says a PRN never falls due, so a PRN given is a record and not a dose owed; `medicationToday` and the phone's outstanding list now ask it, through `owedDoses` in `dashboard-figures.ts`, rather than reading `!== 'not_due'` themselves.
+- **A test that agreed by construction, replaced.** "Counts a dose recorded when somebody answered it" filtered the records exactly as `medicationToday` does and compared the two, so it confirmed every PRN given today as a dose that was due. It now checks the figure against the round columns, a second owner built from the prescriptions, and a second test asserts a PRN given today is in neither half. The §8 shape again: the assertion could not disagree with the code.
+- **Four mutations** (the generator's guard, `fellDueAt`'s PRN line, the outstanding list's filter, `owedDoses`), each confirmed landed in code, each red, each restored by reversing it. The outstanding list was reshaped to keep the vocabulary ratchet at its best (a new `'@/data/fixtures/medications'` specifier counted one term word), and its mutation was re-run against the reshaped code.
+
+**What moved**, Rosewood Court at 16/09/2026 20:20 BST (the pinned instant every medication test uses), before → after:
+
+| Figure | Before | After |
+|---|---|---|
+| Omissions this week (Omissions tab) | 91 | 55 |
+| — escalated | 82 | 50 |
+| — open (not closed) | 69 | 41 |
+| Doses due this week (the omissions' denominator) | 1,150 | 766 |
+| Dashboard and Today: past their window today | 8 | 4 |
+| Dashboard and Today: due now or in the next 2 hours | 30 doses, 22 residents | 19 doses, 15 residents |
+| Dashboard: medication today, recorded of expected | 124 of 162 | 85 of 108 |
+| Phone tab badge, senior carer (home) | 30 | 19 |
+| Phone tab badge, N. Eze (her list) | 6 | 4 |
+| Phone outstanding: residents with a missed dose | 8 (8 missed of 25 due) | 4 (4 of 10) |
+| Phone outstanding: rounds with doses due | 22 | 15 |
+| Round columns, every round | 63 / 10 / 6 / 29 | unchanged |
+
+**Unchanged, and the reason is itself a check:** the round columns, the round screen and `openDosesAt` already left PRN out. After the correction the dashboard's "medication today" (108) equals the sum of the round columns (63 + 10 + 6 + 29) for the first time; before, they disagreed by exactly the 54 PRN cells.
+
+**Not changed here, and named:** the phone badge's denominator ("of 165 doses on today's chart") counts every cell today, `not_due` included, so it was never a count of doses. It does not move with this correction (PRN cells were on the chart before and are still on it, now as `not_due`). It belongs to the badge, and is for module 3.

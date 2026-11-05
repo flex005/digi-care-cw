@@ -56,16 +56,32 @@ describe('a bar', () => {
 })
 
 describe('the medication figures', () => {
-  it('counts a dose recorded when somebody answered it, either way', () => {
+  /*
+   * **Against the round columns, not against a restatement of itself.** This
+   * test once filtered the records the way the function does and compared the
+   * two, so it agreed by construction — including on counting every PRN given
+   * today as a dose that was due. The columns are a second owner, built from
+   * the prescriptions rather than the cells, and the two must agree.
+   */
+  it('counts the doses that were due today, as the round columns do', () => {
     const bar = medicationToday(records)
-    const answered = records.filter(
-      (record) => record.state.kind === 'given' || record.state.kind === 'not_given',
-    ).length
-    expect(bar.recorded).toBe(answered)
-    // Not-due cells are not on today's chart at all: they are not a gap.
-    expect(bar.expected).toBe(
-      records.filter((record) => record.state.kind !== 'not_due').length,
+    const columns = ROUND_TIMES.map((round) =>
+      roundCounts(records, theirMedications, round, at),
     )
+    expect(bar.recorded).toBe(columns.reduce((sum, column) => sum + column.recorded, 0))
+    expect(bar.expected).toBe(columns.reduce((sum, column) => sum + column.total, 0))
+  })
+
+  it('counts a PRN given today as neither due nor recorded: nobody owed it', () => {
+    const asRequired = new Set(
+      theirMedications.filter((entry) => entry.isPrn).map((entry) => entry.id),
+    )
+    const prnGiven = records.filter(
+      (record) => asRequired.has(record.medicationId) && record.state.kind === 'given',
+    )
+    expect(prnGiven.length).toBeGreaterThan(0)
+    const without = records.filter((record) => !asRequired.has(record.medicationId))
+    expect(medicationToday(records)).toEqual(medicationToday(without))
   })
 
   it('counts a dose past its window as one nobody recorded', () => {

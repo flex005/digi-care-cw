@@ -6,7 +6,7 @@ import type {
   Resident,
   ResidentId,
 } from '@/data/types'
-import type { MarRecord } from '@/data/fixtures/medications'
+import { fellDueAt, type MarRecord } from '@/data/fixtures/medications'
 import { roundInProgressAt } from '@/data/fixtures/rounds'
 import { zonedWallClock, type TimeZone } from '@/lib/format'
 import { MEDICATION_LOOKAHEAD_HOURS } from '@/lib/shift'
@@ -86,9 +86,16 @@ export function dueSoon(
   }
 }
 
+/**
+ * The records that were doses somebody owed, as `fellDueAt` answers it: never a
+ * cell with no dose due, and never an as-required drug, which nobody owes.
+ */
+export const owedDoses = <T extends MarRecord>(records: T[]): T[] =>
+  records.filter((record) => fellDueAt(record) !== 'not_due')
+
 /** Doses recorded today, out of the doses that were due today. */
 export function medicationToday(records: MarRecord[]): Completion {
-  const due = records.filter((record) => record.state.kind !== 'not_due')
+  const due = owedDoses(records)
   return {
     recorded: due.filter(
       (record) => record.state.kind === 'given' || record.state.kind === 'not_given',
