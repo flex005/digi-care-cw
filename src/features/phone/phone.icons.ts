@@ -17,4 +17,7 @@ export const phoneIcons = {
   choose: 'arrows-sharp/arrow-down-01-sharp',
   allergy: 'alert-notification/alert-02',
   carePlan: 'note-task/note-03',
+  late: 'date-and-time/clock-01',
+  notWritten: 'note-task/note-remove',
+  pastWindow: 'alert-notification/alert-01',
 } satisfies Record<string, IconName>

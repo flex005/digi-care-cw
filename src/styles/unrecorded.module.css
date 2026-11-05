@@ -181,6 +181,21 @@
 }
 
 /**
+ * The card form on the phone: the same hatch and the same surface, at the
+ * phone's card corner (docs/PHONE_VISUAL_BASELINE.md, rule 7). A class of its
+ * own so the desktop card keeps its corner; nothing about the hatch differs.
+ */
+.unrecordedPhoneCard {
+  composes: unrecorded;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--card-padding);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+}
+
+/**
  * Mark form: the gap segment of a bar, and the legend swatch that explains it.
  *
  * **One class for both, because a legend is drawn in the medium of the thing it

@@ -1,4 +1,4 @@
-import { useCallback, useState, type ReactNode } from 'react'
+import { useCallback, useState } from 'react'
 import {
   getCareNotesForSite,
   getHandoverBoard,
@@ -20,7 +20,7 @@ import { useSession, useSignedIn } from '@/app/session/use-session'
 import type { Answer } from '@/app/session/capabilities'
 import { useViewer } from '@/app/session/use-viewer'
 import { Icon } from '@/components/icon/Icon'
-import { ActionCard } from '@/components/layout/ActionCard'
+import type { IconName } from '@/components/icon/registry.names.generated'
 import { MovedClockLine } from '@/components/shell/MovedClockLine'
 import { Unrecorded } from '@/components/status'
 import { dosesPastTheirWindow, dueSoon } from '@/features/dashboard/dashboard-figures'
@@ -35,7 +35,14 @@ import {
   type LateKind,
 } from '@/features/dashboard/late-items'
 import { withoutNoteToday } from '@/features/notes/care-notes-views'
-import { formatCount, formatLateness, pluralise, zonedDate } from '@/lib/format'
+import {
+  formatCount,
+  formatDate,
+  formatLateness,
+  formatTime,
+  pluralise,
+  zonedDate,
+} from '@/lib/format'
 import { SHIFT_NAMES, shiftAt } from '@/lib/shift'
 import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { assertNever } from '@/lib/assert-never'
@@ -74,9 +81,11 @@ const LATE_ID = 'already-late'
  * list exactly as the desktop dashboard counts it, from the same owners.
  *
  * **What is late, what is about to fall due, and who nobody has written about
- * today.** One dark card, the thing to act on next: what is already late. Three
- * figures, each with what it is out of. Then the late list itself, oldest first,
- * each row pushing the record it is about; its filter is a picker, so a sheet.
+ * today.** Four cards, one figure each, with what it is out of; a card whose
+ * subject is a gap is hatched. Then the acts, in a rail. Then the late list as
+ * a timeline, oldest first, each entry pushing the record it is about; its
+ * filter is a picker, so a sheet. No dark card: the phone is exempt
+ * (docs/PHONE_VISUAL_BASELINE.md).
  *
  * **It holds no record of its own.** Every figure is asked of a function the
  * desktop dashboard asks, so the two cannot disagree about one home.
@@ -142,6 +151,7 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
   const viewer = useViewer()
   const [filter, setFilter] = useState<Filter>('everything')
   const [picking, setPicking] = useState(false)
+  const nav = usePhoneNav()
 
   const mine = data.people.filter((person) => scopeReaches(viewer.scope, person.id))
   const ids = new Set(mine.map((person) => person.id))
@@ -216,71 +226,68 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
 
   return (
     <>
-      <div className={styles.lead}>
-        <ActionCard
-          kicker="Already late"
+      <div className={styles.stats}>
+        <Stat
+          icon={phoneIcons.late}
+          label="Already late"
           figure={formatCount(lateItems.length)}
           of={`${lateItems.length === 1 ? 'thing' : 'things'} late that you can act on now`}
-          detail={
-            <ul className={styles.items}>
-              {parts.map((part) => (
-                <li key={part}>{part}</li>
-              ))}
-            </ul>
-          }
-          footLabel="Read in this order"
-          footValue="Longest past its date first"
-          action={
-            lateItems.length === 0 ? (
-              <span>Nothing is late for you to act on</span>
-            ) : (
-              <button
-                type="button"
-                className={`${styles.cardAction} ${shell.press}`}
-                onClick={() =>
-                  document
-                    .getElementById(LATE_ID)
-                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }
-              >
-                See the {formatCount(lateItems.length)} late
-              </button>
-            )
-          }
         />
-      </div>
-      <p className={`${styles.quiet} ${styles.gutter}`}>
-        {scopeNote(viewer.scope, activeSite.name)}
-      </p>
-
-      <div className={styles.tiles}>
-        <Tile
+        <Stat
+          icon={phoneIcons.dose}
           label="Due now or in the next 2 hours"
           figure={formatCount(soon.doses)}
           of={`of ${pluralise(todays.length, 'dose')} on today’s chart, nothing recorded yet`}
         />
-        <Tile
+        <Stat
+          icon={phoneIcons.notWritten}
           label="Not written up today"
-          figure={
-            quiet === 0 ? (
-              formatCount(0)
-            ) : (
-              <Unrecorded variant="chip" label={formatCount(quiet)} />
-            )
-          }
+          figure={formatCount(quiet)}
           of={scopeDenominator(viewer.scope, mine.length, activeSite.name)}
+          gap={quiet > 0}
         />
-        <Tile
+        <Stat
+          icon={phoneIcons.pastWindow}
           label="Doses past their window"
-          figure={
-            pastWindow === 0 ? (
-              formatCount(0)
-            ) : (
-              <Unrecorded variant="chip" label={formatCount(pastWindow)} />
-            )
-          }
+          figure={formatCount(pastWindow)}
           of={`of ${pluralise(todays.length, 'dose')} on today’s chart`}
+          gap={pastWindow > 0}
         />
+      </div>
+      <ul className={`${styles.parts} ${styles.gutter}`}>
+        {parts.map((part) => (
+          <li key={part}>{part}</li>
+        ))}
+      </ul>
+      <p className={`${styles.quiet} ${styles.gutter}`}>
+        {scopeNote(viewer.scope, activeSite.name)}
+      </p>
+
+      <div className={styles.rail}>
+        {lateItems.length === 0 ? (
+          <span className={styles.quiet}>Nothing is late for you to act on</span>
+        ) : (
+          <button
+            type="button"
+            className={`${styles.act} ${shell.press}`}
+            onClick={() =>
+              document
+                .getElementById(LATE_ID)
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }
+          >
+            <Icon name={phoneIcons.late} size={20} className={styles.actIcon} />
+            See the {formatCount(lateItems.length)} late
+          </button>
+        )}
+        <button
+          type="button"
+          className={`${styles.act} ${shell.press}`}
+          onClick={() => nav.switchTab('people')}
+        >
+          <Icon name={phoneIcons.people} size={20} className={styles.actIcon} />
+          Find somebody in {VOCABULARY.subject.Many}
+        </button>
       </div>
 
       <section id={LATE_ID} aria-labelledby={`${LATE_ID}-title`}>
@@ -298,6 +305,9 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
             <Icon name={phoneIcons.choose} size={16} />
           </button>
         </div>
+        <p className={`${styles.byline} ${styles.gutter}`}>
+          Read in this order · Longest past its date first
+        </p>
         {lateItems.length === 0 ? (
           <p className={`${styles.quiet} ${styles.gutter}`}>
             Nothing is past its date.
@@ -307,13 +317,22 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
             Nothing under {chosen?.label}, out of {formatCount(lateItems.length)} late.
           </p>
         ) : (
-          <ul className={styles.list}>
+          <ol className={styles.timeline}>
             {shown.map((item) => (
-              <li key={item.id}>
-                <LateRow item={item} about={about.get(item.id)} />
+              <li key={item.id} className={styles.when}>
+                <span className={styles.whenRail}>
+                  <span className={styles.whenPill}>
+                    {/* A review or a handover falls due on a day; a dose at a time. */}
+                    {item.kind === 'review' || item.kind === 'handover'
+                      ? formatDate(item.dueAt.slice(0, 10) as IsoDate)
+                      : formatTime(item.dueAt, activeSite.timeZone)}
+                  </span>
+                  <span className={styles.whenLine} aria-hidden="true" />
+                </span>
+                <LateEntry item={item} about={about.get(item.id)} />
               </li>
             ))}
-          </ul>
+          </ol>
         )}
       </section>
 
@@ -350,15 +369,16 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
   )
 }
 
-function LateRow({ item, about }: { item: LateItem; about: ResidentId | undefined }) {
+/** One late thing, as the card beside its time on the timeline. */
+function LateEntry({ item, about }: { item: LateItem; about: ResidentId | undefined }) {
   const content = (
     <>
       <span className={styles.rowText}>
-        <span className={styles.rowName}>{item.what}</span>
+        <span className={styles.whenTitle}>{item.what}</span>
         <span className={styles.rowMeta}>{item.who}</span>
-      </span>
-      <span className={styles.lateWhen}>
-        {item.daysLate > 0 ? `${formatLateness(item.daysLate)} past` : 'Today'}
+        <span className={styles.lateWhen}>
+          {item.daysLate > 0 ? `${formatLateness(item.daysLate)} past` : 'Today'}
+        </span>
       </span>
       {about === undefined ? null : (
         <Icon name={phoneIcons.open} size={16} className={styles.rowChevron} />
@@ -367,23 +387,51 @@ function LateRow({ item, about }: { item: LateItem; about: ResidentId | undefine
   )
   /* A handover belongs to a shift, not a person, and has no record to push. */
   return about === undefined ? (
-    <div className={styles.row}>{content}</div>
+    <div className={styles.whenCard}>{content}</div>
   ) : (
     <StackLink
       to={{ kind: 'record', id: about }}
-      className={`${styles.row} ${shell.pressRow}`}
+      className={`${styles.whenCard} ${shell.press}`}
     >
       {content}
     </StackLink>
   )
 }
 
-function Tile({ label, figure, of }: { label: string; figure: ReactNode; of: string }) {
+/**
+ * One figure on a card, with what it is out of. **A card whose subject is a
+ * gap is hatched**, the whole card rather than a chip inside it, and its label
+ * says what is missing. A zero is a finding and is never hatched.
+ */
+function Stat({
+  icon,
+  label,
+  figure,
+  of,
+  gap = false,
+}: {
+  icon: IconName
+  label: string
+  figure: string
+  of: string
+  gap?: boolean
+}) {
   return (
-    <div className={styles.tile}>
-      <p className={styles.tileLabel}>{label}</p>
-      <p className={styles.tileFigure}>{figure}</p>
-      <p className={styles.tileOf}>{of}</p>
+    <div
+      className={gap ? styles.statGap : styles.stat}
+      data-stat
+      data-state={gap ? 'unrecorded' : undefined}
+    >
+      <span className={styles.statTop}>
+        <span className={styles.statIcon}>
+          <Icon name={icon} size={20} />
+        </span>
+        <span className={styles.statLabel}>{label}</span>
+      </span>
+      <span className={styles.statFigure} data-numeric>
+        {figure}
+      </span>
+      <span className={styles.statOf}>{of}</span>
     </div>
   )
 }

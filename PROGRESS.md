@@ -2592,3 +2592,16 @@ Ported to `~/Documents/digi-care` on branch `home-clock` (1cc71f9), as the same 
   - Some are calendar arithmetic on UTC-midnight dates, which is correct.
   - Some are `nextReviewFrom`'s UTC day, already raised.
 - **The live-round check in `clock.ts`** (whether the real time is mid-round) is held by no test here. It needs a case at 14:30 home time in winter on a machine an hour ahead, where the banner must stay silent. The Admin build now has that case in its banner test; this build's clock-line test does not.
+
+## The phone's visual baseline, and Today rebuilt to it (05/11/2026)
+
+`docs/PHONE_VISUAL_BASELINE.md` holds the rules; `docs/reference/premium-today.html` is the signed-off mockup they came from. Decisions taken on the first read, by the product owner: card corners at `--radius-sm` (the mockup's 10px has no token and none was added), one new token `--shadow-raised`, the timeline's gradient into `--purple-50` rather than `--border-subtle`, the phone exempt from the one dark card, the hatch given a phone form in its own file.
+
+**Today, rebuilt to it.** Four stat cards replace the dark card and three tiles; a card whose subject is a gap is hatched whole, through `unrecordedPhoneCard`, and a zero stays plain. The late list is a timeline: a time pill (a dose's time on the home's clock, or a review's or handover's date) on a purple line, a card beside it. Every string and figure is the one the screen had; the dark card's parts now sit under the cards, and its "Read in this order" foot under the late list's heading.
+
+**Found on the way:**
+- **The quick-action rail cannot run off the edge.** The mockup's rail scrolls sideways; `check-app-shell` allows one scrolling overflow, on `.pane`, and a rail clipped without scrolling would hide a control. The chips wrap. A decision for the owner if the rail is wanted as drawn.
+- **The rail's acts are the ones Today already had**: "See the N late", and "Find somebody in Residents", which Today showed only to a reader with no list. No new act, route or string.
+- **No progress ticks.** Ticks at one per unit work for the mockup's 14; at 165 doses they need rounding, and a rounded bar of 3 in 165 draws as empty, which is a figure misdrawn. The denominator is in words on every card.
+- **The vocabulary ratchet rose by one** on the first verify, from a `'medication'` discriminant in the pill's condition. Rephrased by the other two kinds; back at 2161, not forgiven.
+- **`composes:` across files does reach the base.** The hatched card composes `unrecordedPhoneCard`, which composes `unrecorded`; measured in the browser, the element carries all three classes, a dashed edge and the gradient. The §8 chain trap is local composition only, which `check-css-classes` already holds.

@@ -404,25 +404,27 @@ describe('the phone: today', () => {
 
   it('counts late only what this reader can act on now, and says what it leaves out', async () => {
     openAt('/m', staffEze.id)
-    const card = (await within(front('today')).findByText('Already late')).closest(
-      '[data-action-card]',
+    const today = front('today')
+    const card = (await within(today).findByText('Already late')).closest(
+      '[data-stat]',
     ) as HTMLElement
     expect(
-      within(card).getByText(/missed today, of [\d,]+ doses? on today’s chart$/),
+      within(today).getByText(/missed today, of [\d,]+ doses? on today’s chart$/),
     ).toBeTruthy()
-    expect(within(card).getByText(/^Reviews are not counted: .+\.$/)).toBeTruthy()
-    expect(within(card).getByText(/^Handovers are not counted: .+\.$/)).toBeTruthy()
+    expect(within(today).getByText(/^Reviews are not counted: .+\.$/)).toBeTruthy()
+    expect(within(today).getByText(/^Handovers are not counted: .+\.$/)).toBeTruthy()
     // Four residents and one day: a care worker's late figure is a handful.
     expect(figureOf(card)).toBeLessThan(40)
   })
 
   it('counts a senior carer’s reviews, and no history beyond today', async () => {
     openAt('/m', staffAkinyemi.id, 'site-rosewood-court')
-    const card = (await within(front('today')).findByText('Already late')).closest(
-      '[data-action-card]',
+    const today = front('today')
+    const card = (await within(today).findByText('Already late')).closest(
+      '[data-stat]',
     ) as HTMLElement
-    expect(within(card).getByText(/^[\d,]+ reviews? past its date$/)).toBeTruthy()
-    expect(within(card).queryByText(/^Reviews are not counted/)).toBeNull()
+    expect(within(today).getByText(/^[\d,]+ reviews? past its date$/)).toBeTruthy()
+    expect(within(today).queryByText(/^Reviews are not counted/)).toBeNull()
     // Ninety days of omissions put 1,018 here; one day at one home cannot.
     expect(figureOf(card)).toBeLessThan(100)
   })

@@ -348,74 +348,195 @@
 
 /* --------------------------------------------------------------- today */
 
-.lead {
-  padding: 0 var(--layout-gutter-compact);
-}
-
 /*
- * The dark card's label, in sentence case on the phone. ActionCard is shared
- * with the desktop, where its kicker stays as it is; this reaches only the
- * card inside Today's lead, by the attribute the card already carries.
+ * Four cards, one figure each (docs/PHONE_VISUAL_BASELINE.md). The icon tile is
+ * the decoration and is purple; the figure is the card's subject, at 32.
  */
-.lead [data-action-card] > p:first-child {
-  font-size: var(--text-body-sm-size);
-  line-height: var(--text-body-sm-line);
-  font-weight: var(--weight-semibold);
-  letter-spacing: normal;
-  text-transform: none;
-}
-
-.tiles {
+.stats {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-12);
   padding: 0 var(--layout-gutter-compact);
 }
 
-.tile {
+.stat {
   display: flex;
   flex: 1 1 calc(50% - var(--space-12));
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-8);
   min-width: 0;
-  padding: var(--space-20);
-  border-radius: var(--radius-xl);
+  padding: var(--space-16);
+  border-radius: var(--radius-sm);
   background-color: var(--bg-surface);
   box-shadow: var(--shadow-card);
 }
 
-.tileLabel {
-  color: var(--ink-900);
-  font-size: var(--text-body-sm-size);
-  line-height: var(--text-body-sm-line);
-  font-weight: var(--weight-semibold);
+/* A card whose subject is a gap: the hatch's phone form, from its one owner.
+   No shadow, so it reads as unfinished rather than raised. */
+.statGap {
+  composes: unrecordedPhoneCard from '../../styles/unrecorded.module.css';
+  flex: 1 1 calc(50% - var(--space-12));
+  gap: var(--space-8);
+  min-width: 0;
+  padding: var(--space-16);
 }
 
-.tileFigure {
-  color: var(--ink-900);
-  font-size: var(--text-h1-size);
-  line-height: var(--text-h1-line);
+.statTop {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.statIcon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-32);
+  height: var(--space-32);
+  border-radius: var(--radius-sm);
+  background-color: var(--purple-50);
+  color: var(--purple-600);
+}
+
+.statGap .statIcon {
+  background-color: var(--bg-surface);
+  color: var(--status-unrecorded-ink);
+}
+
+.statLabel {
+  min-width: 0;
+  color: var(--ink-700);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
   font-weight: var(--weight-bold);
+}
+
+.statFigure {
+  color: var(--ink-900);
+  font-size: var(--text-display-size);
+  line-height: var(--text-display-line);
+  font-weight: var(--weight-extrabold);
   font-variant-numeric: tabular-nums;
 }
 
-.tileOf {
+.statOf {
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+}
+
+.statGap .statLabel,
+.statGap .statFigure,
+.statGap .statOf {
+  color: var(--status-unrecorded-ink);
+}
+
+/* What the late figure counts and leaves out, one part to a line, close
+   enough together to read as one account. */
+.parts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
   color: var(--ink-500);
   font-size: var(--text-body-sm-size);
   line-height: var(--text-body-sm-line);
+  list-style: none;
 }
 
-.cardAction {
+/* The acts, in a row. They wrap rather than run off the edge: only the pane
+   scrolls (docs/MOBILE_APP_SHELL.md §1), and a clipped chip is a control
+   nobody can reach. */
+.rail {
   display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: center;
+  padding: 0 var(--layout-gutter-compact);
+}
+
+.act {
+  display: flex;
+  flex: none;
+  gap: var(--space-8);
   align-items: center;
   min-height: var(--space-48);
-  padding: 0 var(--space-20);
+  padding: 0 var(--space-16);
   border-radius: var(--radius-pill);
   background-color: var(--bg-surface);
-  color: var(--purple-900);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.actIcon {
+  color: var(--purple-600);
+}
+
+/* The late list as the day: a time pill on a line, a card beside it. */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: var(--space-4) var(--layout-gutter-compact) 0;
+  list-style: none;
+}
+
+.when {
+  display: flex;
+  gap: var(--space-12);
+}
+
+.whenRail {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: center;
+  min-width: var(--space-48);
+  padding-top: var(--space-4);
+}
+
+.whenPill {
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-pill);
+  background-color: var(--purple-900);
+  color: var(--bg-surface);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.whenLine {
+  flex: 1;
+  width: 2px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(to bottom, var(--purple-400), var(--purple-50));
+}
+
+.whenCard {
+  display: flex;
+  flex: 1;
+  gap: var(--space-12);
+  align-items: center;
+  min-width: 0;
+  padding: var(--space-16);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--ink-900);
+  text-decoration: none;
+}
+
+.whenTitle {
+  color: var(--ink-900);
   font-size: var(--text-body-size);
   line-height: var(--text-body-line);
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-bold);
 }
 
 .filterButton {
@@ -432,13 +553,12 @@
   font-weight: var(--weight-medium);
 }
 
+/* How long past: overdue is a record speaking, so it keeps its colour. */
 .lateWhen {
-  flex-shrink: 0;
   color: var(--status-critical-ink);
   font-size: var(--text-caption-size);
   line-height: var(--text-caption-line);
   font-weight: var(--weight-semibold);
-  text-align: right;
 }
 
 /* A choice in a picker sheet: the whole row is the target. */
