@@ -484,7 +484,7 @@ function NothingCounted({ atHome }: { atHome: number }) {
   return (
     <div className={styles.card}>
       <Unrecorded
-        variant="panel"
+        variant="phonePanel"
         label={noListYetLine}
         detail={`${activeSite.name} has ${pluralise(atHome, VOCABULARY.subject.one, VOCABULARY.subject.many)}. Until somebody gives you a list, nothing here is counted for you.`}
       />

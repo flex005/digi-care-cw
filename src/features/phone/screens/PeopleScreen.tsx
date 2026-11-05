@@ -273,7 +273,7 @@ function NobodyAssigned({
   return (
     <div className={styles.card} data-scope="not_decided">
       <Unrecorded
-        variant="panel"
+        variant="phonePanel"
         caption="Your list"
         label={noListYetLine}
         detail={`${activeSite.name} has ${pluralise(atHome, VOCABULARY.subject.one, VOCABULARY.subject.many)}. Your list is empty because nobody has decided who you cover, not because the home is.`}

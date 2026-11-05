@@ -111,7 +111,7 @@
   gap: var(--space-12);
   margin: 0 var(--layout-gutter-compact);
   padding: var(--card-padding);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-sm);
   background-color: var(--bg-surface);
   box-shadow: var(--shadow-card);
 }

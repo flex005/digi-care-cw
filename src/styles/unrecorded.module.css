@@ -195,6 +195,18 @@
   background-color: var(--bg-surface);
 }
 
+/* The panel form on the phone: the desktop panel at the phone's card corner. */
+.unrecordedPhonePanel {
+  composes: unrecorded;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-16) var(--space-20);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
 /**
  * Mark form: the gap segment of a bar, and the legend swatch that explains it.
  *

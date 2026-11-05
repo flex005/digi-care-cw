@@ -191,7 +191,7 @@ function Allergies({ status }: { status: AllergyStatus }) {
       case 'not_recorded':
         return (
           <Unrecorded
-            variant="panel"
+            variant="phonePanel"
             label="Not recorded"
             detail="Nobody has recorded whether they have any allergies. That is not the same as none."
           />
