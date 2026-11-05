@@ -129,10 +129,24 @@ export function NoteMeta({
  * A shift somebody changed, from what, and why. Without `clockSaid` a moved
  * shift would look like one nobody touched.
  */
-export function ShiftOverride({ note }: { note: CareNote }) {
+export function ShiftOverride({
+  note,
+  form = 'desktop',
+}: {
+  note: CareNote
+  /** The phone's form: the same words, its label in sentence case. */
+  form?: 'desktop' | 'phone'
+}) {
   if (note.shift.kind !== 'overridden') return null
   return (
-    <p className={styles.shiftOverride} data-shift-override>
+    <p
+      className={
+        form === 'phone'
+          ? `${styles.shiftOverride} ${styles.phoneForm}`
+          : styles.shiftOverride
+      }
+      data-shift-override
+    >
       <span className={styles.overrideLabel}>Shift changed</span> The clock said{' '}
       {SHIFT_NAMES[note.shift.clockSaid].toLowerCase()}, recorded as{' '}
       {SHIFT_NAMES[note.shift.value].toLowerCase()}: “{note.shift.reason}”
@@ -173,10 +187,16 @@ export function FlagReasonText({ reason }: { reason: FlagReason }) {
  * somebody asked for and nobody has given is a gap in the record, not a
  * finding: amber would say somebody looked.
  */
-export function FlaggedMarker({ flaggedAt }: { flaggedAt: IsoDateTime }) {
+export function FlaggedMarker({
+  flaggedAt,
+  form = 'desktop',
+}: {
+  flaggedAt: IsoDateTime
+  form?: 'desktop' | 'phone'
+}) {
   return (
     <Unrecorded
-      variant="chip"
+      variant={form === 'phone' ? 'phoneChip' : 'chip'}
       label="Flagged, not reviewed"
       detail={`waiting ${waitingSince(flaggedAt)}`}
     />
@@ -194,8 +214,21 @@ export function FlaggedMarker({ flaggedAt }: { flaggedAt: IsoDateTime }) {
  * Not flagged renders nothing. Flagging is something a person chooses to do,
  * not a record anybody owes, so an unflagged note is not a gap.
  */
-export function FlagRecord({ review }: { review: CareNoteReview }) {
+export function FlagRecord({
+  review,
+  form = 'desktop',
+}: {
+  review: CareNoteReview
+  /**
+   * The phone's form: the same facts and words, the hatched chip at the
+   * phone's card corner and the labels in sentence case. The desktop's form
+   * is unchanged.
+   */
+  form?: 'desktop' | 'phone'
+}) {
   const format = useSiteFormat()
+  const root =
+    form === 'phone' ? `${styles.flagRecord} ${styles.phoneForm}` : styles.flagRecord
 
   switch (review.kind) {
     case 'not_flagged':
@@ -203,8 +236,8 @@ export function FlagRecord({ review }: { review: CareNoteReview }) {
 
     case 'flagged_not_reviewed':
       return (
-        <div className={styles.flagRecord} data-flag-record="waiting">
-          <FlaggedMarker flaggedAt={review.flaggedAt} />
+        <div className={root} data-flag-record="waiting">
+          <FlaggedMarker flaggedAt={review.flaggedAt} form={form} />
           <p className={styles.flagLine}>
             Flagged by {staffLabel(review.flaggedBy)},{' '}
             <span data-numeric>{format.dateTime(review.flaggedAt)}</span>
@@ -216,7 +249,7 @@ export function FlagRecord({ review }: { review: CareNoteReview }) {
     case 'reviewed': {
       const samePerson = review.flaggedBy.id === review.reviewedBy.id
       return (
-        <div className={styles.flagRecord} data-flag-record="reviewed">
+        <div className={root} data-flag-record="reviewed">
           <Settled
             label={samePerson ? 'Flagged and reviewed by the same person' : 'Reviewed'}
             detail={`${staffLabel(review.reviewedBy)}, ${format.dateTime(review.reviewedAt)}`}

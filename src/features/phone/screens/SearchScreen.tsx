@@ -8,7 +8,7 @@ import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { LookupRow, OpensFromHere } from '../LookupRows'
 import type { Person } from '../phone-data'
 import { phoneIcons } from '../phone.icons'
-import { byRoom } from '../rooms'
+import { byRoom, matchesNameOrRoom } from '../rooms'
 import { Loaded } from '../ScreenStates'
 import { useInFront } from '../shell/nav'
 import { Screen } from '../shell/Screen'
@@ -96,7 +96,9 @@ export function SearchScreen() {
         {(people) => {
           const asked = query.trim()
           if (asked === '') return null
-          const found = people.filter((person) => matches(person, asked)).sort(byRoom)
+          const found = people
+            .filter((person) => matchesNameOrRoom(person, asked))
+            .sort(byRoom)
           if (found.length === 0)
             return (
               <p className={`${styles.body} ${styles.gutter}`} role="status">
@@ -137,13 +139,4 @@ function clearOfKeyboard(field: HTMLElement) {
     const box = pane.getBoundingClientRect()
     pane.scrollTop += at.top - box.top - box.height / 2 + at.height / 2
   }, AFTER_KEYBOARD_MS)
-}
-
-function matches(person: Person, asked: string): boolean {
-  const needle = asked.toLocaleLowerCase('en-GB')
-  return [
-    person.fullLegalName,
-    person.preferredName,
-    person.room.kind === 'recorded' ? person.room.value : '',
-  ].some((value) => value.toLocaleLowerCase('en-GB').includes(needle))
 }

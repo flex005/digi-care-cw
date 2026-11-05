@@ -3,10 +3,12 @@ import { useRouter } from 'next/navigation'
 import type { IsoDateTime } from '@/data/types'
 import { submitCareNote } from '@/data/access/client'
 import { now } from '@/data/fixtures/clock'
-import { Button } from '@/components/primitives'
+import { ActLine, Button } from '@/components/primitives'
 import { ActPoint } from '@/components/layout/ActPoint'
 import { useSignedIn, useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
+import type { Answer } from '@/app/session/capabilities'
+import { refusalOf as refusalWords } from '@/app/session/refusal'
 import { useOpenRecord } from '@/features/residents/profile/ProfileContext'
 import { listName } from '@/features/residents/list-name'
 import { shiftAt } from '@/lib/shift'
@@ -75,17 +77,7 @@ export function NoteComposer({ onSaved }: { onSaved: () => void }) {
 
   const answer = viewer.ask('write_care_note', resident.id)
   if (answer.kind !== 'yes')
-    return (
-      <div data-note-composer="refused">
-        <ActPoint
-          answer={answer}
-          label="Write a care note"
-          /* Drawn only for a yes, which never reaches this branch. */
-          notBuilt=""
-          residentName={listName(resident)}
-        />
-      </div>
-    )
+    return <RefusedComposer answer={answer} name={listName(resident)} />
 
   const change = (next: NoteFields) => {
     setFields(next)
@@ -161,6 +153,41 @@ export function NoteComposer({ onSaved }: { onSaved: () => void }) {
         }
         secondaryAct={null}
       />
+    </div>
+  )
+}
+
+/**
+ * Where the composer would be, for a viewer the role table does not let write
+ * about this resident: the refusal in words, never an empty element (CLAUDE.md
+ * §6). A blank here cannot be told apart from a composer that failed to draw.
+ *
+ * The PRD's open question keeps `ActPoint`, which draws exactly that; every
+ * other refusal is said by `refusalOf` in `src/app/session/refusal.ts`, the one owner of these words for the
+ * desktop and the phone. **Not reachable by either role today**, because
+ * writing a care note and opening the record have the same grant, and the
+ * record refuses first. It is here so a change to the role table's writing row
+ * shows up as words rather than as nothing.
+ */
+export function RefusedComposer({
+  answer,
+  name,
+}: {
+  answer: Exclude<Answer, { kind: 'yes' }>
+  name: string
+}) {
+  return (
+    <div data-note-composer="refused">
+      {answer.kind === 'not_stated' || answer.kind === 'contradicted' ? (
+        <ActPoint
+          answer={answer}
+          label="Write a care note"
+          notBuilt=""
+          residentName={name}
+        />
+      ) : (
+        <ActLine kind="refused">{refusalWords(answer, name)}</ActLine>
+      )}
     </div>
   )
 }

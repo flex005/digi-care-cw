@@ -44,12 +44,18 @@ const due = (opens: string, closes: string): DoseRecord['state'] => ({
   windowOpensAt: opens as IsoDateTime,
   windowClosesAt: closes as IsoDateTime,
 })
+/*
+ * Partial, and cast: the rule reads only these. `corrects` is among them since
+ * a correction stopped counting as a note today, which the cast had hidden by
+ * leaving it undefined rather than saying 'none'.
+ */
 const noteAt = (recordedAt: string): CareNote =>
   ({
     id: 'note-1',
     residentId: person.id,
     recordedAt,
     recordedBy: by,
+    corrects: 'none',
   }) as unknown as CareNote
 
 describe('what is outstanding today', () => {

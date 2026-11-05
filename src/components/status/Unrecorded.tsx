@@ -38,6 +38,8 @@ export type UnrecordedVariant =
   | 'chip'
   | 'flag'
   | 'panel'
+  /** The chip at the phone's card corner (docs/PHONE_VISUAL_BASELINE.md). */
+  | 'phoneChip'
   /** The panel at the phone's card corner (docs/PHONE_VISUAL_BASELINE.md). */
   | 'phonePanel'
   | 'row'
@@ -88,6 +90,7 @@ const VARIANT_CLASS: Record<UnrecordedVariant, string> = {
   chip: styles.chip,
   flag: styles.flag,
   panel: styles.panel,
+  phoneChip: styles.phoneChip,
   phonePanel: styles.phonePanel,
   row: styles.row,
 }

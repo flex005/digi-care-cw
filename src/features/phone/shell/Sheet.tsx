@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { useRef, useState, type PointerEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 import { useFrame } from './nav'
 import styles from './shell.module.css'
 
@@ -14,12 +14,21 @@ const CLOSES_AT = 96
  * **It closes three ways**: dragging the handle down past a threshold, Cancel
  * in its own top-left, or a tap on the dimmed screen. Radix supplies the focus
  * trap, the escape key and the accessible name; the look is ours.
+ *
+ * **Full height, for a task too tall for a short sheet**: a composer, a picker
+ * with a search. It covers the whole app, pins `head` under its title (the
+ * subject of a write, CLAUDE.md §2), and scrolls its body as the one pane of
+ * its layer. **While it is open the screen beneath cannot scroll or be
+ * reached**: its tab is made inert and its pane stops scrolling, so the person
+ * can scroll exactly one thing (docs/MOBILE_APP_SHELL.md §1).
  */
 export function Sheet({
   open,
   onOpenChange,
   title,
   cancel = 'Cancel',
+  height = 'short',
+  head,
   children,
 }: {
   open: boolean
@@ -27,9 +36,31 @@ export function Sheet({
   title: string
   /** The words on the control in the top-left: "Cancel", or "Done" where nothing is lost. */
   cancel?: string
+  /** A short sheet sized to what it holds, or one covering the whole app. */
+  height?: 'short' | 'full'
+  /** Pinned under the title, outside the scrolling body. */
+  head?: ReactNode
   children: ReactNode
 }) {
   const frame = useFrame()
+
+  /* The lock: only the tab that is showing, and only what this sheet changed. */
+  useEffect(() => {
+    if (!open || height !== 'full' || frame === null) return
+    const tabs = [...frame.querySelectorAll<HTMLElement>('[data-tab]')].filter(
+      (tab) => !tab.hasAttribute('inert'),
+    )
+    const panes = tabs.flatMap((tab) => [
+      ...tab.querySelectorAll<HTMLElement>('[data-scroll-pane]'),
+    ])
+    for (const tab of tabs) tab.setAttribute('inert', '')
+    for (const pane of panes) pane.style.overflowY = 'hidden'
+    return () => {
+      for (const tab of tabs) tab.removeAttribute('inert')
+      for (const pane of panes) pane.style.overflowY = ''
+    }
+  }, [open, height, frame])
+
   const [drag, setDrag] = useState(0)
   const from = useRef<number | null>(null)
 
@@ -53,14 +84,16 @@ export function Sheet({
       <Dialog.Portal container={frame ?? undefined}>
         <Dialog.Overlay className={styles.sheetOverlay} />
         <Dialog.Content
-          className={styles.sheet}
+          className={
+            height === 'full' ? `${styles.sheet} ${styles.sheetFull}` : styles.sheet
+          }
           aria-describedby={undefined}
           style={
             drag > 0
               ? { transform: `translateY(${drag}px)`, transition: 'none' }
               : undefined
           }
-          data-sheet
+          data-sheet={height}
         >
           <div
             className={styles.sheetGrab}
@@ -78,7 +111,17 @@ export function Sheet({
               <span className={styles.sheetSide} aria-hidden="true" />
             </div>
           </div>
-          <div className={styles.sheetBody}>{children}</div>
+          {head === undefined ? null : <div className={styles.sheetPinned}>{head}</div>}
+          <div
+            className={
+              height === 'full'
+                ? `${styles.pane} ${styles.sheetBody} ${styles.sheetBodyFull}`
+                : styles.sheetBody
+            }
+            data-sheet-pane={height === 'full' ? '' : undefined}
+          >
+            {children}
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
