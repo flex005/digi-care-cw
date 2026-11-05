@@ -17,6 +17,14 @@ export const NOT_GIVEN_REASON_LABEL = {
   other: 'Other',
 } as const satisfies Record<NotGivenReason, string>
 
+/**
+ * The one sentence a count that does not reconcile carries, in the PRD's words
+ * (MED-03). Here rather than beside the dose that draws it, because the loader
+ * refuses with the same sentence the screen shows.
+ */
+export const DISCREPANCY_LINE =
+  'Stock count does not match the running balance. This must be resolved before any further administration.'
+
 /** The order the round offers them, the PRD's order. */
 export const NOT_GIVEN_REASONS: NotGivenReason[] = [
   'resident_refused',

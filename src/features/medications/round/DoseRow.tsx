@@ -12,7 +12,11 @@ import { ActPoint } from '@/components/layout/ActPoint'
 import { RadioGroup, Select, SelectedMark, TextField } from '@/components/primitives'
 import { Settled, StatusPill, Unrecorded } from '@/components/status'
 import { assertNever } from '@/lib/assert-never'
-import { NOT_GIVEN_REASON_LABEL, NOT_GIVEN_REASONS } from '../medication-words'
+import {
+  DISCREPANCY_LINE,
+  NOT_GIVEN_REASON_LABEL,
+  NOT_GIVEN_REASONS,
+} from '../medication-words'
 import {
   needsOpeningCount,
   type DoseAccess,
@@ -20,10 +24,6 @@ import {
   type RoundDose,
 } from './round'
 import styles from './round.module.css'
-
-/** The one sentence a count that does not reconcile carries, in the PRD's words (MED-03). */
-export const DISCREPANCY_LINE =
-  'Stock count does not match the running balance. This must be resolved before any further administration.'
 
 /**
  * The one line a dose whose window has not opened carries.
