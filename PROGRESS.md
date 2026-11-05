@@ -2682,3 +2682,7 @@ A new place, `notes` at `/m/people/<id>/notes`, pushed from the record's "Care n
 Four tests: the address, the order against the store, the correction pair, and the own-notes line against each note's real author. The last one first failed on its own assumption: the fixtures already hold notes by Ngozi Eze about Okafor, and the line rightly showed on them too. It now asserts both kinds are present, so neither half can pass empty. Reversing the order, drawing the line on every note, and dropping the superseded mark each turned their test red.
 
 **Two shared components bring their own corners into this screen**: `FlagRecord`'s hatched chip at 14px and the flagged marker. Both are outside the phone tree, as `check-phone-visuals` says it cannot see.
+
+## Care notes module: the docs (05/11/2026)
+
+`docs/MOBILE_APP_SHELL.md` §3 now describes the full-height sheet and says plainly that the guard holds "a place, never a task" by labels and address words only, so it is also a review question; §9 is "Lists are cards in the gutter", which it had stopped describing on 05/11. `docs/DEPARTURES.md` says care notes are built on the phone and correcting is not. `docs/PHONE_VISUAL_BASELINE.md` records the square full-height sheet and why "Not recorded" sits apart from the moods. `docs/PHONE_AUDIT.md` is marked as a snapshot that has not been re-read since the baseline and this module, rather than left reading as current.
