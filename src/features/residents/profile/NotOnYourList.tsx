@@ -1,5 +1,5 @@
 import type { Answer } from '@/app/session/capabilities'
-import { noListYetLine, notOnYourListLine } from '@/app/session/resident-scope'
+import { refusalOf } from '@/app/session/refusal'
 import type { Resident } from '@/data/types'
 import { Card } from '@/components/primitives'
 import { assertNever } from '@/lib/assert-never'
@@ -29,28 +29,11 @@ export function NotOnYourList({
   return (
     <Card>
       <div className={styles.notOnList} data-not-on-list={answer.kind}>
-        <p className={styles.notOnListTitle}>{headline(answer, name)}</p>
+        <p className={styles.notOnListTitle}>{refusalOf(answer, name)}</p>
         <p className={styles.notOnListBody}>{body(answer)}</p>
       </div>
     </Card>
   )
-}
-
-function headline(answer: Exclude<Answer, { kind: 'yes' }>, name: string): string {
-  switch (answer.kind) {
-    case 'not_on_your_list':
-      return notOnYourListLine(name)
-    case 'no_list_yet':
-      return noListYetLine
-    case 'not_your_role':
-    case 'not_the_author':
-      return answer.reason
-    case 'not_stated':
-    case 'contradicted':
-      return answer.question
-    default:
-      return assertNever(answer)
-  }
 }
 
 function body(answer: Exclude<Answer, { kind: 'yes' }>): string {
