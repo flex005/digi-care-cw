@@ -16,6 +16,10 @@
   composes: unrecordedPanel from '../../styles/unrecorded.module.css';
 }
 
+.phoneChip {
+  composes: unrecordedPhoneChip from '../../styles/unrecorded.module.css';
+}
+
 .phonePanel {
   composes: unrecordedPhonePanel from '../../styles/unrecorded.module.css';
 }
@@ -59,7 +63,8 @@
  * grey block and the reader has to parse a sentence to find the answer.
  * A step up and a weight up, both on the closed scale.
  */
-.chip .label {
+.chip .label,
+.phoneChip .label {
   font-size: var(--text-body-sm-size);
   line-height: var(--text-body-sm-line);
   font-weight: var(--weight-bold);

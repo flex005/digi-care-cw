@@ -9,8 +9,10 @@ import { resetSessionNotes } from '@/data/access/note-store'
 import { now } from '@/data/fixtures/clock'
 import { staffEze } from '@/data/fixtures/organisation'
 import type { CareNote, IsoDateTime, ResidentId } from '@/data/types'
+import { ROWS_PER_PAGE } from '@/components/primitives/Pager'
 import { renderSignedIn } from '@/test/render-signed-in'
 import { PhoneApp } from '../shell/PhoneApp'
+import { showingLine } from '../screens/NotesScreen'
 
 vi.mock('next/navigation', () => ({
   usePathname: () => window.location.pathname,
@@ -51,7 +53,7 @@ async function openNotes() {
   renderSignedIn(staffEze.id, <PhoneApp />)
   fireEvent.click(await within(people()).findByRole('link', { name: /Care notes/ }))
   await waitFor(() => expect(entries()).toEqual(['people', 'record', 'notes']))
-  await within(front()).findByText(/care notes?, newest first\.$/)
+  await within(front()).findByText(/^Showing /)
   return front()
 }
 
@@ -60,19 +62,61 @@ const shownIds = (screen: HTMLElement) =>
     note.getAttribute('data-note'),
   )
 
+describe('what the notes list says it is showing', () => {
+  it('says the batch and the whole while there is more', () => {
+    expect(showingLine(25, 395)).toBe('Showing the newest 25 of 395 care notes.')
+  })
+
+  it('says all, when it is all, so the end of the list is not mistaken for a batch', () => {
+    expect(showingLine(395, 395)).toBe('Showing all 395 care notes, newest first.')
+    expect(showingLine(25, 3)).toBe('Showing all 3 care notes, newest first.')
+    expect(showingLine(25, 1)).toBe('Showing the only care note.')
+  })
+})
+
 describe('the phone: a resident’s care notes', () => {
   it('pushes from the record, at an address of its own', async () => {
     await openNotes()
     expect(window.location.pathname).toBe('/m/people/res-okafor/notes')
   })
 
-  it('shows every note, newest first', async () => {
+  it('shows the newest batch, says how many of how many, and adds the next on request', async () => {
     const screen = await openNotes()
     const expected = (await getCareNotes(OKAFOR))
       .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt))
       .map((note) => note.id)
-    expect(expected.length).toBeGreaterThan(1)
-    expect(shownIds(screen)).toEqual(expected)
+    // Okafor has more than two batches, so both the batch and the rest are real.
+    expect(expected.length).toBeGreaterThan(ROWS_PER_PAGE * 2)
+    expect(shownIds(screen)).toEqual(expected.slice(0, ROWS_PER_PAGE))
+    expect(screen.querySelector('[data-showing]')?.textContent).toBe(
+      `Showing the newest ${ROWS_PER_PAGE} of ${expected.length} care notes.`,
+    )
+    fireEvent.click(
+      within(screen).getByRole('button', { name: `Show the next ${ROWS_PER_PAGE}` }),
+    )
+    expect(shownIds(screen)).toEqual(expected.slice(0, ROWS_PER_PAGE * 2))
+    expect(screen.querySelector('[data-showing]')?.textContent).toBe(
+      `Showing the newest ${ROWS_PER_PAGE * 2} of ${expected.length} care notes.`,
+    )
+  })
+
+  it('puts the note above where it came from, with all five facts in sentence case', async () => {
+    const screen = await openNotes()
+    for (const card of screen.querySelectorAll<HTMLElement>('[data-note]')) {
+      const body = card.firstElementChild as HTMLElement
+      const meta = card.querySelector('[data-note-meta]') as HTMLElement
+      expect(
+        body.compareDocumentPosition(meta) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+      for (const fact of ['category', 'author', 'when', 'shift'])
+        expect(meta.querySelector(`[data-meta="${fact}"]`)?.textContent).not.toBe('')
+      const mood =
+        meta.querySelector('[data-meta="mood"]') ??
+        meta.querySelector('[data-state="unrecorded"]')
+      expect(mood).not.toBeNull()
+      const category = meta.querySelector('[data-meta="category"]')?.textContent ?? ''
+      expect(category.slice(1)).toBe(category.slice(1).toLowerCase())
+    }
   })
 
   it('shows a correction and the note it corrects, each saying which it is', async () => {

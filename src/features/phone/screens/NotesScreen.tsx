@@ -6,13 +6,19 @@ import { refusalOf } from '@/app/session/refusal'
 import { useSignedIn, useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { ActLine } from '@/components/primitives'
-import { FlagRecord, NoteMeta, ShiftOverride } from '@/features/notes/note-parts'
+import { ROWS_PER_PAGE } from '@/components/primitives/Pager'
+import { Unrecorded } from '@/components/status'
+import { staffLabel } from '@/data/access/team-store'
+import { MOOD_LABELS } from '@/data/types'
+import { CATEGORY_NAME, FlagRecord, ShiftOverride } from '@/features/notes/note-parts'
+import { SHIFT_NAMES } from '@/lib/shift'
 import { pluralise } from '@/lib/format'
 import { notBuiltOnPhone } from '../not-built'
 import { listName, type Person } from '../phone-data'
 import { Loaded } from '../ScreenStates'
 import { useInFront } from '../shell/nav'
 import { Screen } from '../shell/Screen'
+import shell from '../shell/shell.module.css'
 import { SubjectHeader } from '../SubjectHeader'
 import styles from '../phone.module.css'
 
@@ -86,9 +92,25 @@ export function NotesScreen({ id }: { id: ResidentId }) {
   )
 }
 
+/**
+ * What the list says it is showing: what is on screen and what exists, always
+ * both. "395 care notes" over the newest 25 would be a claim about a list the
+ * reader is not looking at; "all" is said when it is all, so the end of the
+ * list cannot be mistaken for the end of a batch.
+ */
+export function showingLine(shown: number, total: number): string {
+  if (shown >= total)
+    return total === 1
+      ? 'Showing the only care note.'
+      : `Showing all ${pluralise(total, 'care note')}, newest first.`
+  return `Showing the newest ${shown} of ${pluralise(total, 'care note')}.`
+}
+
 function NoteList({ notes }: { notes: CareNote[] }) {
   const { member } = useSignedIn()
   const format = useSiteFormat()
+  /* The desktop's page size, so the two surfaces agree on what a batch is. */
+  const [shown, setShown] = useState(ROWS_PER_PAGE)
   if (notes.length === 0)
     return (
       <p className={`${styles.quiet} ${styles.gutter}`}>
@@ -105,18 +127,20 @@ function NoteList({ notes }: { notes: CareNote[] }) {
     return found === undefined ? 'an earlier note' : format.dateTime(found.recordedAt)
   }
 
+  const onScreen = Math.min(shown, notes.length)
+  const remaining = notes.length - onScreen
   return (
     <>
-      <p className={`${styles.quiet} ${styles.gutter}`}>
-        {pluralise(notes.length, 'care note')}, newest first.
+      <p className={`${styles.quiet} ${styles.gutter}`} role="status" data-showing>
+        {showingLine(onScreen, notes.length)}
       </p>
       <ul className={styles.list} data-notes>
-        {newestFirst.map((note) => (
+        {newestFirst.slice(0, onScreen).map((note) => (
           <li key={note.id} className={styles.note} data-note={note.id}>
-            <NoteMeta note={note} />
             <p className={styles.noteBody}>{note.body}</p>
-            <ShiftOverride note={note} />
-            <FlagRecord review={note.review} />
+            <Provenance note={note} />
+            <ShiftOverride note={note} form="phone" />
+            <FlagRecord review={note.review} form="phone" />
             {note.corrects === 'none' ? null : (
               <p className={styles.quiet} data-corrects>
                 A correction of the note written {when(note.corrects)}, which stays on
@@ -137,9 +161,63 @@ function NoteList({ notes }: { notes: CareNote[] }) {
           </li>
         ))}
       </ul>
+      {remaining === 0 ? null : (
+        <div className={styles.gutter}>
+          <button
+            type="button"
+            className={`${styles.pill} ${shell.press}`}
+            onClick={() => setShown((count) => count + ROWS_PER_PAGE)}
+          >
+            Show the next {Math.min(ROWS_PER_PAGE, remaining)}
+          </button>
+        </div>
+      )}
       <p className={`${styles.byline} ${styles.gutter}`}>
         A care note is never changed once saved. A correction is kept with it.
       </p>
     </>
+  )
+}
+
+/**
+ * The phone's form of a note's provenance: under the note, not over it. The
+ * note is the content; category, author, time, shift and mood say where it
+ * came from, and **all five stay**, because a note whose author, time or shift
+ * is hidden is worse than a busy one.
+ *
+ * Sentence case throughout, and one chip style for the shift and the mood.
+ * The one exception is a mood nobody recorded, which keeps the hatch: an
+ * absence never takes a recorded value's look (CLAUDE.md §1).
+ */
+function Provenance({ note }: { note: CareNote }) {
+  const format = useSiteFormat()
+  const category = CATEGORY_NAME(note.category)
+  return (
+    <div className={styles.provenance} data-note-meta>
+      <p className={styles.provenanceLine}>
+        <span data-meta="category">
+          {category.charAt(0)}
+          {category.slice(1).toLowerCase()}
+        </span>
+        <span aria-hidden="true">·</span>
+        <span data-meta="author">{staffLabel(note.recordedBy)}</span>
+        <span aria-hidden="true">·</span>
+        <span data-meta="when" data-numeric>
+          {format.dateTime(note.recordedAt)}
+        </span>
+      </p>
+      <p className={styles.provenanceChips}>
+        <span className={styles.factChip} data-meta="shift">
+          {SHIFT_NAMES[note.shift.value]} shift
+        </span>
+        {note.mood.kind === 'recorded' ? (
+          <span className={styles.factChip} data-meta="mood">
+            Mood: {MOOD_LABELS[note.mood.score].toLowerCase()}
+          </span>
+        ) : (
+          <Unrecorded label="Mood not recorded" />
+        )}
+      </p>
+    </div>
   )
 }
