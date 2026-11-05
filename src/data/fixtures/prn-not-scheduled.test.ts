@@ -11,7 +11,13 @@ vi.hoisted(() => {
 
 import { describe, expect, it } from 'vitest'
 import type { IsoDateTime, SiteId } from '@/data/types'
-import { fellDueAt, marRecordsAll, medications } from './medications'
+import {
+  MAR_HISTORY_DAYS,
+  fellDueAt,
+  isScheduledDaysAgo,
+  marRecordsAll,
+  medications,
+} from './medications'
 import { now } from './clock'
 import { getOmissions } from '@/data/access/client'
 import { weekBefore } from '@/features/medications/omissions/omission-views'
@@ -40,6 +46,22 @@ describe('an as-required drug on the chart', () => {
     expect(new Set(scheduledCells.map((record) => record.state.kind))).toEqual(
       new Set(['given', 'not_given', 'omitted', 'due', 'not_due']),
     )
+  })
+
+  it('is scheduled on no day, while a scheduled drug is on some', () => {
+    const days = Array.from({ length: MAR_HISTORY_DAYS }, (_, day) => day)
+    const prn = medications.filter((medication) => medication.isPrn)
+    const scheduled = medications.filter((medication) => !medication.isPrn)
+    expect(
+      prn.filter((medication) =>
+        days.some((day) => isScheduledDaysAgo(medication, day)),
+      ),
+    ).toEqual([])
+    expect(
+      scheduled.every((medication) =>
+        days.some((day) => isScheduledDaysAgo(medication, day)),
+      ),
+    ).toBe(true)
   })
 
   it('never fell due, so no figure counts it among the doses owed', () => {

@@ -636,6 +636,8 @@ export const MAR_HISTORY_DAYS = 90
  * would drift from the chart the first day an interval changed.
  */
 export function isScheduledDaysAgo(medication: Medication, daysBack: number): boolean {
+  // A PRN is never scheduled, on any day: it has no due time (05/11/2026).
+  if (medication.isPrn) return false
   const started = firstChartedDayAgo(medication)
   if (daysBack > started || daysBack < 0) return false
   return (started - daysBack) % medication.intervalDays === 0
