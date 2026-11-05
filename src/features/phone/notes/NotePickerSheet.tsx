@@ -175,7 +175,7 @@ function Rows({
   const viewer = useViewer()
   if (people.length === 0) return null
   return (
-    <ul className={styles.list} data-picker>
+    <ul className={styles.listInSheet} data-picker>
       {people.map((person) => {
         const answer = viewer.ask('write_care_note', person.id)
         const room =

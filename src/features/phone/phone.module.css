@@ -44,6 +44,12 @@
   list-style: none;
 }
 
+/* The same cards inside a sheet, whose body already sits in the gutter. */
+.listInSheet {
+  composes: list;
+  padding: 0;
+}
+
 /* The card clips the row's pressed tint to its corners. */
 .list > li {
   overflow: hidden;
