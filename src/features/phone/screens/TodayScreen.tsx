@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   getCareNotesForSite,
   getHandoverBoard,
@@ -58,7 +58,7 @@ import {
 import { phoneIcons } from '../phone.icons'
 import { Loaded } from '../ScreenStates'
 import { ShareBar } from '../ShareBar'
-import { usePhoneNav } from '../shell/nav'
+import { useInFront, usePhoneNav } from '../shell/nav'
 import { Screen } from '../shell/Screen'
 import { Sheet } from '../shell/Sheet'
 import { StackLink } from '../shell/StackLink'
@@ -98,6 +98,20 @@ export function TodayScreen() {
   const viewer = useViewer()
   const [at] = useState(() => now().toISOString() as IsoDateTime)
   const firstName = member.ref.fullName.split(/\s+/)[0] ?? member.ref.fullName
+  /*
+   * **Read again on coming back to the front.** The phone keeps every tab
+   * mounted, and a reload signs you out, so a figure read once would still
+   * count a resident as not written up after somebody wrote their note a
+   * minute ago, on another tab or from the centre action. That is the gap
+   * figure contradicting the record (CLAUDE.md §1).
+   */
+  const inFront = useInFront()
+  const [reads, setReads] = useState(0)
+  const wasInFront = useRef(inFront)
+  useEffect(() => {
+    if (inFront && !wasInFront.current) setReads((count) => count + 1)
+    wasInFront.current = inFront
+  }, [inFront])
 
   const load = useCallback(
     () =>
@@ -118,7 +132,7 @@ export function TodayScreen() {
       })),
     [activeSite.id, at],
   )
-  const resource = useResource<TodayData>(load, [activeSite.id])
+  const resource = useResource<TodayData>(load, [activeSite.id, reads])
 
   return (
     <Screen

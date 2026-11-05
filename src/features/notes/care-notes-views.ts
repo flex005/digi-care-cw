@@ -100,6 +100,13 @@ export interface QuietResident {
  * **Never written up leads**, and stays distinct from "nothing today": a
  * resident nobody has ever written about is the worse finding, and it must not
  * sit below somebody written up an hour before midnight.
+ *
+ * **A correction does not write anybody up** (decided 05/11/2026, and the Admin
+ * build holds the same rule). Its subject is the earlier note's day, not
+ * today's care, so a correction written today of yesterday's note leaves
+ * today's care unrecorded and the gap stands. A note written today and later
+ * corrected still counts: it was today's care, and it stays on the record. The
+ * "last one" line still names the most recent note, corrections included.
  */
 export function withoutNoteToday(
   residents: Resident[],
@@ -115,7 +122,8 @@ export function withoutNoteToday(
     const previous = latest.get(note.residentId)
     if (previous === undefined || previous.recordedAt < note.recordedAt)
       latest.set(note.residentId, note)
-    if (zonedDate(note.recordedAt, timeZone) === today) wroteToday.add(note.residentId)
+    if (note.corrects === 'none' && zonedDate(note.recordedAt, timeZone) === today)
+      wroteToday.add(note.residentId)
   }
 
   const lastTime = (quiet: QuietResident) =>

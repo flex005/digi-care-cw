@@ -12,12 +12,13 @@ Rules for everything under `/m` (`src/app/m/`, `src/features/phone/`). CLAUDE.md
 
 On a web page everything scrolls together, header included. Get this wrong and nothing else here rescues it.
 
-- Each screen on a stack has its own `.pane`, and only the top one is visible, so at any moment one pane scrolls. A second scrolling element inside a screen is a finding.
+- **One scrolling pane per layer.** Each screen on a stack has its own `.pane`, and only the top one is visible. A full-height sheet is a layer over the screen, not a pane inside it, and its body is the `.pane` of that layer. A second scrolling element inside a screen, or inside a sheet, is a finding.
+- **While a full-height sheet is open, the screen beneath is locked**: its tab is made `inert` and its pane stops scrolling, and both are restored when the sheet closes (`Sheet.tsx`). Without the lock, "one per layer" would quietly become two. At any moment the person can scroll exactly one thing. A test opens the composer and checks the lock, and fails when the lock is removed.
 - The shell is a flex column filling **its container**: header, stack, tab bar. Fixed by construction, not by `position: fixed` on each part.
 
 ### The app sizes to its container, never the viewport
 
-**On a laptop the container is a 390 × 844 frame; on a phone it is the screen. One shell, two containers, and no branch on width.** The frame (`.frame`) is 390 × 844 with `max-width` and `max-height` of 100%, `position: relative`, 28px radius and the page shadow, centred on `.stage`, a plain dark backdrop and the one `position: fixed` element in the tree. Everything in the app is `position: absolute` within the frame or in its flex flow: the header, the floating tab bar, and sheets, which portal into the frame rather than `<body>` so they rise inside the phone.
+**On a laptop the container is a 390 × 844 frame; on a phone it is the screen. One shell, two containers, and no branch on width.** The frame (`.frame`) is 390 × 844 with `max-width` and `max-height` of 100%, `position: relative`, square (the reference's phone corner is mockup chrome, `docs/PHONE_VISUAL_BASELINE.md` rule 3) and the page shadow, centred on `.stage`, a plain dark backdrop and the one `position: fixed` element in the tree. Everything in the app is `position: absolute` within the frame or in its flex flow: the header, the floating tab bar, and sheets, which portal into the frame rather than `<body>` so they rise inside the phone.
 
 **What makes it the screen on a phone is the viewport, not a query.** `src/app/m/layout.tsx` declares a 390-wide viewport. A phone lays the page out at 390 and scales it to its glass, so the frame's 390 is the viewport's whole width and the 100% caps take the height. A desktop browser ignores the declaration, so the frame stays a frame. The cost is stated: a phone wider than 390 shows the app scaled up rather than showing more of it, and a phone whose scaled height exceeds 844 shows a strip of backdrop below. A `@media` query would have been the obvious alternative and fails `check-app-shell`.
 
@@ -38,7 +39,9 @@ No `vh`, `dvh` or `vw` anywhere in the phone tree: a unit read from the window i
 
 **Writing a note does not navigate to `/notes/new`.** A sheet rises from the bottom over the screen you are on, with a grab handle at the top, the screen behind it dimmed and still visible. It closes by dragging down or by Cancel in its own top-left. Pickers, confirmations and anything short are sheets (`Sheet`). **A route is for a new place, not for a task.**
 
-Every place the phone can push is declared in `PHONE_PLACES` with `kind: 'place'`. A place of any other kind, or an address segment that names a task (`new`, `edit`, `add`, `compose`, `confirm`, `form`), is a finding.
+**A task too tall for a short sheet is a full-height sheet**, `Sheet` with `height="full"`: the care note composer and the picker that chooses whom a note is about. It covers the whole app, pins a head under its title (the subject of a write, CLAUDE.md §2), scrolls its body as the one pane of its layer (§1), and locks the screen beneath while it is open. It is still a sheet over the place you are on. A composer is a task, so it is never a place.
+
+Every place the phone can push is declared in `PHONE_PLACES` with `kind: 'place'`. A place of any other kind, or an address segment that names a task (`new`, `edit`, `add`, `compose`, `confirm`, `form`, `create`, `write`), is a finding. **The guard holds this by the kind label and the words in an address**: a task given a neutral name and a place entry would pass it, so the rule is also a review question.
 
 ## 4. Edge to edge
 
@@ -82,9 +85,9 @@ Frank's word for the phone is "demure": lots of white, small secondary text, wei
 
 A full-width pill at the bottom of the screen, above the tab bar, outside the scrolling pane (`Screen`'s `primary`). Not a submit button at the end of a long form. A screen has at most one. **Where the act is not built or not this reader's, the line saying so sits at the point of the act**, above the pill, not behind a tap (CLAUDE.md §6).
 
-## 9. Lists are full-bleed
+## 9. Lists are cards in the gutter
 
-Rows run the full width with their own dividers, inset at the gutter, or cards sit in the gutter. Never a grid of boxes inside a narrower container. Section headings sit on the grey page between white list sections.
+Each row is its own card on the grey page, inside the gutter, at the card corner (`docs/PHONE_VISUAL_BASELINE.md`): Residents, search, the picker, a resident's care notes, the rest of a record. They were full-bleed white blocks until 05/11/2026, which is the desktop table's idiom; measured before the change, cards cost 2 to 7% more height. Never a grid of boxes inside a narrower container. Section headings sit on the grey page between them.
 
 ## 10. Transitions have direction and are short
 

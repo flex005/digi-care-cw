@@ -26,6 +26,7 @@ import IconArrowsSharp_ArrowRight01Sharp from '@/assets/icons-generated/arrows-s
 import IconArrowsSharp_ArrowUp01Sharp from '@/assets/icons-generated/arrows-sharp/arrow-up-01-sharp.svg?react'
 import IconBusinessAndFinance_Target01 from '@/assets/icons-generated/business-and-finance/target-01.svg?react'
 import IconCheckValidation_CheckmarkBadge01 from '@/assets/icons-generated/check-validation/checkmark-badge-01.svg?react'
+import IconCheckValidation_CheckmarkCircle02 from '@/assets/icons-generated/check-validation/checkmark-circle-02.svg?react'
 import IconCheckValidation_Tick02 from '@/assets/icons-generated/check-validation/tick-02.svg?react'
 import IconCommunications_Call from '@/assets/icons-generated/communications/call.svg?react'
 import IconDashboard_DashboardSquare01 from '@/assets/icons-generated/dashboard/dashboard-square-01.svg?react'
@@ -57,7 +58,7 @@ import IconUsers_UserMultiple from '@/assets/icons-generated/users/user-multiple
 import IconUsers_UserSwitch from '@/assets/icons-generated/users/user-switch.svg?react'
 
 /**
- * Only the 45 icons actually used in source. Importing all of them
+ * Only the 46 icons actually used in source. Importing all of them
  * would compile every icon in the set into the bundle.
  *
  * Partial because it is keyed by the full IconName union. A missing entry
@@ -83,6 +84,7 @@ export const iconRegistry: Partial<
   'arrows-sharp/arrow-up-01-sharp': IconArrowsSharp_ArrowUp01Sharp,
   'business-and-finance/target-01': IconBusinessAndFinance_Target01,
   'check-validation/checkmark-badge-01': IconCheckValidation_CheckmarkBadge01,
+  'check-validation/checkmark-circle-02': IconCheckValidation_CheckmarkCircle02,
   'check-validation/tick-02': IconCheckValidation_Tick02,
   'communications/call': IconCommunications_Call,
   'dashboard/dashboard-square-01': IconDashboard_DashboardSquare01,

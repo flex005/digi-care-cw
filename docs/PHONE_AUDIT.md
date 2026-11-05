@@ -1,6 +1,6 @@
 # PHONE_AUDIT.md — what the phone build actually is
 
-Read from the code at a21e39c, 03/11/2026, not from memory or from a mockup. Brief from this file. Where it and the code disagree, the code wins and this file is wrong; where it says "not checked", nobody has looked.
+**A snapshot, and out of date since the visual baseline (05/11/2026) and the care notes module.** What changed since is in `PROGRESS.md` and `docs/PHONE_VISUAL_BASELINE.md`; this file has not been re-read against the code. Read from the code at a21e39c, 03/11/2026, not from memory or from a mockup. Brief from this file. Where it and the code disagree, the code wins and this file is wrong; where it says "not checked", nobody has looked.
 
 The rules the phone must keep are `docs/MOBILE_APP_SHELL.md`; this file is what is built.
 
