@@ -33,18 +33,23 @@
   font-weight: var(--weight-bold);
 }
 
-/* A full-bleed list: white, the full width, a hairline above and below. */
+/* A list of rows as cards on the page, in the gutter, as every other surface
+   on the phone is (docs/PHONE_VISUAL_BASELINE.md). Measured before it was
+   drawn: 2 to 7% taller than the full-bleed block it replaced. */
 .list {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
-  background-color: var(--bg-surface);
+  gap: var(--space-8);
+  padding: 0 var(--layout-gutter-compact);
   list-style: none;
 }
 
-.list > li + li {
-  border-top: 1px solid var(--border-subtle);
+/* The card clips the row's pressed tint to its corners. */
+.list > li {
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
 }
 
 .row {
@@ -52,7 +57,7 @@
   gap: var(--space-12);
   align-items: center;
   min-height: var(--space-48);
-  padding: var(--space-12) var(--layout-gutter-compact);
+  padding: var(--space-12) var(--space-16);
   color: var(--ink-900);
   text-decoration: none;
 }
@@ -309,20 +314,14 @@
   min-width: 0;
 }
 
-.subjectName {
-  color: var(--ink-900);
-  font-size: var(--text-h2-size);
-  line-height: var(--text-h2-line);
-  font-weight: var(--weight-bold);
-}
-
+/* The name is the bar's title; these lead the block, at body size. */
 .subjectFacts {
   display: flex;
   flex-wrap: wrap;
   gap: 0 var(--space-12);
   color: var(--ink-700);
-  font-size: var(--text-body-sm-size);
-  line-height: var(--text-body-sm-line);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
 }
 
 .moduleRow {
@@ -330,7 +329,7 @@
   gap: var(--space-12);
   align-items: center;
   min-height: var(--space-48);
-  padding: var(--space-12) var(--layout-gutter-compact);
+  padding: var(--space-12) var(--space-16);
   color: var(--ink-700);
   font-size: var(--text-body-size);
   line-height: var(--text-body-line);

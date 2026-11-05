@@ -35,7 +35,7 @@ export function Loaded<T>({
         </p>
       )
     case 'refused':
-      return <NotYourHome refusal={resource} />
+      return <NotYourHome refusal={resource} form="phone" />
     case 'error':
       return (
         <div className={styles.card} role="alert">

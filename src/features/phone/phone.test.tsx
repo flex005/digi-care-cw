@@ -282,11 +282,15 @@ describe('the phone: one record', () => {
     const record = front('people')
     await within(record).findByText('Known as Emmanuel')
     const header = record.querySelector('[data-subject-header]') as HTMLElement
-    expect(within(header).getByRole('heading', { level: 1 }).textContent).toBe(
+    const bar = record.querySelector('header') as HTMLElement
+    // The name once, as the bar's heading, beside the back chevron; the block
+    // under it carries what the bar does not. Both stay out of the pane.
+    expect(within(bar).getByRole('heading', { level: 1 }).textContent).toBe(
       'Emmanuel Okafor',
     )
+    expect(bar.closest('[data-scroll-pane]')).toBeNull()
     expect(header.closest('[data-scroll-pane]')).toBeNull()
-    expect(within(header).getByText('Emmanuel Okafor')).toBeTruthy()
+    expect(within(record).getAllByText('Emmanuel Okafor')).toHaveLength(1)
     expect(within(header).getByText('Known as Emmanuel')).toBeTruthy()
     expect(within(header).getByText(`Room ${roomOf('Emmanuel Okafor')}`)).toBeTruthy()
     expect(within(header).getByText(/^Born \d{2}\/\d{2}\/\d{4}$/)).toBeTruthy()

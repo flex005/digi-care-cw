@@ -160,6 +160,12 @@
   background-color: var(--bg-surface);
 }
 
+/* A tab's first screen sits on the page, as Today's person heading does: no
+   white band. The pane starts under the bar, so nothing passes beneath it. */
+.barRoot {
+  background-color: var(--bg-page);
+}
+
 /*
  * The drawn chevron is 20px; the thing you tap is 48. The negative margins
  * give the slack back, so the mark sits on the gutter and 8px from the title

@@ -24,6 +24,10 @@ These rules hold over the whole phone tree: `src/features/phone/` and the styles
 
 9. **Flex only, never grid** (`check-figma-export` rule 1).
 
+## Named exceptions
+
+- **The allergy pill keeps its critical tint.** On a resident's record, an allergy is drawn by the shared `StatusPill` in the critical ink on the critical tint, a penicillin anaphylaxis as loudly as anything on the phone. That is rule 6 at its clearest, not a breach of it: an allergy is a record speaking, and it is life-safety information that should be the loudest thing on the screen. It is decided (05/11/2026) and is not to be "fixed" into solid-on-white. `check-phone-visuals` cannot see it, because the tint is drawn outside the phone tree, and its failure message names this exception so nobody reaches for it.
+
 ## Values the reference names, mapped
 
 - **Elevation.** Cards take `--shadow-card`. The tab bar keeps `--shadow-overlay`, because it floats over content. The one purple glow is `--shadow-raised`, added for this baseline. It has two places: the primary button and the raised centre action. The reference's lighter shadows on the bell, the chips and the tab bar have no counterpart.

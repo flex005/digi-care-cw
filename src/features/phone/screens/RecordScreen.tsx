@@ -38,8 +38,11 @@ interface RecordData {
 /**
  * One person's record, pushed over the list it was opened from.
  *
- * **The subject header never scrolls away**: photo, name, preferred name, room
- * and date of birth sit between the bar and the pane (CLAUDE.md §2). **Who it
+ * **The subject header never scrolls away** (CLAUDE.md §2). The name is the
+ * bar's title, small beside the back chevron, and the block under the bar
+ * leads with what the bar does not say: photo, preferred name, room and date
+ * of birth. Both sit outside the pane, so all five stay on screen together;
+ * the name is said once. **Who it
  * is comes from the place on the stack**, which came from the row tapped or the
  * address, never from what was on screen before.
  *
@@ -80,8 +83,13 @@ export function RecordScreen({ id }: { id: ResidentId }) {
 
   return (
     <Screen
-      title={ready === undefined ? VOCABULARY.subject.One : listName(ready.person)}
-      heading={ready !== undefined && opens ? 'elsewhere' : 'title'}
+      title={
+        ready === undefined
+          ? VOCABULARY.subject.One
+          : opens
+            ? ready.person.fullLegalName
+            : listName(ready.person)
+      }
       subject={
         ready !== undefined && opens ? (
           <SubjectHeader person={ready.person} />
@@ -130,7 +138,6 @@ function SubjectHeader({ person }: { person: Person }) {
     <div className={styles.subject} data-subject-header>
       <Avatar photo={person.photo} name={person.fullLegalName} size="medium" />
       <div className={styles.subjectText}>
-        <h1 className={styles.subjectName}>{person.fullLegalName}</h1>
         <p className={styles.subjectFacts}>
           <span>Known as {person.preferredName}</span>
           {person.room.kind === 'recorded' ? (

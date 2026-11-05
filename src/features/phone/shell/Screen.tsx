@@ -77,7 +77,7 @@ export function Screen({
           )}
         </header>
       ) : (
-        <header className={styles.bar}>
+        <header className={root ? `${styles.bar} ${styles.barRoot}` : styles.bar}>
           {root ? null : (
             <button
               type="button"

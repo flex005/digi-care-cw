@@ -122,7 +122,8 @@ for (const file of TREE.flatMap(walk)) {
     const tint = TINT.exec(line)
     if (tint)
       findings.push(
-        `${rel(file)}:${index + 1} — ${tint[0]}. The status tints were the decoration; on the phone a status speaks in its solid token on white.`,
+        `${rel(file)}:${index + 1} — ${tint[0]}. The status tints were the decoration; on the phone a status speaks in its solid token on white. ` +
+          'The one named exception is the allergy pill on a record, which keeps its critical tint by decision (docs/PHONE_VISUAL_BASELINE.md, Named exceptions): do not change it, and do not take it as precedent.',
       )
   })
 
