@@ -25,6 +25,25 @@
   line-height: var(--text-caption-line);
 }
 
+/*
+ * The phone's form: the same words, tighter. No edge and no bottom margin, a
+ * step down in type, and the phone's card corner (docs/PHONE_VISUAL_BASELINE.md).
+ * Its own block rather than a composition, so nothing here reaches the desktop.
+ */
+.linePhone {
+  display: flex;
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
+  gap: 0 var(--space-8);
+  align-items: baseline;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+}
+
 .now {
   color: var(--ink-900);
   font-weight: var(--weight-bold);

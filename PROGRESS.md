@@ -2419,3 +2419,228 @@ understanding as the guard, so both knew about `’s` and both missed `’`. It 
 by reading the rendered string back and asking what it says under every term — the move
 that found the double-printed dose. **Mutating proves a guard can fail on the case you
 thought of; reading the output back finds the case you did not.**
+
+---
+
+## The phone app, Residents (02/11/2026)
+
+A second route tree under `/m` (`src/app/m/`, screens in `src/features/phone/`), in its own frame (`PhoneShell`), changing no existing route, component or test. Five screens: Your list, Everyone, Search, nobody assigned (a state of Your list), one record. Today is a placeholder; Medication and More say "not built" when tapped.
+
+**Why `/m`.** Short to type on a phone, and a phone screen and a desktop screen can never answer the same URL. A record is `/m/people/<id>`: the path does not carry the subject term, because the term is configurable.
+
+**What the brief got wrong against the record.** "All 40": Rosewood has 28 (32 across both homes). `ROSEWOOD_PEOPLE` is not exported; screens read `getResidentsBySite`. No wings exist, so groups are room ranges. The attached mockup file did not arrive; the brief text was built from.
+
+**What is outstanding** is four things and only four (`outstanding.ts`): an open omission, a given dose waiting for its second signature, a dose due now or within the look-ahead, and no care note today. Each asks the owner the dashboard asks. The quiet line names all four, because "nothing outstanding" alone would claim more than was checked. A closed omission is not outstanding.
+
+**The vocabulary ratchet rose by 2, and is left red.** It counts the term wherever it appears, import paths included, and `listName` and the scope wordings (`noListYetLine`, `scopeLine`) live in files whose names say "resident". Funnelled through one re-export in `phone-data.ts`, that is 2 counts; zero needs either a second owner of those wordings or a change to the guard, and both are worse than the number. `BEST` was not raised. Every other occurrence was designed out: types derived from the loaders (`Person`, `DoseRecord`), `getMarRecords(...).then(({ records }) => records)`, module labels from `NAV_ITEMS` sections and `VOCABULARY`, and the record's own not-on-list card rather than the desktop's (whose `resident=` prop counts).
+
+**Mutations, each confirmed landed and reversed by the same exact replacement:** room order reversed (4 tests fail), every lookup row opening (2), due ranked above missed (1), closed omissions counted (1), the empty state's refusal drawn as not-built (1).
+
+**Four existing tests fail on today's date, not on this change**: `report.test.tsx` and `round-window.test.tsx` expect BST times (`T20:20`, got `T19:20`) and the UK left BST on 25/10. Confirmed by running them with this change's tracked edits stashed. The same offset shows on the phone as a 14:00 window "until 14:00 GMT" while the moved-clock line reads 14:20 in the viewer's zone.
+
+**Not yet done for this phase:** the seven-state and both-roles screenshot review at 390 and 1440 in greyscale; a vocabulary test rendering the phone under a different term set.
+
+---
+
+## The phone app as an app: the shell, Today and Residents (02/11/2026)
+
+The first phone phase read as a responsive web page at phone width. This one rebuilds it against a standing reference, `docs/MOBILE_APP_SHELL.md`, and a guard for its mechanical half, `scripts/check-app-shell.mjs`.
+
+**What the shell does that a responsive page does not.** The document never scrolls: `html` and `body` are locked at `100dvh` while the phone tree is mounted, and each screen has exactly one pane that scrolls, with its overscroll contained. Tapping a row pushes a screen in from the right and back pops it to the right; each tab keeps its own stack and scroll while another is showing; a task rises as a sheet over the place you are on.
+
+**One route, the app in the layout.** `src/app/m/[[...path]]` receives every address and draws nothing; `PhoneApp` lives in `src/app/m/layout.tsx`, so moving between places never replaces the document. The stack is the source of truth and the address a copy: push adds a history entry, tab switches replace it, the system back gesture pops. A tab mounts its stack the first time it is shown.
+
+**Today** is the dashboard counted over the reader's list from the same owners the desktop dashboard asks (`dueSoon`, `dosesPastTheirWindow`, `withoutNoteToday`, the late-item builders), with the late list's filter in a picker sheet. Late rows push the record they are about onto the Today stack; a handover belongs to a shift and has none.
+
+**Decisions.**
+- The gutter is 16px (`--layout-gutter-compact`), not the brief's 18px: the spacing scale is 4px with one named exception, and a new step is a token (§9). Frank's call.
+- Due-soon carries a dose denominator ("of 40 doses on today's chart") rather than the desktop's "across 3 residents of 4": the owner names its field `residents`, and reading it would have raised the vocabulary ratchet again.
+- The care note is the record's one primary act, anchored at the bottom, disabled, with "not built yet on the phone" at the act. The composer is out of scope.
+
+**The guard, and the mutation that found a hole in it.** Fourteen mutations, each confirmed landed in a rule body and reversed by the exact reverse edit: `max-width` on the app, an auto margin, `:hover`, the tab bar's safe area, the bar's safe area, a second scroller, the pane's overscroll, a breakpoint `@media`, the root lock, a place declared as a form, a task address, `next/link` in a screen, and a route named `new`. **The bar's safe-area mutation passed the first version**: it matched `env(safe-area-inset-top)` anywhere in the rule, and the bar's `min-height` still mentioned it after the padding lost it. It reads the padding now, and both safe-area mutations fail. Same family as the session-losses import hole: a guard reading more generously than the rule.
+
+**Contention, again.** The first full run failed four tests in files nobody had touched: every phone test mounted both tabs, so a residents test also read Today's round, omissions and handover board. Lazy tabs fixed it and are what a phone does anyway. The allergy test that rendered the app twice was split rather than given a longer timeout.
+
+**Still failing, unchanged:** the four BST-dated tests (clocks went back 25/10), and the vocabulary ratchet at the same +2 as the first phone phase.
+
+**Not seen in a browser this phase**: the browser connection was gone. Pushes, the sheet's drag and the tab scroll memory are covered by tests only as far as jsdom can see them, which excludes animation and real scrolling.
+
+---
+
+## Phone: the late figure's population, and the floating tab bar (02/11/2026)
+
+**A four-figure count was a scope defect.** Today's "Already late" counted ninety days of omissions, every review past its date and every unsigned handover the home has ever had: **1,018 for a senior carer, 161 for Ngozi Eze**. Measured against the fixtures: 1,018 omissions across the home in 90 days, 161 on Eze's four residents; 8 open omissions today across the home, 1 on Eze's list; 10 reviews past their date across the home, 0 on Eze's list; 1 unsigned handover in all history, 0 from today. No fixture was touched.
+
+It now counts what this reader can act on now: doses missed **today**, still open, on their list; reviews on their list only where the role table lets them conduct one (`conduct_review`); handovers from **today** only for a reader who may sign one (`sign_handover`). Each part is listed under the figure with its own scope, and a part left out says why in the role table's words.
+
+| Count | Population | Filter it carries |
+|---|---|---|
+| Today: Already late (fixed) | doses missed today, open, on your list; reviews you may conduct; today's handovers you may sign | each part listed in the card; scope note beneath |
+| Today: Due now or in the next 2 hours | doses on today's chart, on your list | "of N doses on today's chart, nothing recorded yet" |
+| Today: Not written up today | your list, today | "of your N residents" |
+| Today: Doses past their window | doses on today's chart, on your list | "of N doses on today's chart" |
+| Today: late list rows, picker counts | the same as Already late | "N of M" in the picker |
+| Tab bar: Medication badge (new) | as Due now, on your list, today | in the accessible name and the sheet |
+| People: subtitle | your list / the home | `scopeLine` / "28 residents at Rosewood Court, by room" |
+| People: "N of these M open from here" | the home, or search results | the list it opens |
+| Your list row: "and N more" | one person, today | the row's own subject |
+| Record: "2 of 5 doses not recorded" | one person, one round, today | the round |
+| Search: "N of 28 match" | the home | the query |
+| Nobody assigned: "has 28 residents" | the home | the home's name |
+
+A care worker's late figure is now 0 or 1 on these fixtures; a senior carer's is the home's open omissions today plus ten reviews: a real finding, uncapped.
+
+**The floating pill**: white, in the gutter, soft shadow, 52px tabs, the active one a filled purple pill. One badge, on Medication. Departures, each from a standing rule: 8px padding not 7 and a 20px badge not 19 (the 4px scale), and the badge on `--status-critical-ink` because white on the critical fill is about 4.2:1 at 11px.
+
+**Mutations:** restoring ninety days and dropping the today filter fails both late-scope tests; a badge on More fails the badge test; removing the floating container's safe area fails the guard. **Not observable with these fixtures**: a care worker counted reviews they may not conduct — Eze's list has no overdue reviews, so removing the role check changes nothing a test can see.
+
+---
+
+## The ratchet's +2, the four date tests, and the phone build looked at (02/11/2026)
+
+**The +2 was the phone branch, not main.** Measured in a clean worktree: 6766fa3 2167 (before later conversions lowered the best), e981c4f 2159, bbf234a 2159, 1fc183c 2161, 59c70c7 2161, 393bb6f 2161. The terminology close-out was green as reported. The two words are module specifiers in `src/features/phone/phone-data.ts`: `'@/features/residents/list-name'` and `'@/app/session/resident-scope'`. No vocabulary converts a path, and the ratchet itself places such words as "paths and specifiers — can never be converted", so the best moved to 2161 with both named beside it. Mutated: a hardcoded "Resident" in the search placeholder fails it at 2162. §8 entry written.
+
+**The four date tests are pinned to instants**: `round-window.test.tsx` at 16/09/2026 19:30 BST, `report.test.tsx` at 20:20 BST, both with a `Z`, each with its reason. Every other date in both files derives from the clock. They failed with `?at=HH:MM` and pass with the instant, which is the evidence the pin is live. §8 entry written.
+
+**Screenshots, headless Chrome at 390 × 844, @2x, colour and greyscale**, driven through the DevTools protocol from sign-in onward without a reload, as Ngozi Eze and Kwame Osei. What the pictures showed:
+
+- The pill floats in the gutter with its shadow; content scrolls behind it, the last row clears it, the active tab is a filled purple pill, the badge sits top-right of Medication and only there; Osei has no badge.
+- In greyscale the hatch carries every gap on its own: the two Today tiles, the missed dose, the missing second signature beside a "Given" pill that reads as recorded, and the nobody-assigned panel. The late row's red "Today" turns grey and still says "Today".
+- **Found and fixed:** the search field drew two clear controls (the browser's own beside ours); a record with a primary action scrolled to a band of empty page above the dock, because the pane and the dock both cleared the tab bar.
+- **Found, not fixed, shared fixtures:** since the clocks went back, Okafor's 20:00 doses read "from 19:00 GMT" — the fixture windows sit an hour early against the home's clock.
+- **Worth Frank's eye:** a root screen's bar is a white band holding only the home's name until the large title scrolls under it.
+- **Not seen:** headless Chrome reports no safe-area insets, so `env(safe-area-inset-*)` is zero in every picture and the padding is `max(20px, 0)`. Only a phone shows whether it clears the home indicator.
+
+None of the defects above was visible to the 41 jsdom tests over the same screens.
+
+---
+
+## The phone frame, and the capture sheet (02/11/2026)
+
+**For html.to.design, which reads the live DOM.** `/m` now draws the app in a 390 × 844 frame (28px radius, the page shadow) centred on the document viewer's dark neutral stage; `/m/sheet` draws all six phone screens side by side, each in its own frame, each the real `PhoneApp` started at an address and signed in as a named person in its own session, none touching the browser's address.
+
+**The layout correction.** The app used to measure the viewport: `.app` was `position: fixed` at `100dvh`, and sheets portalled to `<body>` as `position: fixed`. Inside a centred frame those resolve against the window. Now the frame is `position: relative` with a definite size, the app is `position: absolute` inside it, sheets portal into the app element and are absolute, and no viewport unit is left anywhere in the phone tree. The only `position: fixed` is `.stage`, the backdrop.
+
+**One shell, two containers, no branch on width.** The frame is 390 × 844 capped at 100% of its container. The phone tree declares a 390-wide viewport, which desktop browsers ignore and phones honour by laying out at 390 and scaling to the glass, so on a phone the frame is the screen. **Next carried the root's `initial-scale=1` into that tag**, which would have laid a 430-wide phone out at 430 and overflowed a 375; found by reading the emitted HTML, removed by declaring `initialScale: undefined` (Next copies every key a child names). Desktop routes still emit `width=device-width, initial-scale=1`.
+
+**Measured in headless Chrome, not assumed:** laptop 1440 × 900, frame at (525, 28), 390 × 844, header at its top edge, tab bar ending at its bottom edge, document not scrolling, the Medication sheet inside the frame and flush with its bottom. Phone emulation at 430 and 375: layout viewport 390, frame full width; height capped at 844 against an 845–846 viewport, so about a pixel of backdrop top and bottom, and the 28px corners show a speck at the four corners of a rectangular viewport. Costs stated in docs/MOBILE_APP_SHELL.md: a phone wider than 390 shows the app scaled up rather than more of it.
+
+**Guard after the change:** 3 stylesheets, 105 rules; 1 scrolling overflow, still `.pane`; 0 viewport units; 1 `position: fixed`, on `.stage`; root locked; both safe areas set. New rules mutated and failing: `height: 100dvh` on `.app`, `position: fixed` on the tab bar and on the sheet, `width: 100vw` on the capture sheet, the root lock loosened. The capture sheet's test fails when `PhoneApp` ignores its address.
+
+## The phone, restyled "demure" (02/11/2026)
+
+Structure only, from a reference whose colour was not wanted; no colour, token, screen or copy changed beyond the headings and Today's line.
+
+- **Today is headed by the reader.** `Screen` takes `person`: a brand-tone `Avatar` with the reader's initials (the desktop account pill's own tone), "Hello, Ngozi" as the h1 at 20px bold, and a 13px line naming the shift and the home. It is the bar, so it does not scroll and the home stays on screen (CLAUDE.md §2). A test holds the heading, the line and the absence of buttons; mutated by dropping the home from the line, it failed. **The first mutation did not land**: a `grep -c` on a pattern holding `·` and `${…}` counted 0 and the `sed` after it changed nothing, so its pass reported on untouched code. Redone as an exact replacement asserted to occur once, it failed as it should. §8's first entry, again.
+- **A pushed screen's bar is left aligned**, a 20px chevron 8px before a 17px title, the home under it at 12px. The 48px target is kept with negative margins equal to the slack. No rule under the bar.
+- **Headings, cards, tiles quieter.** Section titles 12px grey to 17px bold ink; card titles 17 to 15 bold, descriptions 15 to 13 grey; tile figures 40 extrabold to 24 bold (the dark card keeps `--text-hero`); Residents' large title 32 extrabold to 24 bold. The pane gained 16px at its top, which the person bar needed and the record's first card was missing (it sat against the subject band).
+- **The tab bar marks the active tab by colour and weight only**; the filled pill is gone, inactive tabs are `--ink-500`.
+- **The hatch is untouched.** Nothing in `unrecorded.module.css`, `<Unrecorded>` or `<GapCount>` changed. On Today it is now the loudest thing below the dark card, which is the intent.
+
+Before and after at 390, colour and greyscale, in the session's scratchpad (`shots/before`, `shots/after`).
+
+## `/m/sheet` removed (03/11/2026)
+
+Frank captures from `/m`: one phone, driven by its own tab bar, captured with html.to.design on whichever screen it shows. The six-frame page was never wanted; the brief that asked for its removal had not reached this build. Removed: the route, its `client-only` entry and `ROUTES` row, `src/features/phone/sheet/`, its test, and `PhoneApp`'s `address` prop with every branch that let a frame leave the browser's address alone, which existed only so six frames could share one page. Nothing linked to it. The fixed-width departure no longer cites it: its reason stands on a capture from `/m`.
+
+## Dose windows on the home's clock (03/11/2026)
+
+**The defect.** Since the UK left BST on 25/10/2026, every fixture time built from a clock time sat an hour early against Rosewood: Okafor's 20:00 doses read "from 19:00 GMT", and at 20:20 a dose was "due now, until 20:00". It is wrong in both builds, because the generator is shared.
+
+**The cause.** `atTime` in `generate.ts` was documented "in the site's zone" and called `setHours`, which uses the machine's zone. This machine is Africa/Lagos, UTC+1 all year, which agreed with London only while London was on BST. `daysAgo`, `monthsAgo` and `toIsoDate` did their arithmetic on the machine's calendar too. So did `clock.ts`: `?at=HH:MM`, the nearest-round fallback, and the live-round check.
+
+**What kind of instant each one is**, said before any value changed:
+- **A round, a window start, a care note's hour, an incident's hour:** wall-clock appointments on the home's clock. Their UTC instant must move with the clocks. Built wrong.
+- **A signature or an administration:** an event instant, placed minutes after the event it records. Correct once the event was.
+- **A window close (+1 hour) or an incident's `dueBy` (+48 hours):** elapsed durations. Zone-independent, and left alone.
+
+**The fix.** One owner, `src/data/fixtures/home-zone.ts`. It holds `HOME_ZONE` and builds every wall-clock instant through `instantFromZonedWallClock`. A fixture test fails if a site is ever in another zone.
+- `atTime`, `daysAgo`, `monthsAgo` and `toIsoDate` use it.
+- So do `clock.ts`, the omission round label in `medications.ts`, and the moved-clock line, which printed `getHours()`: "Real time" was the machine's.
+- So does the dashboard's current round, which took the site's zone and discarded it (`void timeZone`). It now lives in `dashboard-figures.ts` and asks `roundInProgressAt`, its owner, instead of repeating it.
+
+**The tests, and what they caught.**
+- **The pair:** `dose-window.test.ts` reads Okafor's 20:00 doses at 19:30 home time in September (BST) and in November (GMT), and requires the same local window both times. It runs on four machine zones, because on a London machine the old code was right by accident. `current-round.test.ts` does the same for the dashboard.
+- **The fixture check:** every MAR record's round equals its own due instant on its site's clock.
+- **Tests that agreed with the defect.** Three tests worked out their expected hour with `getHours()`, so they agreed with the defect by construction (CLAUDE.md §8). Two of the clock line's instants had no zone, which is half a pin. All are now on the home's clock, plus two winter cases for the line.
+
+**Mutated, each landed in code and reversed by exact replacement:**
+- `atTime` back on the machine's clock: the pair fails on Lagos, UTC and New York, and passes on London as predicted. The fixture check fails.
+- Only BST windows drifting: all four zones fail. Only GMT windows drifting: all four fail.
+- The line's render, the `?at=HH:MM` parse and the nearest round, each back on the machine's clock: a winter case fails each.
+- The current round on the machine's clock: three zones fail.
+- The omission label on the machine's clock: the fixture check fails.
+- A second site in Europe/Dublin: the zone check fails.
+
+**Checked for the same drift: 26 machine-zone reads in 10 files, plus every caller of the helpers.**
+- **Fixed:** 9 places, covering every `atTime` caller (35, including rounds, care notes, incidents and handovers).
+- **Left, and why:**
+  - **The sign-in lockout's "try again at":** not clinical. It is the reader's own clock, before any home is chosen.
+  - **Generated dates of birth:** calendar dates, now keyed through the home's day.
+  - **`ageFrom`:** compares a date of birth with the machine's today. It is off by a day only within an hour of midnight on a birthday. Raised, not fixed.
+  - **`nextReviewFrom`:** takes the **UTC** day of an instant, not the home's. A review completed between 00:00 and 01:00 BST is dated the day before, so its next due date is a day early. This is a different class from this defect: UTC rather than the machine, and a date rather than an hour. Raised, not fixed.
+- **Correct already:** incident `dueBy` and window closes (elapsed durations); shift and waking-hour arithmetic (`zonedWallClock`); lateness in days (between `IsoDate`s); the phone's outstanding list (`zonedDate`).
+
+**Not done here: the Admin & Manager build** (`~/Documents/digi-care`) shares `generate.ts` and `clock.ts`, and has the same defect until the same change is made there. *(Ported there 03/11/2026, branch `home-clock`, 1cc71f9; see the Admin-owes table in DEPARTURES.md.)*
+
+## The hour-drift fix, ported to the Admin build (03/11/2026)
+
+Ported to `~/Documents/digi-care` on branch `home-clock` (1cc71f9), as the same `home-zone.ts` rather than a second fix. The Admin-owes table in DEPARTURES.md has the row, marked closed. **There was no row before**: this fix's PROGRESS entry recorded the debt, and the table, which exists so debts are not scattered across entries, never got it. That is the table's own failure mode, caught on the way out.
+
+**What the port found that bears on this build:**
+- **Machine-clock reads.** The inventory here searched for `get`/`set` calls and missed `toTimeString`. Re-searched with the wider pattern, this build has none, so the 26 stands for that class. It did not count the other class at all: 7 `toISOString().slice(0, 10)` reads here.
+  - Some are calendar arithmetic on UTC-midnight dates, which is correct.
+  - Some are `nextReviewFrom`'s UTC day, already raised.
+- **The live-round check in `clock.ts`** (whether the real time is mid-round) is held by no test here. It needs a case at 14:30 home time in winter on a machine an hour ahead, where the banner must stay silent. The Admin build now has that case in its banner test; this build's clock-line test does not.
+
+## The phone's visual baseline, and Today rebuilt to it (05/11/2026)
+
+`docs/PHONE_VISUAL_BASELINE.md` holds the rules; `docs/reference/premium-today.html` is the signed-off mockup they came from. Decisions taken on the first read, by the product owner: card corners at `--radius-sm` (the mockup's 10px has no token and none was added), one new token `--shadow-raised`, the timeline's gradient into `--purple-50` rather than `--border-subtle`, the phone exempt from the one dark card, the hatch given a phone form in its own file.
+
+**Today, rebuilt to it.** Four stat cards replace the dark card and three tiles; a card whose subject is a gap is hatched whole, through `unrecordedPhoneCard`, and a zero stays plain. The late list is a timeline: a time pill (a dose's time on the home's clock, or a review's or handover's date) on a purple line, a card beside it. Every string and figure is the one the screen had; the dark card's parts now sit under the cards, and its "Read in this order" foot under the late list's heading.
+
+**Found on the way:**
+- **The quick-action rail cannot run off the edge.** The mockup's rail scrolls sideways; `check-app-shell` allows one scrolling overflow, on `.pane`, and a rail clipped without scrolling would hide a control. The chips wrap. A decision for the owner if the rail is wanted as drawn.
+- **The rail's acts are the ones Today already had**: "See the N late", and "Find somebody in Residents", which Today showed only to a reader with no list. No new act, route or string.
+- **No progress ticks.** Ticks at one per unit work for the mockup's 14; at 165 doses they need rounding, and a rounded bar of 3 in 165 draws as empty, which is a figure misdrawn. The denominator is in words on every card.
+- **The vocabulary ratchet rose by one** on the first verify, from a `'medication'` discriminant in the pill's condition. Rephrased by the other two kinds; back at 2161, not forgiven.
+- **`composes:` across files does reach the base.** The hatched card composes `unrecordedPhoneCard`, which composes `unrecorded`; measured in the browser, the element carries all three classes, a dashed edge and the gradient. The §8 chain trap is local composition only, which `check-css-classes` already holds.
+
+## Today, second pass: seven fixes from the owner's review (05/11/2026)
+
+1. **The tab bar "covering content" was measured before anything was changed, and nothing was wrong with the clearance.** On every phone screen at the bottom of its scroll — Today for both roles, Your list, Everyone, a record — the last content ends 12 to 16px above the tab bar's pill (768 or 772 against 784, at 1440 in the laptop frame). The pane's body and the primary dock already pad by `--tab-clearance`, which carries the bottom safe area. What the first screenshot showed was content passing under a bar that floats by design (`docs/MOBILE_APP_SHELL.md` §5), mid-scroll. **The rule is now held**: `check-app-shell` case 9 fails if `--tab-clearance` leaves `.app`, loses the safe area, or either screen end stops padding by it, and each of the three was mutated red and restored. It cannot check that the sum equals the bar's drawn height; that is the browser measurement above.
+2. **How Today counts moved into a sheet**, word for word: the three parts and the scope sentence. The page carries one line built from the same list of parts, so its count of what is left out cannot drift from the sentences; a test reads both, for both roles, and fails when the count is mutated. The short scope phrase has the scope wording's owner, `scopeShort` in `resident-scope.ts`. "Nothing is late for you to act on" stays on the page, with the late list.
+3. **Labels take two lines' room** whatever their length, so the four figures sit level.
+4. **The person heading is on the page.** It was never sticky in the scrolling sense: the pane starts under it, so nothing passes beneath it.
+5. **The moved-clock notice has a phone form**, `form="phone"`, its own block in its own stylesheet so the desktop's is untouched.
+6. **The Medication badge is purple.**
+7. **The centre action** is a `not_built` entry with a `face` of `raised`: an icon in the purple gradient circle with the one glow, its label only in its name. It opens the not-built sheet and changes neither the tab nor the address, which a test holds and a mutation (tapping it switches tab) broke.
+
+**A harness slip, caught.** The scratchpad mutation script asserted "the original text is gone" after writing, and a mutation that appends to a line leaves the original as a prefix: the assertion threw after the write and before the restore, so the mutation stayed in the file. Caught by reading the line back; reversed by exact replacement and confirmed. The check is now "the new text occurs once and the file changed". The §8 entry on reverting already covers the lesson: confirm the file holds the code under test, not that the mutation command finished.
+
+## The rest of the phone to the baseline, and its guard (05/11/2026)
+
+- **Three fixes after Today's approval.** The sheet's head takes the body's gutter, so Done no longer sits 4px from the edge with its focus ring clipped. The not-built template is "<label> — not built yet on the phone", for every slot: a dash has no verb to agree with a label of unknown number, the same bug as a possessive built from an unknown plural. An empty late list is its heading and one sentence. **"Nothing is late for you to act on" was kept over "Nothing is past its date."** because it is the scoped one: for a care worker, reviews and handovers are not counted, so things may well be past their date that this reader cannot act on, and the date wording does not fit a dose, which is late by the clock rather than the calendar. **"Nothing is past its date." is no longer drawn anywhere.** The brief asked for it to be made conditional on a non-empty list, but there is no non-empty list over which it is true, so a condition would have been a deletion that looked like a rule. It is reported as a deletion instead, and the owner can say where it belongs if anywhere.
+- **The remaining corners were a token swap, as expected**: the phone's `.card`, the sheet's top corners, and the frame, which takes none (rule 3). The hatched panel gained a phone form beside the desktop's, as the card had. No redesign was needed anywhere.
+- **`check-phone-visuals.mjs`** holds the four mechanical rules over the phone tree. Each was broken on purpose before the first trusted run, and each went red: a 14px card corner, a critical tint on the timeline card, a gradient into `--border-subtle`, and a pasted `<svg><path>` in Today. A literal `10px` corner, the mockup's own value, went red as well. Its success line says what it cannot read: `NotYourHome` keeps 14px inside a phone screen, and the phone forms kept with their owners (the clock notice, the hatch's card and panel) are outside the tree it reads.
+
+## The phone after review: an allergy exception, the record's name once, rows as cards (05/11/2026)
+
+- **The allergy pill keeps its critical tint**, as a named exception in the baseline with its reason: an anaphylaxis is a record speaking and the loudest thing on the record by design. The guard cannot see it (the tint is drawn by `StatusPill`, outside the tree), so its tint finding now names the exception and says not to take it as precedent; checked by putting a tint in and reading the message.
+- **`NotYourHome` has a phone form**, `form="phone"`, at `--radius-sm` in the phone's gutter; the desktop's is untouched. Seen by opening an Ashgrove record as a Rosewood care worker.
+- **Every root screen sits on the page.** Today already did; Residents' bar, which carries the home's name, now does too. Those are the only two roots.
+- **The record says the name once.** The bar's title is the full legal name, small beside the back chevron, and is the record's heading; the block under it leads with preferred name, room and date of birth. Both sit outside the pane, so CLAUDE.md §2's five facts stay on screen together and never scroll away. The test asserts the name once on the record and both parts outside the pane. A record off the reader's list keeps `listName` in the bar, as before, because nothing beyond the name is read.
+- **Rows are cards in the gutter**, on Residents, search and the record's remaining modules: the one `.list` style. **Measured before it was built**, by injecting the card styles into the live page: Your list for a care worker 917 → 936px (+2%, 4 rows); Everyone 2105 → 2256px (+7%, 28 rows); a senior carer's Your list 3817 → 4064px (+6%, 28 rows). About 9px a row.
+- **The round line stays on every row, by the brief's own condition.** Each row's line is that person's most pressing outstanding item (`outstandingFor`), and it varies by row: a missed dose from an earlier round, a given dose waiting for its second signature, a dose due at a later round ("due at 14:00, from 13:00"), or a dose in the round now. The window is read from that person's first waiting dose. Identical rows in a screenshot are the moment, not the model, so a heading over them would claim a scope it does not have.
+
+## Share bars on the stat cards, with a floor (05/11/2026)
+
+A continuous bar, not ticks, on the three cards with a denominator: due soon (of today's doses), not written up (of the list), past their window (of today's doses). "Already late" has none: its three kinds do not add to a total. `Stat` now takes `share`, either a value and total or `'no_denominator'`, so no card can draw one, or leave one out, without saying which.
+
+**The floor** is `shareWidth`: any figure above zero is at least `--space-8` wide, an exact zero draws `0%`. Its test pins 1 of 165; removing the floor failed it, and so did rounding figures under 1% to nothing. jsdom does not lay out, so the drawn width was measured in Chrome on a card's track: 1 of 165 draws 8px with the floor and 0.86px without. Measured on the real cards: a care worker's 8 of 28 due draws 40 of 141px, 2 of 4 not written up draws 70 of 139px in the hatch's grey, and 0 past the window draws an empty track.
+
+**Left for the owner:** "Already late" has no bar, so its caption sits about 24px higher than its neighbour's. Not balanced by inventing a total.
+
+## Stat card captions at the card's foot (05/11/2026)
+
+Every stat caption takes `margin-top: auto`, so the four sit on one line per row whether or not the card has a share bar. "Already late" gets no bar and no reserved bar-shaped blank: a blank where its neighbours show an empty track would read as a bar that failed to draw. Measured in Chrome: both rows' captions end on the same line, 348px in the first row. The second row was 1.5px out, which the move made visible: the hatched card's dashed edge sat inside the same padding as the white card beside it. Its padding now gives the edge back, and the remainder is half a CSS pixel of snapping (520.5 against 520).

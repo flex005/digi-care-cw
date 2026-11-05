@@ -1,7 +1,15 @@
 import { vi } from 'vitest'
 
+/*
+ * **Pinned to an instant, not a time of day.** `?at=20:20` left the date to the
+ * real clock and read the hour in the machine's zone, which agreed with
+ * Rosewood only while the UK was on BST: after the clocks went back on
+ * 25/10/2026 the form defaulted to 19:20 and the test failed with nothing
+ * changed. 16/09/2026 at 20:20 BST, the instant `mar.test.tsx` pins, with a `Z`
+ * for the reason it gives. Every other date here is derived from the clock.
+ */
 vi.hoisted(() => {
-  window.history.replaceState(null, '', '/incidents/new?at=20:20')
+  window.history.replaceState(null, '', '/incidents/new?at=2026-09-16T19:20:00Z')
 })
 
 import { screen, waitFor, within } from '@testing-library/react'
@@ -97,7 +105,7 @@ describe('the form', () => {
    * one somebody typed: the first expected yesterday, and the second's "future"
    * time became the past. The fixture clock is built against the instant the
    * page loads, so a date written into a test is a date that is true for one
-   * day. `?at=20:20` fixes the time of day; the day itself is today's, and the
+   * day. The pinned `?at=` fixes the instant, and the
    * expectation reads it from the same place the screen does.
    */
   const rosewoodNow = () =>

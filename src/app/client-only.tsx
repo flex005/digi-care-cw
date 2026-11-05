@@ -447,6 +447,18 @@ const SCREENS = {
       import('@/features/home/NotFoundRoute').then((module) => module.NotFoundRoute),
     { ssr: false },
   ),
+  phoneApp: dynamic(
+    () =>
+      import('@/features/phone/shell/PhoneStage').then((module) => module.PhoneStage),
+    { ssr: false },
+  ),
+  phoneAddress: dynamic(
+    () =>
+      import('@/features/phone/shell/PhoneAddress').then(
+        (module) => module.PhoneAddress,
+      ),
+    { ssr: false },
+  ),
 } satisfies Record<string, Screen>
 
 export type ScreenId = keyof typeof SCREENS

@@ -1,0 +1,636 @@
+/*
+ * What the phone screens draw inside the shell's pane. Edge to edge: lists run
+ * the full width with their own dividers, cards sit in the gutter, nothing is
+ * centred in a narrower column (docs/MOBILE_APP_SHELL.md §4, §9).
+ *
+ * Flex throughout, never grid: Figma has no grid.
+ */
+
+/* ------------------------------------------------------------ sections */
+
+.gutter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: 0 var(--layout-gutter-compact);
+}
+
+/* A section heading in sentence case, bold, left; anything that continues
+   the section sits quietly at the right of the same line. Never an uppercase,
+   letter-spaced eyebrow. */
+.sectionHead {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-16) var(--layout-gutter-compact) 0;
+}
+
+.sectionTitle {
+  color: var(--ink-900);
+  font-size: var(--text-h3-size);
+  line-height: var(--text-h3-line);
+  font-weight: var(--weight-bold);
+}
+
+/* A list of rows as cards on the page, in the gutter, as every other surface
+   on the phone is (docs/PHONE_VISUAL_BASELINE.md). Measured before it was
+   drawn: 2 to 7% taller than the full-bleed block it replaced. */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: 0 var(--layout-gutter-compact);
+  list-style: none;
+}
+
+/* The card clips the row's pressed tint to its corners. */
+.list > li {
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.row {
+  display: flex;
+  gap: var(--space-12);
+  align-items: center;
+  min-height: var(--space-48);
+  padding: var(--space-12) var(--space-16);
+  color: var(--ink-900);
+  text-decoration: none;
+}
+
+.rowText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.rowName {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-semibold);
+}
+
+.rowMeta {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* The one line on a work row; a hatched badge and "and 1 more" wrap together. */
+.rowLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-8);
+  align-items: center;
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.rowChevron {
+  flex-shrink: 0;
+  color: var(--ink-400);
+}
+
+.room {
+  flex-shrink: 0;
+  color: var(--ink-700);
+  font-size: var(--text-mono-num-size);
+  line-height: var(--text-mono-num-line);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------- cards */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  margin: 0 var(--layout-gutter-compact);
+  padding: var(--card-padding);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
+}
+
+/* A card's title and the grey line under it differ by two steps and a lot of
+   weight and tone; size is not doing the work. */
+.cardTitle {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-bold);
+}
+
+.body {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+/* A recorded, unremarkable value: plain text, not a pill. */
+.value {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+}
+
+.quiet {
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+}
+
+.byline {
+  color: var(--ink-500);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+.status {
+  padding: var(--space-16) var(--layout-gutter-compact);
+  color: var(--ink-500);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.itemFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+/* A secondary pill: a 48px target, pressed not hovered. */
+.pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  min-height: var(--space-48);
+  padding: var(--space-12) var(--space-20);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  color: var(--purple-600);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+/* ------------------------------------------------- people: strip, search */
+
+/* Your list and Everyone are different data, so an underline strip. */
+.strip {
+  display: flex;
+  gap: var(--space-24);
+  padding: 0 var(--layout-gutter-compact);
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.stripTab {
+  display: flex;
+  align-items: center;
+  min-height: var(--space-48);
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  color: var(--ink-500);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-semibold);
+}
+
+.stripActive {
+  border-bottom-color: var(--purple-600);
+  color: var(--ink-900);
+}
+
+/* Looks like the field it opens, and pushes the search screen. */
+.searchButton {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--space-48);
+  margin: 0 var(--layout-gutter-compact);
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  color: var(--ink-500);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  text-decoration: none;
+  box-shadow: var(--shadow-card);
+}
+
+.searchField {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--space-48);
+  margin: var(--space-12) var(--layout-gutter-compact) 0;
+  padding: 0 var(--space-4) 0 var(--space-16);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  color: var(--ink-500);
+}
+
+.searchField:focus-within {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--space-48);
+  border: 0;
+  background-color: transparent;
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+}
+
+.searchInput:focus {
+  outline: none;
+}
+
+/* The browser draws its own clear control on a search field; ours is the one
+   48px target, so the native one goes. Seen only in a screenshot. */
+.searchInput::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-48);
+  height: var(--space-48);
+  border-radius: var(--radius-pill);
+  color: var(--ink-500);
+}
+
+/* -------------------------------------------------------------- record */
+
+/* The subject header: edge to edge, between the bar and the pane, so the
+   record scrolls under it and it never scrolls away (CLAUDE.md §2). */
+.subject {
+  display: flex;
+  flex: none;
+  gap: var(--space-12);
+  align-items: center;
+  padding: var(--space-12) var(--layout-gutter-compact);
+  border-bottom: 1px solid var(--border-strong);
+  background-color: var(--bg-surface-sunken);
+}
+
+.subjectText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* The name is the bar's title; these lead the block, at body size. */
+.subjectFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-12);
+  color: var(--ink-700);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+}
+
+.moduleRow {
+  display: flex;
+  gap: var(--space-12);
+  align-items: center;
+  min-height: var(--space-48);
+  padding: var(--space-12) var(--space-16);
+  color: var(--ink-700);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+}
+
+.moduleName {
+  flex: 1;
+}
+
+.notBuilt {
+  color: var(--ink-400);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+}
+
+/* --------------------------------------------------------------- today */
+
+/*
+ * Four cards, one figure each (docs/PHONE_VISUAL_BASELINE.md). The icon tile is
+ * the decoration and is purple; the figure is the card's subject, at 32.
+ */
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  padding: 0 var(--layout-gutter-compact);
+}
+
+.stat {
+  display: flex;
+  flex: 1 1 calc(50% - var(--space-12));
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  padding: var(--space-16);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
+}
+
+/* A card whose subject is a gap: the hatch's phone form, from its one owner.
+   No shadow, so it reads as unfinished rather than raised. */
+.statGap {
+  composes: unrecordedPhoneCard from '../../styles/unrecorded.module.css';
+  flex: 1 1 calc(50% - var(--space-12));
+  gap: var(--space-8);
+  min-width: 0;
+
+  /* Less the hatch's 1.5px dashed edge, so its figure and caption sit on the
+     same lines as the white card beside it. */
+  padding: calc(var(--space-16) - 1.5px);
+}
+
+/* Two lines' room for the label whether it needs them or not, so every
+   card's figure sits on one baseline; the caption under the figure wraps
+   without moving anything above it. */
+.statTop {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: calc(var(--text-caption-line) * 2);
+}
+
+.statIcon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-32);
+  height: var(--space-32);
+  border-radius: var(--radius-sm);
+  background-color: var(--purple-50);
+  color: var(--purple-600);
+}
+
+.statGap .statIcon {
+  background-color: var(--bg-surface);
+  color: var(--status-unrecorded-ink);
+}
+
+.statLabel {
+  min-width: 0;
+  color: var(--ink-700);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-bold);
+}
+
+.statFigure {
+  color: var(--ink-900);
+  font-size: var(--text-display-size);
+  line-height: var(--text-display-line);
+  font-weight: var(--weight-extrabold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* At the card's foot, so every caption sits on one line across a row whether
+   or not its card has a share bar. Space above it on a card with no bar is
+   spacing, not a bar that failed to draw. */
+.statOf {
+  margin-top: auto;
+  color: var(--ink-500);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+}
+
+/* The share bar: one thin continuous track, the fill the figure's share of
+   its denominator, never ticks (docs/PHONE_VISUAL_BASELINE.md). */
+.share {
+  display: flex;
+  height: var(--space-4);
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background-color: var(--border-subtle);
+}
+
+/* On a hatched card, the hatch's grey for the fill, over white so the track
+   reads across the stripes. The hatch's own tint belongs to its owner file. */
+.shareGap {
+  composes: share;
+  background-color: var(--bg-surface);
+}
+
+.shareFill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background-color: var(--purple-600);
+}
+
+.shareGap .shareFill {
+  background-color: var(--status-unrecorded);
+}
+
+.statGap .statLabel,
+.statGap .statFigure,
+.statGap .statOf {
+  color: var(--status-unrecorded-ink);
+}
+
+/* The one line standing for how Today counts: its scope and how much is left
+   out. It opens the sheet that says all of it, word for word. */
+.summary {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  align-self: flex-start;
+  min-height: var(--space-48);
+  margin-top: calc(var(--space-8) * -1);
+  padding: 0 var(--layout-gutter-compact);
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+  text-align: left;
+}
+
+/* What the late figure counts and leaves out, one part to a line, close
+   enough together to read as one account. */
+.parts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  list-style: none;
+}
+
+/* The acts, in a row. They wrap rather than run off the edge: only the pane
+   scrolls (docs/MOBILE_APP_SHELL.md §1), and a clipped chip is a control
+   nobody can reach. */
+.rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: center;
+  padding: 0 var(--layout-gutter-compact);
+}
+
+.act {
+  display: flex;
+  flex: none;
+  gap: var(--space-8);
+  align-items: center;
+  min-height: var(--space-48);
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-surface);
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.actIcon {
+  color: var(--purple-600);
+}
+
+/* The late list as the day: a time pill on a line, a card beside it. */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: var(--space-4) var(--layout-gutter-compact) 0;
+  list-style: none;
+}
+
+.when {
+  display: flex;
+  gap: var(--space-12);
+}
+
+.whenRail {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: center;
+  min-width: var(--space-48);
+  padding-top: var(--space-4);
+}
+
+.whenPill {
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-pill);
+  background-color: var(--purple-900);
+  color: var(--bg-surface);
+  font-size: var(--text-micro-size);
+  line-height: var(--text-micro-line);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.whenLine {
+  flex: 1;
+  width: 2px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(to bottom, var(--purple-400), var(--purple-50));
+}
+
+.whenCard {
+  display: flex;
+  flex: 1;
+  gap: var(--space-12);
+  align-items: center;
+  min-width: 0;
+  padding: var(--space-16);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--ink-900);
+  text-decoration: none;
+}
+
+.whenTitle {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  font-weight: var(--weight-bold);
+}
+
+.filterButton {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  min-height: var(--space-48);
+  margin-right: calc(var(--space-12) * -1);
+  padding: 0 var(--space-12);
+  border-radius: var(--radius-pill);
+  color: var(--purple-600);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+}
+
+/* How long past: overdue is a record speaking, so it keeps its colour. */
+.lateWhen {
+  color: var(--status-critical-ink);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-semibold);
+}
+
+/* A choice in a picker sheet: the whole row is the target. */
+.option {
+  display: flex;
+  gap: var(--space-12);
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: var(--space-48);
+  padding: var(--space-12) 0;
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  text-align: left;
+}
+
+.optionChosen {
+  color: var(--purple-600);
+  font-weight: var(--weight-semibold);
+}

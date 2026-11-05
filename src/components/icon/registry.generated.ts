@@ -49,6 +49,7 @@ import IconMoreMenu_More02 from '@/assets/icons-generated/more-menu/more-02.svg?
 import IconMoreMenu_MoreHorizontal from '@/assets/icons-generated/more-menu/more-horizontal.svg?react'
 import IconNoteTask_Note01 from '@/assets/icons-generated/note-task/note-01.svg?react'
 import IconNoteTask_Note03 from '@/assets/icons-generated/note-task/note-03.svg?react'
+import IconNoteTask_NoteAdd from '@/assets/icons-generated/note-task/note-add.svg?react'
 import IconNoteTask_NoteRemove from '@/assets/icons-generated/note-task/note-remove.svg?react'
 import IconSearch_Search02 from '@/assets/icons-generated/search/search-02.svg?react'
 import IconUsers_UserCircle from '@/assets/icons-generated/users/user-circle.svg?react'
@@ -56,7 +57,7 @@ import IconUsers_UserMultiple from '@/assets/icons-generated/users/user-multiple
 import IconUsers_UserSwitch from '@/assets/icons-generated/users/user-switch.svg?react'
 
 /**
- * Only the 44 icons actually used in source. Importing all of them
+ * Only the 45 icons actually used in source. Importing all of them
  * would compile every icon in the set into the bundle.
  *
  * Partial because it is keyed by the full IconName union. A missing entry
@@ -105,6 +106,7 @@ export const iconRegistry: Partial<
   'more-menu/more-horizontal': IconMoreMenu_MoreHorizontal,
   'note-task/note-01': IconNoteTask_Note01,
   'note-task/note-03': IconNoteTask_Note03,
+  'note-task/note-add': IconNoteTask_NoteAdd,
   'note-task/note-remove': IconNoteTask_NoteRemove,
   'search/search-02': IconSearch_Search02,
   'users/user-circle': IconUsers_UserCircle,

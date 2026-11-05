@@ -12,11 +12,17 @@ import styles from './NotYourHome.module.css'
  */
 export function NotYourHome({
   refusal,
+  form = 'desktop',
 }: {
   refusal: Extract<AsyncResource<unknown>, { kind: 'refused' }>
+  /** The phone's form: the same words at the phone's card corner, in its gutter. */
+  form?: 'desktop' | 'phone'
 }) {
   return (
-    <div className={styles.panel} data-not-your-home={refusal.home}>
+    <div
+      className={form === 'phone' ? styles.panelPhone : styles.panel}
+      data-not-your-home={refusal.home}
+    >
       <p className={styles.title}>This record belongs to {refusal.home}</p>
       <p className={styles.body}>
         {refusal.what} is held there. You are appointed to{' '}

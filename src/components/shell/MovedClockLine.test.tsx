@@ -42,9 +42,16 @@ async function bannerAt(realTime: string, search = '') {
   return container.querySelector('p')
 }
 
-/** Mid-round and outside one, on the same day. */
-const MID_ROUND = '2026-09-16T14:30:00'
-const NO_ROUND = '2026-09-16T16:30:00'
+/**
+ * Mid-round and outside one, on the same day: 14:30 and 16:30 on the home's
+ * clock, in BST. Full instants with a `Z`. They were written without a zone,
+ * which the runner read on its own clock, so they meant the home's 14:30 only on
+ * a machine an hour ahead of UTC in September (CLAUDE.md §8, half a pin).
+ */
+const MID_ROUND = '2026-09-16T13:30:00Z'
+const NO_ROUND = '2026-09-16T15:30:00Z'
+/** 16:30 on the home's clock in November, in GMT: the same wall time, the other season. */
+const NO_ROUND_IN_WINTER = '2026-11-02T16:30:00Z'
 
 beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: false })
@@ -82,6 +89,29 @@ describe('nothing was asked for', () => {
   })
 })
 
+describe('the line is on the home’s clock in either season', () => {
+  /*
+   * The line printed `getHours()`, the machine's clock. On a machine an hour
+   * ahead of UTC all year that was the home's clock in summer and an hour fast
+   * in winter: "Real time 17:30" at 16:30 in London. The summer case above
+   * cannot see it, because there the two agree.
+   */
+  it('names the same round and the same real time in winter as in summer', async () => {
+    const said = (await bannerAt(NO_ROUND_IN_WINTER))?.textContent ?? ''
+    expect(
+      timesIn(said, 'Showing the 14:00 round, which is the nearest one running'),
+    ).toBe(1)
+    expect(timesIn(said, '14:20')).toBe(1)
+    expect(timesIn(said, 'Real time 16:30')).toBe(1)
+  })
+
+  it('reads ?at=08:20 as 08:20 on the home’s clock in winter', async () => {
+    const said = (await bannerAt(NO_ROUND_IN_WINTER, '?at=08:20'))?.textContent ?? ''
+    expect(timesIn(said, '08:20')).toBe(1)
+    expect(timesIn(said, 'Real time 16:30')).toBe(1)
+  })
+})
+
 describe('an instant was asked for and read', () => {
   it('says it is showing what was asked for, with the real time beside it', async () => {
     const line = await bannerAt(NO_ROUND, '?at=08:20')
@@ -109,12 +139,11 @@ describe('an instant was asked for and read', () => {
    */
   it('reads an offset that arrived with its + eaten into a space', async () => {
     const line = await bannerAt(NO_ROUND, '?at=2026-09-16T20:20:00+01:00')
-    const wanted = new Date('2026-09-16T20:20:00+01:00')
-    const hhmm = `${String(wanted.getHours()).padStart(2, '0')}:${String(
-      wanted.getMinutes(),
-    ).padStart(2, '0')}`
+    // 20:20 at +01:00 in September is 20:20 on the home's clock (BST). It was
+    // worked out with `getHours()`, the machine's, which agreed with a line
+    // that rendered on the machine's clock too.
     expect(line?.dataset.movedClock).toBe('requested')
-    expect(timesIn(line?.textContent ?? '', hhmm)).toBe(1)
+    expect(timesIn(line?.textContent ?? '', '20:20')).toBe(1)
     expect(line?.querySelector('[data-clock-unreadable]')).toBeNull()
   })
 })

@@ -141,6 +141,14 @@ export const ROUTES: RouteDeclaration[] = [
   { path: '/documents/[documentId]', screen: 'documentViewer', inShell: true },
   { path: '/profile', screen: 'profile', module: 'profile', inShell: true },
   { path: '/specimens', screen: 'specimens', module: 'specimens', inShell: true },
+  /*
+   * The phone app: one address that receives every place under `/m`, in its
+   * own frame rather than the desktop shell, so `inShell` is false. The places
+   * themselves are declared in `features/phone/phone-paths.ts`, and the app in
+   * the layout turns an address into a stack (docs/MOBILE_APP_SHELL.md §2).
+   */
+  { path: '/m/[[...path]]', screen: 'phoneAddress', inShell: false },
+  /* Every phone screen in its own frame, for one Figma capture. Not a place in the app. */
 ]
 
 export const isBuilt = (module: NavModuleId): boolean =>

@@ -32,7 +32,15 @@ import styles from './Unrecorded.module.css'
  * <StatusPill tone="caution">. An omission looks unfinished. Rule 3.
  */
 
-export type UnrecordedVariant = 'badge' | 'cell' | 'chip' | 'flag' | 'panel' | 'row'
+export type UnrecordedVariant =
+  | 'badge'
+  | 'cell'
+  | 'chip'
+  | 'flag'
+  | 'panel'
+  /** The panel at the phone's card corner (docs/PHONE_VISUAL_BASELINE.md). */
+  | 'phonePanel'
+  | 'row'
 
 export interface UnrecordedProps {
   /**
@@ -80,6 +88,7 @@ const VARIANT_CLASS: Record<UnrecordedVariant, string> = {
   chip: styles.chip,
   flag: styles.flag,
   panel: styles.panel,
+  phonePanel: styles.phonePanel,
   row: styles.row,
 }
 

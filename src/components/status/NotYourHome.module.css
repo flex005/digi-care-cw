@@ -15,6 +15,20 @@
   max-width: 64ch;
 }
 
+/* The phone's form (docs/PHONE_VISUAL_BASELINE.md): its card corner, inside
+   the phone's gutter, with no measure, since the phone is one column. Its own
+   block, so nothing here reaches the desktop. */
+.panelPhone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin: 0 var(--layout-gutter-compact);
+  padding: var(--space-20);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-sunken);
+}
+
 .title {
   color: var(--ink-900);
   font-size: var(--text-body-size);
