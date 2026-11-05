@@ -496,11 +496,13 @@
   background-color: var(--border-strong);
 }
 
+/* The body's gutter, so Done keeps clear of the edge and its focus ring is
+   drawn whole rather than clipped by the sheet. */
 .sheetHead {
   display: flex;
   align-items: center;
   align-self: stretch;
-  padding: 0 var(--space-4);
+  padding: 0 var(--layout-gutter-compact);
 }
 
 .sheetCancel {

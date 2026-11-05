@@ -413,7 +413,9 @@ function TabBar({ active, onTap }: { active: TabId; onTap: (tab: TabId) => void 
       {shown === undefined ? null : (
         <Sheet open={open} onOpenChange={setOpen} title={shown.label} cancel="Done">
           {shown.clock && count.kind === 'counted' ? <p>{dueSentence(count)}</p> : null}
-          <ActLine kind="not_built">{`${shown.label} is not built yet on the phone.${shown.note}`}</ActLine>
+          {/* A dash, not a verb: "is" would have to agree with a label that may be
+              plural or a configured term, and the template cannot know which. */}
+          <ActLine kind="not_built">{`${shown.label} — not built yet on the phone.${shown.note}`}</ActLine>
         </Sheet>
       )}
     </nav>

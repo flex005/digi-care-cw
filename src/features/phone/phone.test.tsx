@@ -110,7 +110,7 @@ describe('the phone shell', () => {
     const sheet = await screen.findByRole('dialog', { name: 'Medication' })
     expect(sheet.closest('[data-phone-frame]')).not.toBeNull()
     expect(
-      within(sheet).getByText('Medication is not built yet on the phone.'),
+      within(sheet).getByText('Medication — not built yet on the phone.'),
     ).toBeTruthy()
     expect(within(sheet).getByRole('button', { name: 'Done' })).toBeTruthy()
   })
@@ -538,7 +538,7 @@ describe('the phone tab bar', () => {
     const sheet = await screen.findByRole('dialog', { name: 'Care notes' })
     expect(
       within(sheet).getByText(
-        'Care notes is not built yet on the phone. A care note can be written in the desktop build.',
+        'Care notes — not built yet on the phone. A care note can be written in the desktop build.',
       ),
     ).toBeTruthy()
     expect(window.location.pathname).toBe('/m/people')

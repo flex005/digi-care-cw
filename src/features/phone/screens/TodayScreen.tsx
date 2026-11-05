@@ -324,14 +324,18 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
             <Icon name={phoneIcons.choose} size={16} />
           </button>
         </div>
-        <p className={`${styles.byline} ${styles.gutter}`}>
-          Read in this order · Longest past its date first
-        </p>
+        {/* The sort is said only over rows it sorts. An empty list is one
+            sentence: the scoped one, since what is not counted may still be
+            past its date. */}
+        {lateItems.length === 0 ? null : (
+          <p className={`${styles.byline} ${styles.gutter}`}>
+            Read in this order · Longest past its date first
+          </p>
+        )}
         {lateItems.length === 0 ? (
-          <div className={styles.gutter}>
-            <p className={styles.quiet}>Nothing is late for you to act on</p>
-            <p className={styles.quiet}>Nothing is past its date.</p>
-          </div>
+          <p className={`${styles.quiet} ${styles.gutter}`}>
+            Nothing is late for you to act on
+          </p>
         ) : shown.length === 0 ? (
           <p className={`${styles.quiet} ${styles.gutter}`}>
             Nothing under {chosen?.label}, out of {formatCount(lateItems.length)} late.
