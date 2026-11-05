@@ -429,6 +429,33 @@
   line-height: var(--text-micro-line);
 }
 
+/* The share bar: one thin continuous track, the fill the figure's share of
+   its denominator, never ticks (docs/PHONE_VISUAL_BASELINE.md). */
+.share {
+  display: flex;
+  height: var(--space-4);
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background-color: var(--border-subtle);
+}
+
+/* On a hatched card, the hatch's grey for the fill, over white so the track
+   reads across the stripes. The hatch's own tint belongs to its owner file. */
+.shareGap {
+  composes: share;
+  background-color: var(--bg-surface);
+}
+
+.shareFill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background-color: var(--purple-600);
+}
+
+.shareGap .shareFill {
+  background-color: var(--status-unrecorded);
+}
+
 .statGap .statLabel,
 .statGap .statFigure,
 .statGap .statOf {

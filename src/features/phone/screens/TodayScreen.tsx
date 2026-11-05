@@ -57,6 +57,7 @@ import {
 } from '../phone-data'
 import { phoneIcons } from '../phone.icons'
 import { Loaded } from '../ScreenStates'
+import { ShareBar } from '../ShareBar'
 import { usePhoneNav } from '../shell/nav'
 import { Screen } from '../shell/Screen'
 import { Sheet } from '../shell/Sheet'
@@ -252,18 +253,21 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
           label="Already late"
           figure={formatCount(lateItems.length)}
           of={`${lateItems.length === 1 ? 'thing' : 'things'} late that you can act on now`}
+          share="no_denominator"
         />
         <Stat
           icon={phoneIcons.dose}
           label="Due now or in the next 2 hours"
           figure={formatCount(soon.doses)}
           of={`of ${pluralise(todays.length, 'dose')} on today’s chart, nothing recorded yet`}
+          share={{ value: soon.doses, total: todays.length }}
         />
         <Stat
           icon={phoneIcons.notWritten}
           label="Not written up today"
           figure={formatCount(quiet)}
           of={scopeDenominator(viewer.scope, mine.length, activeSite.name)}
+          share={{ value: quiet, total: mine.length }}
           gap={quiet > 0}
         />
         <Stat
@@ -271,6 +275,7 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
           label="Doses past their window"
           figure={formatCount(pastWindow)}
           of={`of ${pluralise(todays.length, 'dose')} on today’s chart`}
+          share={{ value: pastWindow, total: todays.length }}
           gap={pastWindow > 0}
         />
       </div>
@@ -440,18 +445,24 @@ function LateEntry({ item, about }: { item: LateItem; about: ResidentId | undefi
  * One figure on a card, with what it is out of. **A card whose subject is a
  * gap is hatched**, the whole card rather than a chip inside it, and its label
  * says what is missing. A zero is a finding and is never hatched.
+ *
+ * **Every card says whether it has a denominator**, and only one that does
+ * draws a share bar: "Already late" counts three kinds of thing that do not
+ * add to a total, so a bar there would need a total it does not have.
  */
 function Stat({
   icon,
   label,
   figure,
   of,
+  share,
   gap = false,
 }: {
   icon: IconName
   label: string
   figure: string
   of: string
+  share: { value: number; total: number } | 'no_denominator'
   gap?: boolean
 }) {
   return (
@@ -469,6 +480,9 @@ function Stat({
       <span className={styles.statFigure} data-numeric>
         {figure}
       </span>
+      {share === 'no_denominator' ? null : (
+        <ShareBar value={share.value} total={share.total} gap={gap} />
+      )}
       <span className={styles.statOf}>{of}</span>
     </div>
   )
