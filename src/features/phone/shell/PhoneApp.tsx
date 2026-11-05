@@ -246,6 +246,11 @@ type TabItem =
       note: string
       /** Whether it carries the count of doses on a clock. One tab does. */
       clock: boolean
+      /**
+       * A tab with its label under its icon, or the raised centre action: an
+       * icon alone in a purple circle, its label only in its accessible name.
+       */
+      face: 'labelled' | 'raised'
     }
 
 const TAB_ITEMS = (): TabItem[] => [
@@ -258,10 +263,20 @@ const TAB_ITEMS = (): TabItem[] => [
   },
   {
     kind: 'not_built',
+    label: 'Care notes',
+    icon: phoneIcons.writeNote,
+    /* Writing a care note is the phone's next module, and the desktop has it. */
+    note: ' A care note can be written in the desktop build.',
+    clock: false,
+    face: 'raised',
+  },
+  {
+    kind: 'not_built',
     label: VOCABULARY.medication.One,
     icon: phoneIcons.dose,
     note: '',
     clock: true,
+    face: 'labelled',
   },
   {
     kind: 'not_built',
@@ -270,6 +285,7 @@ const TAB_ITEMS = (): TabItem[] => [
     /* More is where signing out lives on a phone (AUTH-09), and it is not built. */
     note: ' Reloading the page signs you out.',
     clock: false,
+    face: 'labelled',
   },
 ]
 
@@ -310,6 +326,10 @@ const dueSentence = (count: Extract<DueCount, { kind: 'counted' }>): string =>
  * built yet opens a short sheet saying so (docs/MOBILE_APP_SHELL.md §3).
  * Tapping the tab you are on pops it to its root.
  *
+ * **The raised centre action is not a tab.** It writes a care note, which is
+ * not built, so it opens the same sheet the other unbuilt slots do: the active
+ * tab and the address stay where they were.
+ *
  * **One badge, on Medication**, because doses are the only thing here on a
  * clock. A badge is a bare number by nature, so its denominator and scope are
  * in the tab's accessible name and in the sheet it opens.
@@ -349,6 +369,23 @@ function TabBar({ active, onTap }: { active: TabId; onTap: (tab: TabId) => void 
               </a>
             )
           const badge = badged(item)
+          if (item.face === 'raised')
+            return (
+              <button
+                key={item.label}
+                type="button"
+                className={`${styles.centre} ${styles.press}`}
+                aria-label={`${item.label}, not built`}
+                aria-haspopup="dialog"
+                data-built="false"
+                onClick={() => {
+                  setShown(item)
+                  setOpen(true)
+                }}
+              >
+                <Icon name={item.icon} size={24} />
+              </button>
+            )
           return (
             <button
               key={item.label}

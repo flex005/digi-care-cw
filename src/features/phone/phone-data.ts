@@ -26,5 +26,6 @@ export {
   scopeDenominator,
   scopeLine,
   scopeNote,
+  scopeShort,
   scopeReaches,
 } from '@/app/session/resident-scope'

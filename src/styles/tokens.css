@@ -305,9 +305,8 @@
 
   --shadow-card: 0 1px 2px rgba(30, 0, 89, 0.03), 0 8px 24px rgba(30, 0, 89, 0.05);
 
-  /* The phone's one purple glow, under its primary button and nothing else
-     (docs/PHONE_VISUAL_BASELINE.md). The reference drew it on a centre action
-     too; the phone has none. */
+  /* The phone's one purple glow, under its primary button and its raised centre
+     action, and nothing else (docs/PHONE_VISUAL_BASELINE.md). */
   --shadow-raised: 0 6px 16px rgba(105, 53, 207, 0.3);
 
   /* -------------------------------------------------------------------------

@@ -18,6 +18,7 @@ export const phoneIcons = {
   allergy: 'alert-notification/alert-02',
   carePlan: 'note-task/note-03',
   late: 'date-and-time/clock-01',
+  writeNote: 'note-task/note-add',
   notWritten: 'note-task/note-remove',
   pastWindow: 'alert-notification/alert-01',
 } satisfies Record<string, IconName>

@@ -375,6 +375,16 @@ describe('the phone: today', () => {
   const figureOf = (card: HTMLElement) =>
     Number(card.querySelector('[data-numeric]')?.textContent?.replace(/,/g, ''))
 
+  /** The one line standing for how Today counts, and the sheet it opens. */
+  async function counting(today: HTMLElement) {
+    const line = await within(today).findByRole('button', { name: /^Counted over/ })
+    fireEvent.click(line)
+    return {
+      line,
+      sheet: await screen.findByRole('dialog', { name: 'What is counted' }),
+    }
+  }
+
   it('is headed by the reader, with the shift and the home under their name', async () => {
     openAt('/m', staffEze.id)
     const header = front('today').querySelector('header') as HTMLElement
@@ -390,15 +400,16 @@ describe('the phone: today', () => {
     openAt('/m', staffEze.id)
     const today = front('today')
     expect(await within(today).findByText('Already late')).toBeTruthy()
-    expect(
-      within(today).getByText("Counted over your list, not the home's."),
-    ).toBeTruthy()
     expect(within(today).getByText('of your 4 residents')).toBeTruthy()
     expect(within(today).getByText(/^of [\d,]+ doses? on today’s chart$/)).toBeTruthy()
     expect(
       within(today).getByText(
         /^of [\d,]+ doses? on today’s chart, nothing recorded yet$/,
       ),
+    ).toBeTruthy()
+    const { sheet } = await counting(today)
+    expect(
+      within(sheet).getByText("Counted over your list, not the home's."),
     ).toBeTruthy()
   })
 
@@ -408,11 +419,13 @@ describe('the phone: today', () => {
     const card = (await within(today).findByText('Already late')).closest(
       '[data-stat]',
     ) as HTMLElement
+    const { line, sheet } = await counting(today)
+    expect(line.textContent).toBe('Counted over your list · 2 things not counted')
     expect(
-      within(today).getByText(/missed today, of [\d,]+ doses? on today’s chart$/),
+      within(sheet).getByText(/missed today, of [\d,]+ doses? on today’s chart$/),
     ).toBeTruthy()
-    expect(within(today).getByText(/^Reviews are not counted: .+\.$/)).toBeTruthy()
-    expect(within(today).getByText(/^Handovers are not counted: .+\.$/)).toBeTruthy()
+    expect(within(sheet).getByText(/^Reviews are not counted: .+\.$/)).toBeTruthy()
+    expect(within(sheet).getByText(/^Handovers are not counted: .+\.$/)).toBeTruthy()
     // Four residents and one day: a care worker's late figure is a handful.
     expect(figureOf(card)).toBeLessThan(40)
   })
@@ -423,8 +436,13 @@ describe('the phone: today', () => {
     const card = (await within(today).findByText('Already late')).closest(
       '[data-stat]',
     ) as HTMLElement
-    expect(within(today).getByText(/^[\d,]+ reviews? past its date$/)).toBeTruthy()
-    expect(within(today).queryByText(/^Reviews are not counted/)).toBeNull()
+    const { line, sheet } = await counting(today)
+    // The scope is said when nothing is left out, never implied.
+    expect(line.textContent).toBe(
+      'Counted over every resident at Rosewood Court · nothing left out',
+    )
+    expect(within(sheet).getByText(/^[\d,]+ reviews? past its date$/)).toBeTruthy()
+    expect(within(sheet).queryByText(/^Reviews are not counted/)).toBeNull()
     // Ninety days of omissions put 1,018 here; one day at one home cannot.
     expect(figureOf(card)).toBeLessThan(100)
   })
@@ -457,6 +475,17 @@ describe('the phone: today', () => {
     const after = within(late).queryAllByRole('listitem')
     expect(after.length).toBeGreaterThan(0)
     for (const row of after) expect(row.textContent).toMatch(/past its (review )?date/)
+  })
+
+  it('says in its line exactly as many things left out as its sheet does', async () => {
+    for (const who of [staffEze.id, staffAkinyemi.id]) {
+      const { unmount } = openAt('/m', who, 'site-rosewood-court')
+      const { line, sheet } = await counting(front('today'))
+      const leftOut = within(sheet).queryAllByText(/not counted|no handover is counted/)
+      const said = /· (\d+) things? not counted$/.exec(line.textContent ?? '')
+      expect(said === null ? 0 : Number(said[1])).toBe(leftOut.length)
+      unmount()
+    }
   })
 
   it('counts nothing for a reader nobody has given a list', async () => {
@@ -495,6 +524,25 @@ describe('the phone tab bar', () => {
     expect(
       within(sheet).getByText(/due now or in the next 2 hours, on your list\.$/),
     ).toBeTruthy()
+  })
+
+  it('opens the centre action as a sheet, leaving the tab and the address alone', async () => {
+    openAt('/m/people', staffEze.id)
+    const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+    const centre = within(nav).getByRole('button', { name: 'Care notes, not built' })
+    // Between Residents and Medication, and drawn with no label.
+    const slots = [...(nav.firstElementChild?.children ?? [])]
+    expect(slots.indexOf(centre)).toBe(2)
+    expect(centre.textContent).toBe('')
+    fireEvent.click(centre)
+    const sheet = await screen.findByRole('dialog', { name: 'Care notes' })
+    expect(
+      within(sheet).getByText(
+        'Care notes is not built yet on the phone. A care note can be written in the desktop build.',
+      ),
+    ).toBeTruthy()
+    expect(window.location.pathname).toBe('/m/people')
+    expect(nav.querySelector('[aria-current="page"]')?.textContent).toBe('Residents')
   })
 
   it('draws no badge for a reader with no list', async () => {

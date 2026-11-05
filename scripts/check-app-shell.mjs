@@ -15,6 +15,12 @@
  *  3. No `@media` but `prefers-reduced-motion` (§10, and CLAUDE.md §4).
  *  4. Safe areas: the tab bar carries `env(safe-area-inset-bottom)` and the
  *     bar carries `env(safe-area-inset-top)` (§5).
+ *  9. Content clears the floating tab bar: `--tab-clearance` is declared on
+ *     `.app` and carries the bottom safe area, and both places a screen can
+ *     end — the pane's body and the primary dock — pad their bottom by it.
+ *     The bar floats, so content passes under it mid-scroll; what this holds
+ *     is that the last of it can always be scrolled clear. That the sum
+ *     equals the bar's drawn height is measured in a browser, not read here.
  *  5. One scroll pane: `overflow` `auto` or `scroll` on anything but `.pane`
  *     is a finding, `.pane` must contain its overscroll, and the document
  *     root must be locked with `overflow: hidden` (§1).
@@ -112,6 +118,9 @@ let lock = false
 let pane = { found: false, contained: false }
 let tabBar = { found: false, inset: false }
 let bar = { found: false, inset: false }
+let clearance = { declared: false, inset: false }
+/** The two places a screen can end, and whether each pads by the clearance. */
+const ends = { '.paneBody': false, '.primaryDock': false }
 
 for (const sheet of sheets) {
   const css = stripCssComments(readFileSync(sheet, 'utf8'))
@@ -194,6 +203,18 @@ for (const sheet of sheets) {
     if (selector === '.tabBar')
       tabBar = { found: true, inset: padded('bottom', 'bottom') }
     if (selector === '.bar') bar = { found: true, inset: padded('top', 'top') }
+    for (const { property, value } of decls)
+      if (selector === '.app' && property === '--tab-clearance')
+        clearance = {
+          declared: true,
+          inset: value.includes('env(safe-area-inset-bottom)'),
+        }
+    if (selector in ends)
+      ends[selector] = decls.some(
+        ({ property, value }) =>
+          (property === 'padding' || property === 'padding-bottom') &&
+          value.includes('var(--tab-clearance)'),
+      )
     if (/\bbody\b/.test(selector) && /overflow: hidden/.test(all)) lock = true
   }
 }
@@ -218,6 +239,19 @@ else if (!bar.inset)
   findings.push(
     '.bar has no env(safe-area-inset-top) in its padding: it sits under the notch',
   )
+if (!clearance.declared)
+  findings.push(
+    'no --tab-clearance on .app, so nothing says how much of the screen the tab bar covers',
+  )
+else if (!clearance.inset)
+  findings.push(
+    '--tab-clearance has no env(safe-area-inset-bottom): content ends under the bar on a phone with a home indicator',
+  )
+for (const [selector, clears] of Object.entries(ends))
+  if (!clears)
+    findings.push(
+      `${selector} does not pad its bottom by var(--tab-clearance): the end of a screen sits under the tab bar`,
+    )
 if (!lock)
   findings.push(
     'no rule locks html and body with overflow: hidden, so the document scrolls',
@@ -286,6 +320,7 @@ console.log(
     `${containers} max-width, every one in ch or 100%, and no auto margin; ` +
     `0 :hover of ${rules} rules; ${medias} @media, all reduced motion; ` +
     `${overflows} scrolling overflow, all on .pane; root locked; both safe areas set; ` +
+    `both screen ends clear the tab bar; ` +
     `${viewportUnits} viewport units; ${fixed} position: fixed, on .stage only; ` +
     `${placeCount} places of ${placeCount} declared as places, ${routeFiles.length} route file(s), no task addresses; ` +
     `${links} next/link imports of ${components.length} components.`,

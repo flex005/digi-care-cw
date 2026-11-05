@@ -381,10 +381,14 @@
   padding: var(--space-16);
 }
 
+/* Two lines' room for the label whether it needs them or not, so every
+   card's figure sits on one baseline; the caption under the figure wraps
+   without moving anything above it. */
 .statTop {
   display: flex;
   gap: var(--space-8);
   align-items: center;
+  min-height: calc(var(--text-caption-line) * 2);
 }
 
 .statIcon {
@@ -430,6 +434,23 @@
 .statGap .statFigure,
 .statGap .statOf {
   color: var(--status-unrecorded-ink);
+}
+
+/* The one line standing for how Today counts: its scope and how much is left
+   out. It opens the sheet that says all of it, word for word. */
+.summary {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  align-self: flex-start;
+  min-height: var(--space-48);
+  margin-top: calc(var(--space-8) * -1);
+  padding: 0 var(--layout-gutter-compact);
+  color: var(--ink-500);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-medium);
+  text-align: left;
 }
 
 /* What the late figure counts and leaves out, one part to a line, close

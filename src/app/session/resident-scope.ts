@@ -159,6 +159,26 @@ export function scopeNote(scope: ResidentScope, homeName: string): string {
 }
 
 /**
+ * The scope in a few words, for a line too short for `scopeNote`: "Counted
+ * over your list". The full sentence is still said wherever this stands in for
+ * it, one tap away.
+ */
+export function scopeShort(scope: ResidentScope, homeName: string): string {
+  switch (scope.kind) {
+    case 'every_resident':
+      return scope.because === 'senior_carer'
+        ? `Counted over every ${VOCABULARY.subject.one} at ${homeName}`
+        : 'Counted over your list'
+    case 'named_residents':
+      return 'Counted over your list'
+    case 'not_decided':
+      return 'Nothing is counted'
+    default:
+      return assertNever(scope)
+  }
+}
+
+/**
  * A resident the viewer's list does not reach, said at the point it matters.
  *
  * **Scope, never blame, and never a claim that the record does not exist.** The

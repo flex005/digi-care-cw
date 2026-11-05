@@ -51,6 +51,7 @@ import {
   scopeDenominator,
   scopeNote,
   scopeReaches,
+  scopeShort,
   type DoseRecord,
   type Person,
 } from '../phone-data'
@@ -127,7 +128,7 @@ export function TodayScreen() {
       }}
     >
       <div className={styles.gutter}>
-        <MovedClockLine />
+        <MovedClockLine form="phone" />
       </div>
       <Loaded
         resource={resource}
@@ -151,6 +152,7 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
   const viewer = useViewer()
   const [filter, setFilter] = useState<Filter>('everything')
   const [picking, setPicking] = useState(false)
+  const [counting, setCounting] = useState(false)
   const nav = usePhoneNav()
 
   const mine = data.people.filter((person) => scopeReaches(viewer.scope, person.id))
@@ -211,18 +213,36 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
     (entry) => entry.id !== 'everything',
   ).map((entry) => ofKind(lateItems, entry.id).length)
 
-  /* Each part of the figure, with its own scope, or why it is not counted. */
-  const parts = [
-    `${pluralise(doseKind ?? 0, 'dose')} missed today, of ${pluralise(todays.length, 'dose')} on today’s chart`,
+  /*
+   * Each part of the figure, with its own scope, or why it is not counted.
+   * **The summary line and the sheet are both read off this list**, so the
+   * count of what is left out cannot disagree with the sentences saying so.
+   */
+  const parts: { text: string; counted: boolean }[] = [
+    {
+      text: `${pluralise(doseKind ?? 0, 'dose')} missed today, of ${pluralise(todays.length, 'dose')} on today’s chart`,
+      counted: true,
+    },
     reviewing.kind === 'yes'
-      ? `${pluralise(reviewKind ?? 0, 'review')} past its date`
-      : `Reviews are not counted: ${reasonOf(reviewing)}`,
+      ? { text: `${pluralise(reviewKind ?? 0, 'review')} past its date`, counted: true }
+      : { text: `Reviews are not counted: ${reasonOf(reviewing)}`, counted: false },
     data.unsigned === 'no_board'
-      ? 'No handover board at this home, so no handover is counted'
+      ? {
+          text: 'No handover board at this home, so no handover is counted',
+          counted: false,
+        }
       : signing.kind === 'yes'
-        ? `${pluralise(handoverKind ?? 0, 'handover')} from today not countersigned`
-        : `Handovers are not counted: ${reasonOf(signing)}`,
+        ? {
+            text: `${pluralise(handoverKind ?? 0, 'handover')} from today not countersigned`,
+            counted: true,
+          }
+        : { text: `Handovers are not counted: ${reasonOf(signing)}`, counted: false },
   ]
+  const leftOut = parts.filter((part) => !part.counted).length
+  /* The scope is said even when nothing is left out: it is never implied. */
+  const summary = `${scopeShort(viewer.scope, activeSite.name)} · ${
+    leftOut === 0 ? 'nothing left out' : `${pluralise(leftOut, 'thing')} not counted`
+  }`
 
   return (
     <>
@@ -254,19 +274,18 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
           gap={pastWindow > 0}
         />
       </div>
-      <ul className={`${styles.parts} ${styles.gutter}`}>
-        {parts.map((part) => (
-          <li key={part}>{part}</li>
-        ))}
-      </ul>
-      <p className={`${styles.quiet} ${styles.gutter}`}>
-        {scopeNote(viewer.scope, activeSite.name)}
-      </p>
+      <button
+        type="button"
+        className={`${styles.summary} ${shell.press}`}
+        aria-haspopup="dialog"
+        onClick={() => setCounting(true)}
+      >
+        <span>{summary}</span>
+        <Icon name={phoneIcons.open} size={16} className={styles.rowChevron} />
+      </button>
 
       <div className={styles.rail}>
-        {lateItems.length === 0 ? (
-          <span className={styles.quiet}>Nothing is late for you to act on</span>
-        ) : (
+        {lateItems.length === 0 ? null : (
           <button
             type="button"
             className={`${styles.act} ${shell.press}`}
@@ -309,9 +328,10 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
           Read in this order · Longest past its date first
         </p>
         {lateItems.length === 0 ? (
-          <p className={`${styles.quiet} ${styles.gutter}`}>
-            Nothing is past its date.
-          </p>
+          <div className={styles.gutter}>
+            <p className={styles.quiet}>Nothing is late for you to act on</p>
+            <p className={styles.quiet}>Nothing is past its date.</p>
+          </div>
         ) : shown.length === 0 ? (
           <p className={`${styles.quiet} ${styles.gutter}`}>
             Nothing under {chosen?.label}, out of {formatCount(lateItems.length)} late.
@@ -335,6 +355,20 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
           </ol>
         )}
       </section>
+
+      <Sheet
+        open={counting}
+        onOpenChange={setCounting}
+        title="What is counted"
+        cancel="Done"
+      >
+        <ul className={styles.parts}>
+          {parts.map((part) => (
+            <li key={part.text}>{part.text}</li>
+          ))}
+        </ul>
+        <p className={styles.quiet}>{scopeNote(viewer.scope, activeSite.name)}</p>
+      </Sheet>
 
       <Sheet open={picking} onOpenChange={setPicking} title="Show" cancel="Done">
         <ul className={styles.items}>

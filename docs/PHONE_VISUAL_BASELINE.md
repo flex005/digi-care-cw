@@ -10,9 +10,9 @@ These rules hold over the whole phone tree: `src/features/phone/` and the styles
 
 3. **The reference's 34px phone corner is mockup chrome, and has no counterpart in app code.** The frame that holds the app on a laptop (`PhoneStage`) is square, so a capture of it is the screen and nothing else.
 
-4. **Decoration is one hue: the purple ramp.** Anything whose colour is there to add variety is purple: icon tile tints (`--purple-50`), the icons in them and in quick actions (`--purple-600`), progress ticks, count badges.
+4. **Decoration is one hue: the purple ramp.** Anything whose colour is there to add variety is purple: icon tile tints (`--purple-50`), the icons in them and in quick actions (`--purple-600`), count badges, including the dose count on Medication.
 
-5. **Gradients are purple into purple.** No gradient mixes hues, and none fades into a neutral: the timeline's line runs `--purple-400` into `--purple-50`. Use them sparingly. Today has one.
+5. **Gradients are purple into purple.** No gradient mixes hues, and none fades into a neutral. There are two: the timeline's line, `--purple-400` into `--purple-50`, and the raised centre action in the tab bar.
 
 6. **Status colour is not decoration and is not removed.** Positive, caution, critical and info still carry meaning wherever a record is speaking: a dose given, something overdue, a window closing. **Decorative tints go; meaningful status stays.** On the phone a status speaks through its solid tokens on white:
    - The four status tints (`--status-positive-tint`, `--status-caution-tint`, `--status-critical-tint`, `--status-info-tint`) are not used anywhere in the phone tree. They were the decoration.
@@ -26,6 +26,11 @@ These rules hold over the whole phone tree: `src/features/phone/` and the styles
 
 ## Values the reference names, mapped
 
-- **Elevation.** Cards take `--shadow-card`. The tab bar keeps `--shadow-overlay`, because it floats over content. The one purple glow is `--shadow-raised`, added for this baseline and used only on the primary button. The reference also draws it on a centre action in the tab bar. The phone has no centre action, because no act sits there, so the token has one place. The reference's lighter shadows on the bell, the chips and the tab bar have no counterpart.
+- **Elevation.** Cards take `--shadow-card`. The tab bar keeps `--shadow-overlay`, because it floats over content. The one purple glow is `--shadow-raised`, added for this baseline. It has two places: the primary button and the raised centre action. The reference's lighter shadows on the bell, the chips and the tab bar have no counterpart.
+- **The centre action** is the reference's fifth slot, between Residents and Medication: writing a care note. Care notes are not built on the phone, so it declares itself `not_built` as Medication and More do and opens the same sheet saying so. It is not a tab: tapping it changes neither the active tab nor the address.
 - **Type and spacing** take the nearest step of the closed scales. No step is added (CLAUDE.md §4). The stat card's figure is `--text-display` (32px), the card's one number and its subject. The reference's 30px and 10px, and its 13px, 17px and 9px gaps, land on the steps either side.
+- **No progress ticks, and none are to be added.** The reference draws a row of ticks under each figure, one per unit, which works for its 14 doses. Real figures here run to 165 doses, so ticks would have to be rounded, and 3 of 165 rounds to a bar with nothing filled. A bar that draws empty for a figure that is not zero is the same kind of false statement the hatch exists to prevent: it says "nothing" where the record says "some". Every card states its denominator in words instead (CLAUDE.md §1, §6).
+- **How Today counts goes in a sheet, not on the page.** The sentences saying what the late figure counts, what it leaves out and over whom are load-bearing and kept word for word, in a sheet. The page carries one line in their place, "Counted over your list · 2 things not counted", built from the same values as the sentences so it cannot disagree with them. It states the scope even when nothing is left out. "Nothing is late for you to act on" is an empty state, not an account of counting, and stays with the late list.
+- **The moved-clock notice has a phone form**: the same words, smaller, at `--radius-sm`, so it does not take the top of the screen before the first figure. The desktop form is unchanged.
+- **The person heading sits on the page**, not on a white band.
 - **The dark card is not drawn on the phone**, by decision (`docs/DEPARTURES.md`). The phone's high-contrast anchors are the active tab, the time pill and the primary button. A dark card on top of those is one anchor too many on a 390px screen.

@@ -39,7 +39,16 @@ const hhmm = (at: Date) => formatTime(at.toISOString() as IsoDateTime, HOME_ZONE
  * The link reloads the page, and a reload signs you out: nothing in this build
  * persists, and the record has to be regenerated against the new instant.
  */
-export function MovedClockLine() {
+export function MovedClockLine({
+  form = 'desktop',
+}: {
+  /**
+   * The phone's form is the same words in a smaller box at the phone's card
+   * corner, so the notice does not take the top of the screen before the first
+   * figure. The desktop's form is unchanged.
+   */
+  form?: 'desktop' | 'phone'
+} = {}) {
   if (!CLOCK_NEEDS_SAYING && !VOCABULARY_NEEDS_SAYING) return null
 
   const round = roundInProgressAt(homeMinutesOfDay(GENERATED_AT))
@@ -78,7 +87,10 @@ export function MovedClockLine() {
         : 'the nearest round running'
 
   return (
-    <p className={styles.line} data-moved-clock={CLOCK_REASON}>
+    <p
+      className={form === 'phone' ? styles.linePhone : styles.line}
+      data-moved-clock={CLOCK_REASON}
+    >
       {CLOCK_NEEDS_SAYING ? (
         <>
           <span className={styles.now} data-numeric>

@@ -80,7 +80,7 @@ export function PeopleScreen({ view: opensOn }: { view: View }) {
       }
     >
       <div className={styles.gutter}>
-        <MovedClockLine />
+        <MovedClockLine form="phone" />
       </div>
       <StackLink
         to={{ kind: 'search' }}
