@@ -829,6 +829,12 @@
   min-height: var(--space-48);
 }
 
+/* A row in the picker is a button: the whole width, text from the left. */
+.pickRow {
+  width: 100%;
+  text-align: left;
+}
+
 /* What the record says once a note is saved. */
 .savedLine {
   display: flex;

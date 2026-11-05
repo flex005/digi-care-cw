@@ -529,20 +529,17 @@ describe('the phone tab bar', () => {
     ).toBeTruthy()
   })
 
-  it('opens the centre action as a sheet, leaving the tab and the address alone', async () => {
+  it('draws the centre action between Residents and Medication, as an act and not a tab', async () => {
     openAt('/m/people', staffEze.id)
     const nav = screen.getByRole('navigation', { name: 'Main navigation' })
-    const centre = within(nav).getByRole('button', { name: 'Care notes, not built' })
-    // Between Residents and Medication, and drawn with no label.
+    const centre = within(nav).getByRole('button', { name: 'Write a care note' })
     const slots = [...(nav.firstElementChild?.children ?? [])]
     expect(slots.indexOf(centre)).toBe(2)
     expect(centre.textContent).toBe('')
+    expect(centre.getAttribute('aria-current')).toBeNull()
     fireEvent.click(centre)
-    const sheet = await screen.findByRole('dialog', { name: 'Care notes' })
     expect(
-      within(sheet).getByText(
-        'Care notes — not built yet on the phone. A care note can be written in the desktop build.',
-      ),
+      await screen.findByRole('dialog', { name: 'Who is this note about?' }),
     ).toBeTruthy()
     expect(window.location.pathname).toBe('/m/people')
     expect(nav.querySelector('[aria-current="page"]')?.textContent).toBe('Residents')
