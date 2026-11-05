@@ -12,7 +12,7 @@
     "icons": "node scripts/icons/build-icons.mjs",
     "icons:check": "node scripts/icons/build-icons.mjs --check",
     "typecheck": "tsc --noEmit",
-    "lint": "npm run lint:es && npm run lint:css && npm run lint:classes && npm run lint:tokens && npm run lint:hatch && npm run lint:assignment && npm run lint:client-only && npm run lint:figma && npm run lint:caution && npm run lint:roles && npm run lint:losses && npm run lint:nav && npm run lint:plural-agreement && npm run lint:vocabulary && npm run lint:term-forms && npm run lint:app-shell",
+    "lint": "npm run lint:es && npm run lint:css && npm run lint:classes && npm run lint:tokens && npm run lint:hatch && npm run lint:assignment && npm run lint:client-only && npm run lint:figma && npm run lint:caution && npm run lint:roles && npm run lint:losses && npm run lint:nav && npm run lint:plural-agreement && npm run lint:vocabulary && npm run lint:term-forms && npm run lint:app-shell && npm run lint:phone-visuals",
     "lint:es": "eslint . --max-warnings 0",
     "lint:css": "stylelint \"src/**/*.css\"",
     "lint:classes": "node scripts/check-css-classes.mjs",
@@ -35,6 +35,7 @@
     "lint:vocabulary": "node scripts/check-vocabulary-coverage.mjs",
     "lint:term-forms": "node scripts/check-term-forms.mjs",
     "lint:app-shell": "node scripts/check-app-shell.mjs",
+    "lint:phone-visuals": "node scripts/check-phone-visuals.mjs",
     "check:address": "node scripts/check-address-survives.mjs"
   },
   "lint-staged": {
