@@ -297,15 +297,14 @@ describe('the phone: one record', () => {
     expect(within(header).getByRole('img', { name: /Emmanuel Okafor/ })).toBeTruthy()
   })
 
-  it('anchors the care note outside the pane, saying at the act that it is not built', async () => {
+  it('anchors writing a care note outside the pane, as an act that opens a sheet', async () => {
     openAt('/m/people/res-okafor', staffEze.id)
     const record = front('people')
     const act = await within(record).findByRole('button', { name: 'Write a care note' })
     expect(act.closest('[data-scroll-pane]')).toBeNull()
-    expect(act.getAttribute('aria-disabled')).toBe('true')
-    expect(record.querySelector('[data-act-line="not_built"]')?.textContent).toContain(
-      'not built yet on the phone',
-    )
+    expect(act.getAttribute('aria-disabled')).toBeNull()
+    expect(act.getAttribute('aria-haspopup')).toBe('dialog')
+    expect(record.querySelector('[data-act-line="not_built"]')).toBeNull()
   })
 
   it('lists the rest of the record as rows that do not open', async () => {

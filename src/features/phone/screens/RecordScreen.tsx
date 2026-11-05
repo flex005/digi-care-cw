@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { getCareNotes, getMarRecords, getResident } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import { now } from '@/data/fixtures/clock'
@@ -8,23 +8,21 @@ import { useSession, useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { Icon } from '@/components/icon/Icon'
 import type { IconName } from '@/components/icon/registry.names.generated'
-import { ActLine, Avatar } from '@/components/primitives'
+import { ActLine } from '@/components/primitives'
 import { NAV_ITEMS, type NavItem } from '@/components/shell/nav.icons'
 import { StatusPill, Unrecorded } from '@/components/status'
 import { assertNever } from '@/lib/assert-never'
-import { formatDate } from '@/lib/format'
 import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { NOTHING_OUTSTANDING, OutstandingLine } from '../OutstandingLine'
 import { outstandingFor, type Outstanding } from '../outstanding'
-import {
-  listName,
-  noListYetLine,
-  notOnYourListLine,
-  type DoseRecord,
-  type Person,
-} from '../phone-data'
+import { listName, type DoseRecord, type Person } from '../phone-data'
 import { phoneIcons } from '../phone.icons'
 import { Loaded } from '../ScreenStates'
+import { NoteComposerSheet, type SavedNote } from '../notes/NoteComposerSheet'
+import { takeComposerRequest } from '../notes/compose-request'
+import { refusalOf } from '../refusal'
+import { SubjectHeader } from '../SubjectHeader'
+import { useInFront } from '../shell/nav'
 import { Screen } from '../shell/Screen'
 import shell from '../shell/shell.module.css'
 import styles from '../phone.module.css'
@@ -55,9 +53,20 @@ interface RecordData {
 export function RecordScreen({ id }: { id: ResidentId }) {
   const { activeSite } = useSession()
   const viewer = useViewer()
+  const inFront = useInFront()
   const [at] = useState(() => now().toISOString() as IsoDateTime)
   const answer = viewer.ask('open_resident_record', id)
   const opens = answer.kind === 'yes'
+  /* Opened by the picker: the subject is still this record, from its address. */
+  const [composing, setComposing] = useState(() => takeComposerRequest(id))
+  const [saved, setSaved] = useState<SavedNote | 'none'>('none')
+  /* Bumped to read the record again: after a save, and on coming back to the front. */
+  const [reads, setReads] = useState(0)
+  const wasInFront = useRef(inFront)
+  useEffect(() => {
+    if (inFront && !wasInFront.current) setReads((count) => count + 1)
+    wasInFront.current = inFront
+  }, [inFront])
 
   const load = useCallback(
     () =>
@@ -78,7 +87,7 @@ export function RecordScreen({ id }: { id: ResidentId }) {
           })),
     [id, opens],
   )
-  const resource = useResource<RecordData>(load, [id, opens])
+  const resource = useResource<RecordData>(load, [id, opens, reads])
   const ready = resource.kind === 'ready' ? resource.data : undefined
 
   return (
@@ -92,15 +101,30 @@ export function RecordScreen({ id }: { id: ResidentId }) {
       }
       subject={
         ready !== undefined && opens ? (
-          <SubjectHeader person={ready.person} />
+          <SubjectHeader person={ready.person} name="in_the_bar" />
         ) : undefined
       }
       primary={
         opens && ready !== undefined ? (
-          <CareNoteAct id={id} name={listName(ready.person)} />
+          <CareNoteAct
+            id={id}
+            name={listName(ready.person)}
+            onWrite={() => setComposing(true)}
+          />
         ) : undefined
       }
     >
+      {saved === 'none' ? null : (
+        <div className={styles.savedLine} role="status" data-note-saved>
+          <p>Note saved for {saved.name}.</p>
+          {saved.flagged ? (
+            <p className={styles.quiet}>
+              Flagged for a senior to review. Nobody is notified: it waits in the
+              flagged queue.
+            </p>
+          ) : null}
+        </div>
+      )}
       <Loaded
         resource={resource}
         loading={`Loading the ${VOCABULARY.subject.ones} record…`}
@@ -125,6 +149,18 @@ export function RecordScreen({ id }: { id: ResidentId }) {
                 />
               </section>
               <TheRest />
+              {viewer.ask('write_care_note', id).kind === 'yes' ? (
+                <NoteComposerSheet
+                  person={data.person}
+                  open={composing}
+                  onOpenChange={setComposing}
+                  onSaved={(note) => {
+                    setComposing(false)
+                    setSaved(note)
+                    setReads((count) => count + 1)
+                  }}
+                />
+              ) : null}
             </>
           )
         }
@@ -133,31 +169,20 @@ export function RecordScreen({ id }: { id: ResidentId }) {
   )
 }
 
-function SubjectHeader({ person }: { person: Person }) {
-  return (
-    <div className={styles.subject} data-subject-header>
-      <Avatar photo={person.photo} name={person.fullLegalName} size="medium" />
-      <div className={styles.subjectText}>
-        <p className={styles.subjectFacts}>
-          <span>Known as {person.preferredName}</span>
-          {person.room.kind === 'recorded' ? (
-            <span>Room {person.room.value}</span>
-          ) : (
-            <Unrecorded label="Room not recorded" />
-          )}
-          <span>Born {formatDate(person.dateOfBirth)}</span>
-        </p>
-      </div>
-    </div>
-  )
-}
-
 /**
- * The primary act, in the thumb zone. **The line saying what it does not do
- * sits at the act**, not behind a tap (CLAUDE.md §6): the composer is not
- * built, and where the role table refuses, its words say so instead.
+ * The primary act, in the thumb zone: writing a care note, in a sheet over
+ * this record. Where the role table refuses, its words say so at the act
+ * instead (CLAUDE.md §6).
  */
-function CareNoteAct({ id, name }: { id: ResidentId; name: string }) {
+function CareNoteAct({
+  id,
+  name,
+  onWrite,
+}: {
+  id: ResidentId
+  name: string
+  onWrite: () => void
+}) {
   const viewer = useViewer()
   const answer = viewer.ask('write_care_note', id)
   if (answer.kind !== 'yes')
@@ -173,14 +198,14 @@ function CareNoteAct({ id, name }: { id: ResidentId; name: string }) {
       </ActLine>
     )
   return (
-    <>
-      <ActLine kind="not_built">
-        The care note composer is not built yet on the phone.
-      </ActLine>
-      <button type="button" className={shell.primary} aria-disabled="true">
-        Write a care note
-      </button>
-    </>
+    <button
+      type="button"
+      className={`${shell.primary} ${shell.press}`}
+      aria-haspopup="dialog"
+      onClick={onWrite}
+    >
+      Write a care note
+    </button>
   )
 }
 
@@ -326,21 +351,4 @@ function NotOnYourListCard({
       ) : null}
     </div>
   )
-}
-
-function refusalOf(answer: Exclude<Answer, { kind: 'yes' }>, name: string): string {
-  switch (answer.kind) {
-    case 'not_on_your_list':
-      return notOnYourListLine(name)
-    case 'no_list_yet':
-      return noListYetLine
-    case 'not_your_role':
-    case 'not_the_author':
-      return answer.reason
-    case 'not_stated':
-    case 'contradicted':
-      return answer.question
-    default:
-      return assertNever(answer)
-  }
 }
