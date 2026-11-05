@@ -307,7 +307,7 @@ describe('the phone: one record', () => {
     expect(record.querySelector('[data-act-line="not_built"]')).toBeNull()
   })
 
-  it('lists the rest of the record as rows that do not open', async () => {
+  it('lists the rest of the record: care notes open, and every other row says it is not built', async () => {
     openAt('/m/people/res-okafor', staffEze.id)
     const record = front('people')
     const rest = (
@@ -315,7 +315,12 @@ describe('the phone: one record', () => {
     ).closest('section') as HTMLElement
     const rows = within(rest).getAllByRole('listitem')
     expect(rows.length).toBeGreaterThanOrEqual(8)
-    for (const row of rows) {
+    const [notes, ...others] = rows
+    expect(
+      within(notes as HTMLElement).getByRole('link', { name: /Care notes/ }),
+    ).toBeTruthy()
+    expect(within(notes as HTMLElement).queryByText('Not built yet')).toBeNull()
+    for (const row of others) {
       expect(within(row).getByText('Not built yet')).toBeTruthy()
       expect(within(row).queryByRole('link')).toBeNull()
       expect(within(row).queryByRole('button')).toBeNull()

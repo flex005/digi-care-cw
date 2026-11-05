@@ -24,6 +24,7 @@ import { refusalOf } from '@/app/session/refusal'
 import { SubjectHeader } from '../SubjectHeader'
 import { useInFront } from '../shell/nav'
 import { Screen } from '../shell/Screen'
+import { StackLink } from '../shell/StackLink'
 import shell from '../shell/shell.module.css'
 import styles from '../phone.module.css'
 
@@ -148,7 +149,7 @@ export function RecordScreen({ id }: { id: ResidentId }) {
                   })}
                 />
               </section>
-              <TheRest />
+              <TheRest id={id} />
               {viewer.ask('write_care_note', id).kind === 'yes' ? (
                 <NoteComposerSheet
                   person={data.person}
@@ -293,16 +294,16 @@ function OutstandingToday({ items }: { items: Outstanding[] }) {
 }
 
 /**
- * The rest of the record, listed rather than left out and not drawn as
- * controls: no chevron, no target, "Not built yet" on each. Named by their
- * owners — the desktop navigation, and the vocabulary for medication and the
- * care plan.
+ * The rest of the record, listed rather than left out. Care notes is built
+ * and opens the notes, read-only; the others are not drawn as controls: no
+ * chevron, no target, "Not built yet" on each. Named by their owners — the
+ * desktop navigation, and the vocabulary for medication and the care plan.
  */
-function TheRest() {
+function TheRest({ id }: { id: ResidentId }) {
   const fromNav = (picked: (item: NavItem) => boolean) =>
     NAV_ITEMS.filter(picked).map((item) => ({ label: item.label, icon: item.icon }))
+  const notes = fromNav((item) => item.module === 'care-notes')
   const rows: { label: string; icon: IconName }[] = [
-    ...fromNav((item) => item.module === 'care-notes'),
     { label: VOCABULARY.medication.Many, icon: phoneIcons.dose },
     { label: VOCABULARY.carePlan.One, icon: phoneIcons.carePlan },
     ...fromNav((item) => item.section === 'records'),
@@ -315,6 +316,18 @@ function TheRest() {
         </h2>
       </div>
       <ul className={styles.list}>
+        {notes.map((row) => (
+          <li key={row.label}>
+            <StackLink
+              to={{ kind: 'notes', id }}
+              className={`${styles.moduleRow} ${shell.pressRow}`}
+            >
+              <Icon name={row.icon} size={20} />
+              <span className={styles.moduleName}>{row.label}</span>
+              <Icon name={phoneIcons.open} size={16} className={styles.rowChevron} />
+            </StackLink>
+          </li>
+        ))}
         {rows.map((row) => (
           <li key={row.label} className={styles.moduleRow}>
             <Icon name={row.icon} size={20} />

@@ -23,10 +23,12 @@ import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { assertNever } from '@/lib/assert-never'
 import { scopeReaches, type DoseRecord } from '../phone-data'
 import { pathOf, ROOT_OF, type Place, type TabId } from '../phone-paths'
+import { notBuiltOnPhone } from '../not-built'
 import { phoneIcons } from '../phone.icons'
 import { PeopleScreen } from '../screens/PeopleScreen'
 import { RecordScreen } from '../screens/RecordScreen'
 import { SearchScreen } from '../screens/SearchScreen'
+import { NotesScreen } from '../screens/NotesScreen'
 import { TodayScreen } from '../screens/TodayScreen'
 import { NotePickerSheet } from '../notes/NotePickerSheet'
 import { requestComposer } from '../notes/compose-request'
@@ -238,6 +240,8 @@ function PlaceScreen({ place }: { place: Place }) {
       return <PeopleScreen view={place.view} />
     case 'search':
       return <SearchScreen />
+    case 'notes':
+      return <NotesScreen id={place.id} />
     case 'record':
       return <RecordScreen id={place.id} />
     default:
@@ -420,9 +424,7 @@ function TabBar({ active, onTap }: { active: TabId; onTap: (tab: TabId) => void 
       {shown === undefined ? null : (
         <Sheet open={open} onOpenChange={setOpen} title={shown.label} cancel="Done">
           {shown.clock && count.kind === 'counted' ? <p>{dueSentence(count)}</p> : null}
-          {/* A dash, not a verb: "is" would have to agree with a label that may be
-              plural or a configured term, and the template cannot know which. */}
-          <ActLine kind="not_built">{`${shown.label} — not built yet on the phone.${shown.note}`}</ActLine>
+          <ActLine kind="not_built">{`${notBuiltOnPhone(shown.label)}${shown.note}`}</ActLine>
         </Sheet>
       )}
     </nav>

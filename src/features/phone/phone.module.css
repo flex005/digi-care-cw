@@ -829,6 +829,21 @@
   min-height: var(--space-48);
 }
 
+/* One care note in a list: the card is the list item, the note in full. */
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-16);
+}
+
+.noteBody {
+  color: var(--ink-900);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line);
+  white-space: pre-wrap;
+}
+
 /* A row in the picker is a button: the whole width, text from the left. */
 .pickRow {
   width: 100%;
