@@ -524,13 +524,14 @@
   background-color: var(--border-strong);
 }
 
-/* The body's gutter, so Done keeps clear of the edge and its focus ring is
-   drawn whole rather than clipped by the sheet. */
+/* The body's gutter at the sides, so Done keeps clear of the edge, and the
+   focus ring's width below, so the ring is drawn inside the head rather than
+   under the pinned subject or the body that follows (measured: 4px over). */
 .sheetHead {
   display: flex;
   align-items: center;
   align-self: stretch;
-  padding: 0 var(--layout-gutter-compact);
+  padding: 0 var(--layout-gutter-compact) var(--space-4);
 }
 
 .sheetCancel {
