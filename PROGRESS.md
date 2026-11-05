@@ -2640,3 +2640,7 @@ A continuous bar, not ticks, on the three cards with a denominator: due soon (of
 **The floor** is `shareWidth`: any figure above zero is at least `--space-8` wide, an exact zero draws `0%`. Its test pins 1 of 165; removing the floor failed it, and so did rounding figures under 1% to nothing. jsdom does not lay out, so the drawn width was measured in Chrome on a card's track: 1 of 165 draws 8px with the floor and 0.86px without. Measured on the real cards: a care worker's 8 of 28 due draws 40 of 141px, 2 of 4 not written up draws 70 of 139px in the hatch's grey, and 0 past the window draws an empty track.
 
 **Left for the owner:** "Already late" has no bar, so its caption sits about 24px higher than its neighbour's. Not balanced by inventing a total.
+
+## Stat card captions at the card's foot (05/11/2026)
+
+Every stat caption takes `margin-top: auto`, so the four sit on one line per row whether or not the card has a share bar. "Already late" gets no bar and no reserved bar-shaped blank: a blank where its neighbours show an empty track would read as a bar that failed to draw. Measured in Chrome: both rows' captions end on the same line, 348px in the first row. The second row was 1.5px out, which the move made visible: the hatched card's dashed edge sat inside the same padding as the white card beside it. Its padding now gives the edge back, and the remainder is half a CSS pixel of snapping (520.5 against 520).

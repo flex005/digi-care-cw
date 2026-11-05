@@ -377,7 +377,10 @@
   flex: 1 1 calc(50% - var(--space-12));
   gap: var(--space-8);
   min-width: 0;
-  padding: var(--space-16);
+
+  /* Less the hatch's 1.5px dashed edge, so its figure and caption sit on the
+     same lines as the white card beside it. */
+  padding: calc(var(--space-16) - 1.5px);
 }
 
 /* Two lines' room for the label whether it needs them or not, so every
@@ -423,7 +426,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* At the card's foot, so every caption sits on one line across a row whether
+   or not its card has a share bar. Space above it on a card with no bar is
+   spacing, not a bar that failed to draw. */
 .statOf {
+  margin-top: auto;
   color: var(--ink-500);
   font-size: var(--text-micro-size);
   line-height: var(--text-micro-line);
