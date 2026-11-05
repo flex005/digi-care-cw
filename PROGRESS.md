@@ -2644,3 +2644,7 @@ A continuous bar, not ticks, on the three cards with a denominator: due soon (of
 ## Stat card captions at the card's foot (05/11/2026)
 
 Every stat caption takes `margin-top: auto`, so the four sit on one line per row whether or not the card has a share bar. "Already late" gets no bar and no reserved bar-shaped blank: a blank where its neighbours show an empty track would read as a bar that failed to draw. Measured in Chrome: both rows' captions end on the same line, 348px in the first row. The second row was 1.5px out, which the move made visible: the hatched card's dashed edge sat inside the same padding as the white card beside it. Its padding now gives the edge back, and the remainder is half a CSS pixel of snapping (520.5 against 520).
+
+## A correction does not write anybody up today (05/11/2026)
+
+The first commit of the phone's care notes module, and a rule change in both builds. `withoutNoteToday` counts a note towards "written up today" only when it corrects nothing. A correction written today of yesterday's note leaves the resident in "Not written up today"; a note written today and later corrected still counts. Two tests hold it, and each went red under the mutation that breaks it: corrections counted again, and corrected notes dropped. No fixture note is a correction, so no figure on screen moves until somebody writes one in a session. The Admin build owes the same rule, and the row is in `docs/DEPARTURES.md`, "What the Admin & Manager build owes, as one list".
