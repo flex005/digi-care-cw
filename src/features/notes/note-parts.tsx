@@ -65,13 +65,17 @@ export function REVIEW_OUTCOME_LABEL(outcome: ReviewOutcome): string {
  * Minutes under an hour, hours under two days, then days by `formatLateness`,
  * which owns a span of days. Below two days the hour is the useful unit: the
  * difference between six and eighteen hours matters and "0 days" says nothing.
+ *
+ * **Days are rounded from the minutes, never from the rounded hours.** Rounding
+ * twice drew 83 hours 39 minutes as 84 hours and then as four days: a flag
+ * said to have waited a day longer than it had.
  */
 export function formatWait(minutes: number): string {
   const whole = Math.max(0, Math.round(minutes))
   if (whole < 60) return pluralise(whole, 'minute')
   const hours = Math.round(whole / 60)
   if (hours < 48) return pluralise(hours, 'hour')
-  return formatLateness(Math.round(hours / 24))
+  return formatLateness(Math.round(whole / (24 * 60)))
 }
 
 /** How long between two instants, as a wait. */

@@ -83,7 +83,9 @@ export function MetricTile({
         </span>
       </span>
 
-      <span className={styles.tileFigure}>{figure}</span>
+      <span className={styles.tileFigure} data-metric-figure>
+        {figure}
+      </span>
 
       <span className={styles.tileFooter}>
         <span className={styles.tileChange} data-metric-of>
