@@ -1,6 +1,18 @@
+import { vi } from 'vitest'
+
+/*
+ * **Pinned to a full instant before any fixture loads**: 20:20 BST on
+ * 16/09/2026. The week these figures count is the seven days before the
+ * record's moment, so a figure written in here without a pin rolls with the
+ * time of day; it did, overnight (CLAUDE.md §8).
+ */
+vi.hoisted(() => {
+  window.history.replaceState(null, '', '/medications?at=2026-09-16T19:20:00Z')
+})
+
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import type { IsoDateTime, ResidentId, SiteId } from '@/data/types'
 import { staffAkinyemi, staffEze, staffOsei } from '@/data/fixtures/organisation'
 import { fellDueAt, marRecordsFor } from '@/data/fixtures/medications'
@@ -98,34 +110,38 @@ describe('Omissions: figures', () => {
 
     /*
      * Figures, not the data layer's list counted again: the screen renders that
-     * list, so a count of it agrees by construction. At 20:20 BST on 16/09/2026
-     * they were counted a second way from the raw records (omitted since the
-     * week's start, and escalated among them) and agreed: 60 and 51.
+     * list, so a count of it agrees by construction. Counted a second way at the
+     * pinned instant, from the fixtures' records without the data layer: 55
+     * omitted since the week's start, 50 of them escalated, 14 closed. Due by
+     * scheduled round is 758; the week counts a dose by when it was recorded,
+     * which adds the eight from 09/09's 20:00 round recorded after 20:20, so 766.
      */
-    expect(omissions).toHaveLength(60)
-    expect(due).toBe(761)
+    expect(omissions).toHaveLength(55)
+    expect(due).toBe(766)
 
     const gap = document.querySelector('[data-gap-count]')!
     expect(gap.getAttribute('data-state')).toBe('unrecorded')
-    expect(gap.textContent).toContain('60')
+    expect(gap.querySelector('p[data-numeric]')?.textContent).toBe('55')
     expect(gap.textContent).toContain(
-      'of 761 doses due this week, across 28 residents at Rosewood Court',
+      'of 766 doses due this week, across 28 residents at Rosewood Court',
     )
     expect(gap.textContent).toContain('the window closed and nobody wrote anything')
 
-    const of = 'of 60 doses with no record'
+    const of = 'of 55 doses with no record'
     expect(tileOf('Escalated')).toBe(of)
     expect(tileOf('Not yet escalated')).toBe(of)
     expect(tileOf('Closed')).toBe(of)
-    const tile = (label: string) =>
-      document.querySelector(`[data-metric-tile="${label}"]`)?.textContent
-    expect(tile('Escalated')).toContain('51')
-    expect(tile('Not yet escalated')).toContain('9')
-    expect(tile('Closed')).toContain('11')
+    // The figure alone: the tile's whole text holds "of 55", which contains 5.
+    const figure = (label: string) =>
+      document.querySelector(`[data-metric-tile="${label}"] [data-metric-figure]`)
+        ?.textContent
+    expect(figure('Escalated')).toBe('50')
+    expect(figure('Not yet escalated')).toBe('5')
+    expect(figure('Closed')).toBe('14')
 
     const card = document.querySelector('[data-action-card]')!
     expect(card.textContent).toContain('Open omissions')
-    expect(card.textContent).toContain('49')
+    expect(card.querySelector('p[data-numeric]')?.textContent).toBe('41')
     expect(card.textContent).toContain(`${of} this week`)
     expect(card.textContent).toContain('Oldest open')
   })

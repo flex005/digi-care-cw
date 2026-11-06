@@ -1,6 +1,18 @@
+import { vi } from 'vitest'
+
+/*
+ * **Pinned to a full instant before any fixture loads**: 20:20 BST on
+ * 16/09/2026. The longest wait is measured to `now()` and rounded to the day,
+ * so written in without a pin it read "3 days" for half of each day and "4
+ * days" or "2 days" for the rest (CLAUDE.md §8).
+ */
+vi.hoisted(() => {
+  window.history.replaceState(null, '', '/care-notes?at=2026-09-16T19:20:00Z')
+})
+
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import type { IsoDateTime, ResidentId } from '@/data/types'
 import { staffAkinyemi, staffEze, staffOsei } from '@/data/fixtures/organisation'
 import { GAP_NOTE_IDS } from '@/data/fixtures/care-notes'
@@ -118,6 +130,8 @@ describe('the dark card', () => {
       ),
     ).toBeTruthy()
     expect(within(section).getByText('Oldest waiting')).toBeTruthy()
+    // At the pin, counted from the note fixtures: the oldest flag was raised at
+    // 08:41 BST on 13/09, 83 hours 39 minutes earlier, which is 3.49 days.
     expect(within(section).getByText('3 days')).toBeTruthy()
   })
 
