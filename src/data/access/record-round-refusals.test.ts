@@ -161,6 +161,98 @@ describe('the fixtures reach the states this file is about', () => {
   })
 })
 
+/*
+ * **The helpers above ask `openDosesAt` which doses are open**, the list
+ * `recordRound` refuses by, so they agree with whatever it believes. These two
+ * stand without it. The first checks it against the raw records; the second,
+ * the whole-round refusal, names its resident and doses as literals and asks no
+ * helper at all (PROGRESS.md, 06/11/2026, helper verdict 6).
+ */
+describe('openDosesAt, against the raw records', () => {
+  it('is every dose due or omitted at the round, never one with nothing due and never an as-required drug, for everybody today', () => {
+    const prn = new Set(
+      medications.filter((entry) => entry.isPrn).map((entry) => entry.id),
+    )
+    const today = patchedRecords().filter((record) => record.date === TODAY)
+    const people = [...new Set(today.map((record) => record.residentId))]
+    let compared = 0
+    for (const person of people)
+      for (const round of ['08:00', '14:00', '18:00', '20:00']) {
+        const raw = today
+          .filter(
+            (record) =>
+              record.residentId === person &&
+              record.roundTime === round &&
+              (record.state.kind === 'due' || record.state.kind === 'omitted') &&
+              !prn.has(record.medicationId),
+          )
+          .map((record) => record.medicationId)
+          .sort()
+        expect(
+          [...openDosesAt(person, TODAY, round)].sort(),
+          `${person} at ${round}`,
+        ).toEqual(raw)
+        compared += 1
+      }
+    expect(compared).toBeGreaterThan(80)
+  })
+
+  it('names an omitted dose, and leaves out a patch on its day off', () => {
+    // Adeyemi's 08:00 metformin closed with nothing recorded: still open.
+    expect(openDosesAt('res-adeyemi' as ResidentId, '2026-09-16', '08:00')).toEqual([
+      'med-res-adeyemi-metformin',
+    ])
+    // Kavanagh's 08:00 doses are recorded, and her fentanyl patch is changed
+    // every third day: today it is not due, so nothing at 08:00 is open.
+    expect(openDosesAt('res-kavanagh' as ResidentId, '2026-09-16', '08:00')).toEqual([])
+  })
+})
+
+describe('a round is recorded whole', () => {
+  it('refuses Vera Lonsdale’s 20:00 round with one of its two doses unanswered, records nothing, and takes it whole', async () => {
+    const lonsdale = 'res-lonsdale' as ResidentId
+    const donepezil = 'med-res-lonsdale-donepezil' as MedicationId
+    const atorvastatin = 'med-res-lonsdale-atorvastatin' as MedicationId
+    const at = '2026-09-16T19:20:00.000Z' as IsoDateTime
+    const declined = {
+      kind: 'not_given',
+      reason: 'resident_refused',
+      note: '',
+      recordedAt: at,
+      recordedBy: staffAkinyemi,
+    } as const
+    const round = (doses: MedicationId[]) =>
+      recordRound({
+        residentId: lonsdale,
+        date: '2026-09-16',
+        roundTime: '20:00',
+        doses: doses.map((medicationId) => ({ medicationId, state: declined })),
+        openingCounts: [],
+        by: staffAkinyemi,
+        at,
+      })
+    const stateOf = (medicationId: MedicationId) =>
+      patchedRecords().find(
+        (record) =>
+          record.medicationId === medicationId &&
+          record.date === '2026-09-16' &&
+          record.roundTime === '20:00',
+      )?.state.kind
+
+    expect(stateOf(donepezil)).toBe('due')
+    expect(stateOf(atorvastatin)).toBe('due')
+    await expect(round([donepezil])).rejects.toThrow(
+      'This round is short 1 of 2 doses: answer every dose before recording it.',
+    )
+    expect(stateOf(donepezil)).toBe('due')
+    expect(stateOf(atorvastatin)).toBe('due')
+
+    await expect(round([donepezil, atorvastatin])).resolves.toBe(2)
+    expect(stateOf(donepezil)).toBe('not_given')
+    expect(stateOf(atorvastatin)).toBe('not_given')
+  })
+})
+
 describe('recordRound refuses what the round screen refuses', () => {
   it('never writes over a dose already on the record, and leaves it as it was', async () => {
     const { residentId, recorded } = withARecordedDose()
