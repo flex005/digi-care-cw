@@ -7,7 +7,7 @@ import {
   type MarGridCell,
 } from '@/features/medications/mar/mar-grid'
 import { assertNever } from '@/lib/assert-never'
-import { zonedDate, type TimeZone } from '@/lib/format'
+import { pluralise, zonedDate, type TimeZone } from '@/lib/format'
 import type { DoseRecord } from './phone-data'
 
 /** A medicine on the chart, as the shared loader returns it. */
@@ -37,6 +37,14 @@ export interface AsRequired {
   drug: Drug
   given: Extract<MarCellState, { kind: 'given' }>[]
 }
+
+/**
+ * "28 doses due today": what a figure about today's doses is out of, on the
+ * badge and on Today alike. **Due today means owed today** (`owedDoses`): never
+ * a chart cell with no dose due, never an as-required drug, which nobody owes.
+ */
+export const dosesDueToday = (count: number): string =>
+  `${pluralise(count, 'dose')} due today`
 
 /**
  * One person's chart for today, grouped by round. MED-04 on a phone, for one

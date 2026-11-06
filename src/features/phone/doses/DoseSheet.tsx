@@ -328,6 +328,7 @@ function SheetDoseRow({
         <DoseFacts
           dose={{ drug: drug, cell: { kind: 'recorded', state: record.state } }}
           recordsHere={false}
+          cannotCorrect="at_dose"
         />
       )
     case 'controlled':

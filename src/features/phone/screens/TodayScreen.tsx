@@ -23,7 +23,12 @@ import { Icon } from '@/components/icon/Icon'
 import type { IconName } from '@/components/icon/registry.names.generated'
 import { MovedClockLine } from '@/components/shell/MovedClockLine'
 import { Unrecorded } from '@/components/status'
-import { dosesPastTheirWindow, dueSoon } from '@/features/dashboard/dashboard-figures'
+import {
+  dosesPastTheirWindow,
+  dueSoon,
+  owedDoses,
+} from '@/features/dashboard/dashboard-figures'
+import { dosesDueToday } from '../phone-chart'
 import {
   byOldest,
   fromHandovers,
@@ -177,8 +182,10 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
   const todays = data.records.filter(
     (record) => ids.has(record.residentId) && record.date === today,
   )
-  const soon = dueSoon(todays, at)
-  const pastWindow = dosesPastTheirWindow(todays)
+  /* Out of the doses owed today, as the badge counts them (`dosesDueToday`). */
+  const due = owedDoses(todays)
+  const soon = dueSoon(due, at)
+  const pastWindow = dosesPastTheirWindow(due)
   const quiet = withoutNoteToday(mine, data.notes, activeSite.timeZone, at).length
 
   /*
@@ -236,7 +243,7 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
    */
   const parts: { text: string; counted: boolean }[] = [
     {
-      text: `${pluralise(doseKind ?? 0, 'dose')} missed today, of ${pluralise(todays.length, 'dose')} on today’s chart`,
+      text: `${pluralise(doseKind ?? 0, 'dose')} missed today, of ${dosesDueToday(due.length)}`,
       counted: true,
     },
     reviewing.kind === 'yes'
@@ -274,8 +281,8 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
           icon={phoneIcons.dose}
           label="Due now or in the next 2 hours"
           figure={formatCount(soon.doses)}
-          of={`of ${pluralise(todays.length, 'dose')} on today’s chart, nothing recorded yet`}
-          share={{ value: soon.doses, total: todays.length }}
+          of={`of ${dosesDueToday(due.length)}, nothing recorded yet`}
+          share={{ value: soon.doses, total: due.length }}
         />
         <Stat
           icon={phoneIcons.notWritten}
@@ -289,8 +296,8 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
           icon={phoneIcons.pastWindow}
           label="Doses past their window"
           figure={formatCount(pastWindow)}
-          of={`of ${pluralise(todays.length, 'dose')} on today’s chart`}
-          share={{ value: pastWindow, total: todays.length }}
+          of={`of ${dosesDueToday(due.length)}`}
+          share={{ value: pastWindow, total: due.length }}
           gap={pastWindow > 0}
         />
       </div>

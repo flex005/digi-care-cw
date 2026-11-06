@@ -14,18 +14,24 @@ import styles from '../phone.module.css'
  * One dose, as separate facts: what it is, what the record holds, and, where it
  * is still open, why it cannot be recorded here.
  *
- * **A given or not-given dose says it cannot be corrected**, at the dose, in
- * the chart and on the round's sheet alike: somebody looking at an entry they
- * know is wrong is standing at the act. No surface in this build corrects a
- * dose, so the line does not say "on the phone" (`notBuiltYet`). An omission
- * and a dose with no record held are not recorded doses, and say nothing.
+ * **That a recorded dose cannot be corrected is said where it would be
+ * read.** On the round's sheet, at the dose (`cannotCorrect="at_dose"`): that
+ * is where somebody has just tapped and may see they tapped wrong, and a sheet
+ * holds one round, so the line cannot pile up. On today's chart, once for the
+ * screen (`CANNOT_CORRECT_DOSE`, `"said_by_the_screen"`): at every dose of a
+ * full day it was wallpaper. No surface in this build corrects a dose, so the
+ * line does not say "on the phone" (`notBuiltYet`). An omission and a dose with
+ * no record held are not recorded doses, and say nothing.
  */
 export function DoseFacts({
   dose,
   recordsHere,
+  cannotCorrect,
 }: {
   dose: ChartDose
   recordsHere: boolean
+  /** Whether this dose says it cannot be corrected, or the screen says it once. */
+  cannotCorrect: 'at_dose' | 'said_by_the_screen'
 }) {
   const format = useSiteFormat()
   const { drug, cell } = dose
@@ -83,7 +89,7 @@ export function DoseFacts({
             {format.time(state.givenAt)} · {staffLabel(state.givenBy)}
           </p>
           <Witness witness={state.witness} />
-          <CannotCorrect />
+          {cannotCorrect === 'at_dose' ? <CannotCorrect /> : null}
         </>
       )
     case 'not_given':
@@ -101,7 +107,7 @@ export function DoseFacts({
           <p className={styles.byline}>
             {format.time(state.recordedAt)} · {staffLabel(state.recordedBy)}
           </p>
-          <CannotCorrect />
+          {cannotCorrect === 'at_dose' ? <CannotCorrect /> : null}
         </>
       )
     case 'omitted':

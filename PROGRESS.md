@@ -2915,3 +2915,18 @@ Every test file that pinned only the hour was run three ways: under the full ins
   - Not counted: `VOCABULARY.*` in expected strings (the vocabulary layer is a separate owner by design), data-layer cross-checks (`openDosesAt`, `patchedRecords`) and false positives (a constant in a comment, uniqueness checks).
 - **Step 6: a given or not-given dose says it cannot be corrected** (DEPARTURES, phone). `CANNOT_CORRECT_DOSE` in `DoseFacts`, through a new `notBuiltYet` beside `notBuiltOnPhone`, because no surface corrects a dose. Tested on the chart for two people found from the records (given with omitted; not given with due), so every dose of each kind is checked both ways, and on the sheet's recorded row. **Mutations**: dropped from not-given doses; drawn on an omission. Both red.
 - **Screenshots**: seven allergies at 390 × 508 (top, scrolled to the first dose, greyscale); the phone's needs at 390 (at the dose and the foot); the chart's cannot-correct line at 390; the desktop card's need at the dose and count at the foot at 1440; each in greyscale.
+
+## The can't-correct line once per chart, and step 7: the badge out of doses due today (06/11/2026)
+
+- **The can't-correct line is said once on today's chart, in the day card, and only when something today is recorded; on the sheet it stays at the dose** (DEPARTURES, phone). `DoseFacts` takes `cannotCorrect: 'at_dose' | 'said_by_the_screen'`. Tested: one line on the chart, inside the day card, at no dose, for two people found from the records; none for somebody with nothing recorded today; still at the dose on the sheet. **Mutations**: the chart drawing it at each dose; drawing it with nothing recorded; the sheet not drawing it. Each red.
+- **Step 7: the Medication badge, and Today's three dose figures, are out of the doses due today** (`owedDoses`: no as-required drug, no cell where nothing was due), not every chart entry. Today's tiles had the same denominator, and the badge says it is "the same figure Today's tile shows", so it is one fix through one owner: `dosesDueToday` in `phone-chart.ts` words it ("22 doses due today") in all four places, the badge's name, the due-soon tile, the past-window tile and the late sheet's missed line. The numerators are taken over the same doses, so a numerator can never be wider than its denominator.
+- **Before and after, at 20:20 BST on 16/09/2026**, read off the rendered app:
+
+  | Role | Badge before | Badge after | Past their window before | after |
+  |---|---|---|---|---|
+  | Care worker (N. Eze, 4 residents) | 4 of 28 doses on today's chart | 4 of 22 doses due today | 1 of 28 | 1 of 22 |
+  | Senior carer (T. Akinyemi, the home) | 19 of 165 doses on today's chart | 19 of 108 doses due today | 4 of 165 | 4 of 108 |
+
+  The numerators do not move; the denominators fall by 6 and 57, as-required drugs and cells where nothing was due. **22 and 108 were counted a second way before going into the test**: the day's records filtered on each drug's own `isPrn` and on `not_due`, not through `owedDoses`, over Eze's named residents and over the home. Both agreed.
+- The badge's name reads "Due now or in the next 2 hours: 4 of 22 doses due today, on your list." The old "4 of 28 doses on today's chart due now or…" put the denominator's noun phrase in front of the figure's.
+- `badge-denominator.test.tsx` pins the instant and asserts the figures as literals, for both roles. `phone.test.tsx`'s three "on today's chart" patterns now read "due today"; its badge test runs on an unpinned clock, so it checks the sentence's shape and leaves the figures to the pinned file. **Mutations**: each of the three denominators put back on every chart entry. Each red.

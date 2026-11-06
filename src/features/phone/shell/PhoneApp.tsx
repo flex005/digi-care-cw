@@ -17,8 +17,9 @@ import { getRound } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import { now } from '@/data/fixtures/clock'
 import type { IsoDateTime } from '@/data/types'
-import { dueSoon } from '@/features/dashboard/dashboard-figures'
-import { formatCount, pluralise, zonedDate } from '@/lib/format'
+import { dueSoon, owedDoses } from '@/features/dashboard/dashboard-figures'
+import { dosesDueToday } from '../phone-chart'
+import { formatCount, zonedDate } from '@/lib/format'
 import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { assertNever } from '@/lib/assert-never'
 import { scopeReaches, type DoseRecord } from '../phone-data'
@@ -307,12 +308,14 @@ const TAB_ITEMS = (): TabItem[] => [
 ]
 
 type DueCount =
-  { kind: 'counted'; due: number; onChart: number } | { kind: 'not_counted' }
+  { kind: 'counted'; due: number; dueToday: number } | { kind: 'not_counted' }
 
 /**
  * The one count the tab bar carries: doses due now or in the next two hours,
  * on the reader's list, today — the same figure Today's tile shows, from the
- * same owner. **Not counted** while the round loads or for a reader with no
+ * same owner. **Out of the doses due today** (`owedDoses`), not every entry on
+ * today's chart: a cell where nothing was due and an as-required drug are on
+ * the chart and are nobody's dose to give. **Not counted** while the round loads or for a reader with no
  * list, and then no badge is drawn and the tab's name says nothing about doses.
  */
 function useDueCount(): DueCount {
@@ -330,12 +333,13 @@ function useDueCount(): DueCount {
   const todays = resource.data.filter(
     (record) => record.date === today && scopeReaches(viewer.scope, record.residentId),
   )
-  return { kind: 'counted', due: dueSoon(todays, at).doses, onChart: todays.length }
+  const due = owedDoses(todays)
+  return { kind: 'counted', due: dueSoon(due, at).doses, dueToday: due.length }
 }
 
 /** The count in words, with what it is out of and what it is over. */
 const dueSentence = (count: Extract<DueCount, { kind: 'counted' }>): string =>
-  `${count.due} of ${pluralise(count.onChart, 'dose')} on today’s chart due now or in the next 2 hours, on your list.`
+  `Due now or in the next 2 hours: ${count.due} of ${dosesDueToday(count.dueToday)}, on your list.`
 
 /**
  * The tab bar: a white pill floating in the gutter, clear of the home

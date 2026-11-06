@@ -418,11 +418,9 @@ describe('the phone: today', () => {
     const today = front('today')
     expect(await within(today).findByText('Already late')).toBeTruthy()
     expect(within(today).getByText('of your 4 residents')).toBeTruthy()
-    expect(within(today).getByText(/^of [\d,]+ doses? on today’s chart$/)).toBeTruthy()
+    expect(within(today).getByText(/^of [\d,]+ doses? due today$/)).toBeTruthy()
     expect(
-      within(today).getByText(
-        /^of [\d,]+ doses? on today’s chart, nothing recorded yet$/,
-      ),
+      within(today).getByText(/^of [\d,]+ doses? due today, nothing recorded yet$/),
     ).toBeTruthy()
     const { sheet } = await counting(today)
     expect(
@@ -439,7 +437,7 @@ describe('the phone: today', () => {
     const { line, sheet } = await counting(today)
     expect(line.textContent).toBe('Counted over your list · 2 things not counted')
     expect(
-      within(sheet).getByText(/missed today, of [\d,]+ doses? on today’s chart$/),
+      within(sheet).getByText(/missed today, of [\d,]+ doses? due today$/),
     ).toBeTruthy()
     expect(within(sheet).getByText(/^Reviews are not counted: .+\.$/)).toBeTruthy()
     expect(within(sheet).getByText(/^Handovers are not counted: .+\.$/)).toBeTruthy()
@@ -531,10 +529,11 @@ describe('the phone tab bar', () => {
     )
     expect(nav.querySelectorAll('[data-badge]')).toHaveLength(1)
     const tabLink = badge.closest('a') as HTMLElement
-    expect(tabLink.getAttribute('aria-label')).toBe(
-      `Medication. ${badge.textContent} of ${
-        /of ([\d,]+ doses?) on/.exec(tabLink.getAttribute('aria-label') ?? '')?.[1]
-      } on today’s chart due now or in the next 2 hours, on your list.`,
+    // The figures are pinned in badge-denominator.test.tsx; this clock is not.
+    expect(tabLink.getAttribute('aria-label')).toMatch(
+      new RegExp(
+        `^Medication\\. Due now or in the next 2 hours: ${badge.textContent} of [\\d,]+ doses? due today, on your list\\.$`,
+      ),
     )
     fireEvent.click(tabLink)
     await waitFor(() => expect(window.location.pathname).toBe('/m/round'))

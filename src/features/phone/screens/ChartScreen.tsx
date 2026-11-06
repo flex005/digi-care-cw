@@ -19,7 +19,7 @@ import {
 } from '../phone-chart'
 import { listName, type DoseRecord, type Person } from '../phone-data'
 import { roundInFront } from '../phone-round'
-import { DoseFacts } from '../doses/DoseFacts'
+import { CANNOT_CORRECT_DOSE, DoseFacts } from '../doses/DoseFacts'
 import { DoseSheet, PRN_NOT_BUILT } from '../doses/DoseSheet'
 import { sheetDoses } from '../doses/dose-sheet'
 import shell from '../shell/shell.module.css'
@@ -194,6 +194,12 @@ function Chart({ data, at }: { data: ChartData; at: IsoDateTime }) {
         {records.kind === 'yes' ? null : (
           <ActLine kind="refused">{phoneRefusalOf(records, listName(person))}</ActLine>
         )}
+        {/* Once for the screen, not at every dose (`DoseFacts`). */}
+        {chart.recorded === 0 ? null : (
+          <span data-cannot-correct>
+            <ActLine kind="not_built">{CANNOT_CORRECT_DOSE}</ActLine>
+          </span>
+        )}
       </section>
 
       {chart.rounds.map((round) => (
@@ -217,7 +223,11 @@ function Chart({ data, at }: { data: ChartData; at: IsoDateTime }) {
                 className={styles.item}
                 data-chart-dose={dose.drug.id}
               >
-                <DoseFacts dose={dose} recordsHere={records.kind === 'yes'} />
+                <DoseFacts
+                  dose={dose}
+                  recordsHere={records.kind === 'yes'}
+                  cannotCorrect="said_by_the_screen"
+                />
               </li>
             ))}
           </ul>

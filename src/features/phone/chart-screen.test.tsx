@@ -142,24 +142,39 @@ describe('today’s chart, as a care worker', () => {
     ['given', 'omitted'],
     ['not_given', 'due'],
   ])(
-    'says at every given and not-given dose that it cannot be corrected, and nowhere else (%s, %s)',
+    'says once for the screen that a recorded dose cannot be corrected, and at no dose (%s, %s)',
     async (...kinds) => {
       const id = withToday(...kinds)
-      const today = dosesToday(id)
-      const isRecorded = (kind: string) => kind === 'given' || kind === 'not_given'
       openChart(id, staffAkinyemi.id)
       await loaded()
-      for (const record of today) {
-        const dose = doseIn(record.roundTime, record.medicationId)
-        if (dose === null)
-          throw new Error(`No dose ${record.medicationId} on the chart`)
-        const line = dose.querySelector('[data-cannot-correct]')
-        if (isRecorded(record.state.kind))
-          expect(line?.textContent).toBe('Correcting a recorded dose — not built yet.')
-        else expect(line).toBeNull()
-      }
+      const lines = [...people().querySelectorAll('[data-cannot-correct]')]
+      expect(lines).toHaveLength(1)
+      expect(lines[0]?.closest('[data-chart-day]')).not.toBeNull()
+      expect(lines[0]?.textContent).toBe('Correcting a recorded dose — not built yet.')
+      expect(
+        people().querySelector('[data-chart-dose] [data-cannot-correct]'),
+      ).toBeNull()
     },
   )
+
+  it('does not say it where nothing today is recorded', async () => {
+    const id = residents
+      .map((person) => person.id as string)
+      .find(
+        (candidate) =>
+          dosesToday(candidate).length > 0 &&
+          dosesToday(candidate).every(
+            (record) =>
+              record.state.kind !== 'given' && record.state.kind !== 'not_given',
+          ),
+      )
+    if (id === undefined)
+      throw new Error('Everybody with a dose today has one recorded')
+    openChart(id, staffAkinyemi.id)
+    await loaded()
+    expect(people().querySelector('[data-chart-day]')).not.toBeNull()
+    expect(people().querySelector('[data-cannot-correct]')).toBeNull()
+  })
 
   it('hatches an omission and says nobody has closed it', async () => {
     const omitted = dosesToday('res-adeyemi').find(
