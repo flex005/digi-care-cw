@@ -257,6 +257,14 @@ export function pluralise(
 }
 
 /**
+ * Below this many days a span is printed as days, and `formatDuration` prints
+ * the figure it was given; at or above it, the span is rounded to months.
+ * Exported because `formatWait` hands over whole days below it and the
+ * unrounded span above, and the two must switch at the same place.
+ */
+export const MONTH_THRESHOLD_DAYS = 60
+
+/**
  * A span of time, in the unit somebody would say it in.
  *
  * **One owner, because "how long" is one question.** How overdue a review is,
@@ -275,7 +283,6 @@ export function pluralise(
  */
 export function formatDuration(days: number): string {
   const DAYS_IN_AVERAGE_MONTH = 30.44
-  const MONTH_THRESHOLD_DAYS = 60
   const YEAR_THRESHOLD_DAYS = 730
 
   if (days < MONTH_THRESHOLD_DAYS) return pluralise(days, 'day')
