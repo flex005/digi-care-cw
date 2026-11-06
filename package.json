@@ -36,7 +36,8 @@
     "lint:term-forms": "node scripts/check-term-forms.mjs",
     "lint:app-shell": "node scripts/check-app-shell.mjs",
     "lint:phone-visuals": "node scripts/check-phone-visuals.mjs",
-    "check:address": "node scripts/check-address-survives.mjs"
+    "check:address": "node scripts/check-address-survives.mjs",
+    "check:sheet-fits": "node scripts/check-dose-sheet-fits.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx}": "eslint --fix",

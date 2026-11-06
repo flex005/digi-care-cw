@@ -317,6 +317,14 @@
   font-weight: var(--weight-semibold);
 }
 
+/* What one dose still needs, at the dose: where it is fixed. */
+.needed {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
 .actRow {
   display: flex;
   flex-wrap: wrap;
@@ -339,23 +347,12 @@
   font-weight: var(--weight-semibold);
 }
 
-/* ---- The signing dialog: the subject again, above what the PIN signs. ---- */
+/* ---- The signing dialog: the subject again (SigningSubject), above what the PIN signs. ---- */
 
 .signing {
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
-}
-
-.signingSubject {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4) var(--space-12);
-  align-items: center;
-  color: var(--ink-700);
-  font-size: var(--text-body-sm-size);
-  line-height: var(--text-body-sm-line);
-  font-weight: var(--weight-semibold);
 }
 
 /* Compact: every clinical answer and act clears 48px for a thumb at a trolley. */

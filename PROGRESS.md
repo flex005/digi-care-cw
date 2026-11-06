@@ -2743,3 +2743,190 @@ Module 3's reading pass, before any code. The two findings are each fixed in the
 **Unchanged, and the reason is itself a check:** the round columns, the round screen and `openDosesAt` already left PRN out. After the correction the dashboard's "medication today" (108) equals the sum of the round columns (63 + 10 + 6 + 29) for the first time; before, they disagreed by exactly the 54 PRN cells.
 
 **Not changed here, and named:** the phone badge's denominator ("of 165 doses on today's chart") counts every cell today, `not_due` included, so it was never a count of doses. It does not move with this correction (PRN cells were on the chart before and are still on it, now as `not_due`). It belongs to the badge, and is for module 3.
+
+## Module 3, step 1: allergies at the round's medication PIN (05/11/2026)
+
+- **The round's signing dialog now carries the resident's allergies**, in all three states through `AllergyBadge` (critical pills naming substance and reaction, "No known allergies" settled with who recorded it, "Allergies not recorded" hatched), and one line beneath: "Nothing here checks these drugs against <name>’s allergies." The dialog covers the card head that shows them, so before this the allergies were out of sight at the one moment a drug goes on the record as given.
+- **The subject block moved into `src/features/medications/SigningSubject.tsx`**, which the phone's PIN step will use in step 5, and which owns the not-checked line, since this is the one place it is drawn. Written inline in the card first, it raised the vocabulary ratchet from 2161 to 2164: two `resident.` identifiers and a `'../medication-words'` specifier. Extracted, with the prop named `person`, it came to 2159, and `BEST` is lowered to 2159 in the same commit, with a note that this is not a conversion: no wording a reader sees changed.
+- **Tests**: `round-pin-allergies.test.tsx`, pinned to a full instant, opens the PIN step for Lonsdale (penicillin and latex), Castledine (none known) and Pemberton (not recorded). Three mutations, each confirmed landed and restored: the badge removed (the three state tests red), the line removed (its test red), the whole block removed (all four red).
+- **Not yet done: the screenshot review at 1440 and 390, both roles, colour and greyscale (CLAUDE.md §10).** Claude in Chrome was not connected in the session that built this. It is owed before the step is called done.
+- **Noticed, not changed**: `round.test.tsx` still pins `?at=20:20`, the hour-only form CLAUDE.md §8 says is half a pin. It predates this module.
+
+## Step 1 reviewed: verify on a quiet machine, and the dialog by screenshot (06/11/2026)
+
+- **Verify was re-run once the machine was quiet**: 113 files, 1,333 tests, the build, every guard, 131 seconds. The two failing runs before it were contention, not code: a load average of 826 on ten cores, one run lasting four hours across the night, every failure a timeout or a worker that stopped answering, and each failing file passed alone. Nothing was retried until it passed; the machine was waited for.
+- **Screenshots without Claude in Chrome**: a headless Chrome on its own profile, driven over the DevTools protocol with Node's built-in WebSocket, no dependency added. Clicks are real pointer events at the element's centre, which is what Radix listens for. It signs in through the demonstration list, answers each open dose Not given, opens the PIN step and captures at 1440 and at 390, in colour and with `grayscale(1)` on the root.
+- **What was captured**: a senior carer (T. Akinyemi) at Rosewood's 20:00 round on Emmanuel Okafor (penicillin, anaphylaxis), Winifred Castledine (no known allergies) and Arthur Pemberton (allergies not recorded); a care worker (S. Patel) at Ashgrove's 08:00 round on Nathaniel Brennan (ibuprofen and sulfonamides). All three states read apart in greyscale by their words and the hatch's dashed edge; a red allergy pill and a green "No known allergies" pill are the same shape in grey, and their words carry the difference, which is the rule. The line sits under the allergies and above what the PIN signs at both widths, and the whole dialog fits a 390 screen.
+- **N. Eze cannot reach this dialog at 20:00**, and that is the role table rather than a defect: every open dose on her four residents is a controlled drug, which Table 3 contradicts itself about for a care worker. The care worker capture is therefore S. Patel, who covers Ashgrove, at its 08:00 round, where Ashgrove still had a dose open.
+- **Read-only**: a reader who may record nothing never reaches the dialog, so it has no read-only form to review. The other six states belong to the round screen and are unchanged by this step.
+
+## BLOCKING QUESTION for the PRD's author: a care worker cannot record a single dose at the 20:00 round (06/11/2026)
+
+**The signed-in care worker, N. Eze, cannot record any dose at the 20:00 round.** Every dose still open there on her list of four is a controlled drug: morphine for Emmanuel Okafor, two for Grace Adeyemi, oxycodone for Arthur Pemberton, and Ernest Hutchinson has none open. For a care worker, Table 3 contradicts itself on a controlled drug. "Medications — record Given/Not Given/PRN" says "Can (PIN required)"; "Medications — countersign controlled drugs" says "Both must be Senior+". This build does not choose between them (`record_controlled_drug_dose` answers `contradicted` and quotes both rows), so her whole round at 20:00 is unrecordable.
+
+**This contradiction has now blocked three pieces of module 3:**
+1. **Module 3's scoping.** The phone was cut to scheduled, non-controlled doses because of it (decision 3).
+2. **Step 1's capture.** The care worker screenshot of the PIN dialog could not be taken as Ngozi Eze, the only care worker with a list at Rosewood. It was taken as Sunita Patel at Ashgrove's 08:00 round instead.
+3. **The phone dose sheet in step 4.** For N. Eze at 20:00 the sheet can only say why nothing can be recorded. Step 2's round list says the same thing, by design, rather than leaving her residents off it.
+
+**It needs the PRD's author to resolve it.** Either a care worker records a controlled drug dose as the first signature, with a senior carer countersigning, or a care worker does not record controlled drugs at all. It is one row in `capabilities.ts` either way, and no screen changes its logic. It is already under "Questions for the PRD's author" in `docs/DEPARTURES.md`; this entry records the cost of leaving it open.
+
+## The pinning sweep: four tests depended on the instant, twenty-one did not (06/11/2026)
+
+Every test file that pinned only the hour was run three ways: under the full instant its hour stood for (16/09/2026 at 20:20 or 09:37 BST, written with a `Z`), and under two instants far from it, 03:00 and 14:30 GMT on 01/12/2026. A file that fails under either far instant depends on the instant; a file that passes all three shows no dependence.
+
+- **Four depend on it, and are pinned to the full instant**: `handover.test.tsx`, `dashboard-figures.test.ts`, `dashboard.test.tsx`, `incidents.test.tsx`. Each one's comment names the test that fails under the far pin, as measured, not a guessed reason. That failure is also the proof the suite reads the pin.
+- **Twenty-one show no dependence, and are not pinned for symmetry**: `goals.test.tsx`, `goal-views.test.ts`, `consent-screen.test.tsx`, `upload.test.tsx`, `assessment-screen.test.tsx`, `urgency-screens.test.tsx`, `activities.test.tsx`, `reviews.test.tsx`, and all thirteen `*-vocabulary.test.tsx` files. They keep their `?at=` hour as it was. The fixtures are built relative to the instant, so their results come out the same at all three. **This is evidence from three instants, not a proof**: a test added later that reads a window or a round would make one of them depend on the hour, and the pin would then be half a pin again. Anyone adding such a test pins the file in the same commit.
+- **Two were never pins**: `rules.test.ts` holds `?at=20:20` inside a URL it checks survives sign-in, and `MovedClockLine.test.tsx` holds hour forms because parsing them is its subject.
+- **The first draft of the four comments gave reasons nobody had checked** ("the shift on the board moves with the hour"). They were replaced with the names of the tests that actually fail before anything was committed.
+
+## Module 3, step 2: Your round on the phone (06/11/2026)
+
+- **Medication is a built tab**, `/m/round`, its root Your round: the round from `arrivalRound`, the people from the role table's `record_medication` (a care worker's list, a senior carer's whole home), the doses from `residentsAt`, each window from `windowFor`. `phone-round.ts` sorts every dose at the round into exactly one of five buckets (recorded, to record now, not open yet, controlled drug, window closed), so a row's facts add up to its doses. It writes nothing: each row is a link to the record.
+- **The wall is drawn, not hidden.** A person whose only open doses are controlled drugs is a row reading "Nothing can be recorded for <name> here: 1 controlled drug open. Recording a controlled drug — not built yet on the phone." For N. Eze at 20:00 that is three of her four rows, and the fourth is all recorded. Where the role table contradicts itself for the reader, its question is said once under the round's count, not on every row: it is about the role, not the person. People in scope with no dose at the round are counted in a line, and a care worker's off-list line is the desktop round's own.
+- **Mutations**, each confirmed landed and restored, each red on its own test: dropping controlled-only rows (three tests), the question drawn nowhere, controlled drugs counted as recordable, and a row that opens nothing.
+- **The tab is named `round` in code, not `medication`.** Its label is the configured term; an internal id named after a configurable term is what the vocabulary work removes. Written first as `medication`, the step took the ratchet from 2159 to 2181; renaming the tab and passing the round's read whole brought it to 2165. The six left are two module paths and four field names of the shared loader shape. `BEST` is raised to 2165 in the same commit, with that reason beside it.
+- **Screenshots** at 390, both roles, colour and greyscale, through the headless Chrome driver. The first pass showed the home twice in the bar (a subtitle repeating what `Screen` already draws) and the role table's question repeated in full on every one of N. Eze's rows. Both were fixed before committing.
+- **Found, not fixed, and not from this step: arriving at a phone address through sign-in lands on Today.** Opening `/m/round` or `/m/people` signed out leads to sign-in, then back to the right address, but the phone shows Today. `/m/people` does the same, so it predates the Medication tab. Most likely the shell reads the address once when it mounts, and it mounts before sign-in has put the address back. It needs its own look.
+
+## Step 2 reviewed: the floor at 2165, and the list name in the row's sentence (06/11/2026)
+
+- **The floor stays at 2165, and the rise is the guard mis-measuring, not terminology regressing.** The six words are two module specifiers and four field names of the shared loader shape. No reader sees any of them. Renaming types in both builds to satisfy a counter was declined.
+- **TRACKED, for between modules (not now): teach `check-vocabulary-coverage` to stop counting what no reader sees.** Import paths and type field names are not user-visible terminology. Excluding them would make the guard measure what its name says, and it will probably *lower* the count below 2159, because the same classes are counted elsewhere. That fix is the real answer to this raise and to the 2161 one before it. When it lands, it gets the treatment §10 gives any changed guard: broken on purpose before it is trusted, and its new floor set from the measured figure, not from 2165 minus a guess.
+- **The row's sentence names the person by the list name.** "Ron Ashworth" directly above "Nothing can be recorded for Ronald Ashworth" reads as two people. Recorded in `docs/DEPARTURES.md` as the phone's form of the desktop's convention, not a break from it, so nobody corrects it back. The test now expects the list name.
+
+## Module 3, step 3: today's chart on the phone (06/11/2026)
+
+- **Reached from the record**: the medication row under "The rest of the record" is now built and opens Today's chart, `/m/people/<id>/chart`, one place pushed over the record, with the subject header beneath the bar. Read-only.
+- **Grouped by round, from the desktop chart's own grid.** `phone-chart.ts` runs `buildMarGrid` over the one day, so a cell here is the cell on the MAR. The figure, "4 of 5 doses due today recorded", is the dashboard's `medicationToday`. My first version also filtered PRN doses out before asking it, which duplicated the owner: a mutation removing my filter passed, because `owedDoses` already leaves out an as-required dose. The copy is gone, and the test over Adeyemi's PRN doses would still fail if the owner ever counted them.
+- **Every medicine on the chart appears somewhere**: at each round it has a dose today, under "As required (PRN)" with what was given, or under "Not due today" (Kavanagh's fentanyl patch). **A controlled drug that is due is on the chart, saying why**: "Recording a controlled drug — not built yet on the phone." at the dose. The role table's question is said once above the rounds. Until the dose sheet, an ordinary due dose says "Recording a dose — not built yet on the phone."
+- **Each dose's facts are separate**, in the desktop cell detail's words: Given as a pill with its time and author, and a missing second signature as its own hatch (Pemberton, 08:00). Not given carries its reason. An omission is hatched, with "Not escalated." and "Not closed: nobody has closed this omission." as lines of their own (Adeyemi, 08:00). **Earlier days say they are not built on the phone.**
+- **Not reached by any fixture today: a `not_held` dose** (prescribed at the round, no record held). It renders the desktop's sentence and is untested by a case.
+- **Mutations**, each confirmed landed and restored: controlled due doses dropped (two tests red), not due today dropped, the missing signature merged away, the cannot-record line hidden (two red), the open closure line removed, the history line removed. The seventh, PRN counted as due, passed and found the duplicate above.
+- **The vocabulary floor rose from 2165 to 2173**, by eight words of the classes recorded for step 2: three module specifiers, the shared `Medication` type imported and aliased once, and two shared field names. Written first, the step counted 2218. Forty-five were removed by naming its own identifiers `drug`, as the round does. This is the same mis-measure tracked above, not terminology regressing.
+- **The senior carer's chart tests wait four seconds**, as the record tests in `phone.test.tsx` already do: a senior carer's root is the whole home's list, which loads first.
+- **Screenshots** at 390, colour and greyscale: N. Eze on Pemberton and Adeyemi, T. Akinyemi on Kavanagh, reached by tapping through Your round, the row and the record's medication row, because arriving at an address through sign-in still lands on Today.
+
+## Step 3 reviewed: the role table's questions off the phone (06/11/2026)
+
+- **Today's chart printed six lines of role-table quotation at a care worker.** Gone, and so is the same block on Your round. The per-dose and per-row lines already said what the reader needs: a controlled drug cannot be recorded on the phone.
+- **The rest of the phone had the same mistake in four more places**, all reached through the shared `refusalOf` or the question itself: the record's not-on-your-list card and care-note act, the notes screen, the note picker's rows, and Today's "not counted" lines. Plus the round's off-list line, the desktop's own constant, which ends "the PRD does not say whether you record their doses". All now go through `phone-refusal.ts`, in the reader's terms. The desktop is unchanged and still prints the questions, as CLAUDE.md §6 says; DEPARTURES records the phone's difference from §6.
+- **Guarded by `phone-refusal.test.ts`.** Three mutations, each confirmed landed: the owner returning the question again, the off-list line naming the PRD again, Today reading the question again. Each went red. **What it cannot see**: a shared sentence that reaches the phone through a re-export, with no "PRD" in the phone file. Only a screen test that renders it catches that, as the round's does. That gap is a review question, not covered.
+
+## The vocabulary guard measures what a reader can see; the floor re-derived to 1546 (06/11/2026)
+
+- **Done now, not between modules** (the TRACKED item above is closed). `check-vocabulary-coverage` no longer counts **module specifiers, type names or type field names**: 124, 246 and 257 on the day. Everything else is still counted, including local variables, route strings, discriminants and keys. None of those reaches a screen either, but they were not asked to leave, and every position excused is somewhere a regression could hide.
+- **The floor is 1546, the figure the script printed at the commit**, not 2173 minus a guess. The three earlier raises (2161, 2165, 2173) were all this one mis-measure; under the new measure there is nothing they forgave.
+- **The first version was blind, and reading the exclusions back is what found it.** It treated any capitalised term in a code position as a type name. The scanner places JSX text inside an expression (`{cond ? (<p>…</p>) : null}`) in code, so the dashboard's "omissions on Medications" and the MAR's caption were excused as "type names". Two fixes: type names are found by position (after `:`, `<`, `|`, `as`, `extends`, `type X =`, inside an import's braces), never by capital letter; and the scanner now tracks JSX text inside braces. The scanner fix also over-reads two code words after a generic as text, which is the safe direction, and those two are in the 1546.
+- **`scripts/check-vocabulary-coverage.test.mjs`, the first test any guard here has had.** It runs the guard over a copy of the counted tree and **measures how far each probe moves the figure**, not just the exit status. The first version asserted only that the guard failed, and a mutation that widened the exclusions turned every probe red, including ones it never touched, because the whole figure fell below the floor. Probes: a label, a heading, a heading after a comment, text inside a conditional after a colon, a sentence, a template sentence and a local variable each move it by their words. An import path, a type name, a field name and a field read each move it by zero.
+- **Mutations of the guard, each confirmed landed and restored**, each red on the probes it targets:
+  - the scanner back to top-level text only: the conditional probe, and the floor test;
+  - JSX text excused: the three heading and text probes;
+  - every string excused: label, sentence and template;
+  - every code position excused: the local variable;
+  - specifiers counted again: the suite fails at setup, because the tree is over the floor.
+  The capital-letter rule alone, with the scanner fixed, is caught only by the floor test: with text placed correctly it has nothing visible left to excuse.
+- **What it still cannot see**: visible text the scanner places as code in a shape no probe covers. Its success line would still print a tick. The read-back that found this one is the check, and it is worth repeating whenever the scanner changes.
+
+## Today's chart: the not-held dose tested by construction, fixtures untouched (06/11/2026)
+
+- **A dose prescribed at a round with no record held** is now tested at two levels. Neither touches the fixtures.
+  - `phone-chart.test.ts` drops one of Pemberton's 08:00 records from a copy. The dose stays at 08:00 as `not_held`, does not move to "Not due today", and leaves both sides of the figure: it is not recorded and not counted as due, as the desktop chart's row counts it.
+  - `chart-not-held.test.tsx` wraps the real `getMarRecords` to leave the same record out. The screen draws the desktop's sentence with no hatch, because no record held is not an omission.
+- **Mutations**: the state dropped from the chart (both red); the state drawn with an omission's hatch (the screen test red).
+
+## Module 3, step 4: the dose sheet (06/11/2026)
+
+- **Reached from today's chart**: one anchored act, "Record the 20:00 round", for the round in front of the reader (`roundInFront`, now the one helper Your round also asks) where the role table lets them record and an ordinary dose has its window open. **No act where nothing can be recorded**: Pemberton's 20:00 is one controlled drug, so there is no act, and the dose says why. The chart's "Recording a dose — not built yet" line is gone, because recording an ordinary dose now has a way in. The controlled-drug line stays.
+- **A full-height sheet.** Pinned under its title: the subject header, allergies in all three states (`AllergyBadge`), and `allergyNotCheckedLine`. Every scheduled dose at the round is listed (`dose-sheet.ts`, one bucket each). Given and Not given have no default. Not given needs a reason from the desktop's list, and Other needs words. "Still needed" comes from the desktop's `outstanding`, so a missing reason reads the same at the trolley and on the phone. **When everything is answered it says signing with the medication PIN is not built yet, and nothing is recorded**: the test compares Lonsdale's records before and after.
+- **Built in the test, not in the fixtures: allergies nobody recorded on a person with a dose open.** No Rosewood resident has both at 20:00 (checked: all four with unrecorded allergies have nothing open). `dose-sheet-allergies.test.tsx` wraps `getResident`.
+- **Mutations**, each confirmed landed and restored:
+  - Given by default;
+  - no reason needed;
+  - allergies not pinned (two tests red);
+  - the nothing-checks line gone (two red);
+  - controlled drugs answerable;
+  - signing offered before ready (two red).
+  The controlled-drug mutation was caught at first only by the no-act test. Bello's round, a controlled drug and an ordinary dose open together, now catches it directly.
+- **Screenshots** at 390, colour and greyscale: the senior carer on Lonsdale (the sheet opened, then answered as far as "say why it was not given"), Bello's mixed round, and Lonsdale's chart with the act. The first sheet capture showed two defects:
+  - The answers and the text field shrank to their words, because `.item` aligns to the start. Fixed with `.doseAnswer`.
+  - Next's dev overlay reported an issue: the reason buttons were built in a `map` without keys.
+  The recapture logged console errors and exceptions through the protocol, and there were none. A care worker at 20:20 has no ordinary dose open on their list (the blocking question), so the care-worker view of the sheet is reached only at another round, as step 1's capture was.
+- **For review: the pinned head is tall.** Subject plus two allergies is about a third of a 390 screen before the first dose. It is what §2 and the allergy decision ask for, and the doses scroll beneath it.
+
+## CLAUDE.md §6 amended: a screen states what cannot be done in the reader's terms (06/11/2026)
+
+- **§6 now says what the build believes, for every surface**: a screen states what cannot be done in the terms of the person reading it, and the project's open questions live in PROGRESS.md and DEPARTURES.md, never on a screen. The phone's DEPARTURES entry for this is removed, because the phone is no longer departing from anything.
+- **TRACKED, after module 3: the desktop is the non-conforming surface.** It still prints role-table questions at the act. The owners to change, so every screen follows at once:
+  - `refusalOf` in `src/app/session/refusal.ts` (its `not_stated` and `contradicted` branches return the question);
+  - `ActPoint` in `src/components/layout/ActPoint.tsx` (draws the question);
+  - `OFF_LIST_LINE` in `src/features/medications/round/RoundRoute.tsx` ("the PRD does not say whether you record their doses");
+  - Today's-style `reasonOf` copies wherever a screen reads `answer.question` itself.
+  The question strings in `capabilities.ts` stay: they are the record of what is open, and nothing should draw them. When the desktop is fixed, `phone-refusal.ts` folds into the shared owner and its test widens to every surface. No desktop code is changed now.
+
+## Two questions on the sheet, measured (06/11/2026)
+
+- **Five allergies, measured on a constructed case.** Lonsdale's sheet opened in headless Chrome, her two allergy pills cloned in the DOM up to five and then seven, with realistic substances. Nothing in the code or fixtures changed. **The pinned head never scrolls and has no cap; the dose list gets what is left.** Each allergy adds about 44px.
+
+  | Screen | Allergies | Head ends at | Dose pane |
+  |---|---|---|---|
+  | 390 × 844 | 2 | 302px | 542px |
+  | 390 × 844 | 5 | 434px | 410px |
+  | 390 × 844 | 7 | 522px | 322px |
+  | 375 × 667 | 5 | 434px | 260px |
+  | 390 × 508 (≈ keyboard up) | 2 | 302px | 206px |
+  | 390 × 508 | 5 | 434px | 74px |
+  | 390 × 508 | 7 | 522px | 8px |
+
+  **At seven allergies with the keyboard up, no dose is reachable**, and the "Nothing here checks…" line itself is cut off below the screen (`allergies-390x508-7-1.png`). Not fixed: the decision is the product owner's.
+- **"Still needed" at five doses** is one 171-character sentence: "Still needed: Donepezil: nothing chosen, Atorvastatin: no reason chosen, Metformin: nothing chosen, Levothyroxine: say why it was not given and Furosemide: nothing chosen." It nests colons inside a comma list. **The desktop has the same problem**: `ResidentRoundCard` draws "Waiting on: " and every item joined with " · ", 169 characters at five. Both come from `outstanding()` in `round.ts`, so it is one fix for both. Not fixed: proposed in the report.
+
+## Module 3, step 5: the medication PIN on the phone (06/11/2026)
+
+- **Signing inside the sheet.** Once every offered dose is answered, "Sign with your medication PIN" opens the PIN step under the same pinned head (subject, allergies, nothing-checks line). It shows what it signs dose by dose (`signsLine`) and **the time it will record, before the PIN**: "This will be recorded as 20:20 BST: the time this page was opened at, not the moment you sign." It uses the shared `MedicationPinStep` and then `recordRound` with `stateFor`, the desktop round's own owners. "Recorded for Vera Lonsdale at 20:20 BST, held in this session only." The chart reads the record again **when the sheet closes, not when it records**: reading on record would take the act away and the sheet with it, before the line could be read. Cancel at the PIN goes back with the answers kept.
+- **A round is signed whole, and the phone says so before the PIN.** `recordRound` refuses a round short of any dose `openDosesAt` lists, and that includes controlled drugs, doses not yet open and omissions. Bello's 20:00 has morphine open beside donepezil, so her round cannot be signed on the phone. The sheet says so, naming the morphine, and offers no PIN. Found by reading the loader before building, not by a failure at the PIN.
+- **The instant of the act**: DEPARTURES now says what a real build must do (stamp on the server at the moment the signature is accepted, never a client clock, a page-open time or a time shown before the PIN), and why this build cannot. The desktop round stamps the same snapshot instant and says nothing, so it is added to the tracked desktop cleanup.
+- **A defect from step 4, found while building this: the sheet said "Signing with your drug PIN".** A regex rename of locals reached a string. The test compared the constant with itself, and the ratchet fell by the destroyed word. CLAUDE.md §8 has the entry. The credential's name now has one owner, `MEDICATION_PIN`, read by the PIN step's label and the sheet's button. That is also how this step's genuine new "medication PIN" was kept off the ratchet: one owner instead of a second literal, with the floor unmoved at 1546. New tests assert "medication PIN" as a literal.
+- **Screenshots** at 390: the PIN step, the recorded line and Bello's refusal. They showed two "Cancel" buttons on the PIN step doing different things (the sheet's closes everything; the PIN step's goes back). `MedicationPinStep` takes an optional `cancelLabel` now, "Back to the answers" on the phone; the desktop keeps "Cancel". No console errors or exceptions.
+- **Mutations**, each confirmed landed and restored, each red on its own test:
+  - stamped with the device clock;
+  - the time said not the time stamped;
+  - the whole-round rule dropped;
+  - the chart never reading again;
+  - back from the PIN losing the answers.
+
+## Three answers, a sweep, and step 6 (06/11/2026)
+
+- **The pinned head holds the allergy names only** (DEPARTURES, phone). `AllergyNames` in `src/components/status/`: one critical block, "Allergies: Penicillin, Latex", every substance, wrapping; no known allergies and not recorded render as `AllergyBadge` does. The full badges open the body.
+  - **The requirement is a measurement, so it is a browser check**: `scripts/check-dose-sheet-fits.mjs` (`npm run check:sheet-fits`, not in verify, needs the dev server). At 390 × 508 with seven allergies: names end at 205px, the nothing-checks line at 249px, **258px of doses** (8px before), and the first dose's Given and Not given scroll into the body together.
+  - **What it cannot see, stated in its docblock and its success line**: the seven are written into the rendered sheet, because a page in a browser cannot have its loader replaced and no fixture has seven. So a head that cut the list short would be rewritten to seven names and pass. `dose-sheet-seven-allergies.test.tsx` holds that half, with seven built in the loader (`vi.mock` of `getResident`, fixtures untouched).
+  - **Mutations**: the reaction badges pinned back into the head turned the check red ("22px for doses"); a "+4 more" cap turned the suite red and passed the browser check, as its docblock says it would.
+- **"Still needed" is said at the dose, and counted at the foot, on both surfaces, from one change in `round.ts`.** `outstanding` returns `needs: DoseNeed[]` (dose id and what it needs, no name) and `asked`. `neededAtLine` renders "Still needed: no reason chosen." at the dose; `stillNeedLine` renders "1 of 2 doses still needs something before the round can be signed." at the foot. The desktop's `DoseRow` and `PrnRow` take `needs`; the phone's sheet row does too.
+  - **Desktop tests changed**: `round-rules.test.ts` (the opening count, the unanswered dose and the closed window, from `.waiting` strings to `needs`; a new block asserts both lines as literals, including the singular), and `round.test.tsx` "not given" (from `/no reason chosen/` against the foot to the literal at the dose, and the foot's count checked against `openDosesAt`, a different owner from the line).
+  - **Mutations**: counting needs instead of doses at the foot; the desktop row not drawing its need. Both red.
+  - The phone's foot shows the count while anything is needed and "2 of 2 doses answered" once nothing is, rather than both.
+- **Vocabulary ratchet: 1547 on the first run, fixed in code, and the floor lowered to 1541.** The rise was one `medication.id` added to the desktop card's as-required map; that map's local is `drug` now. The fall is `outstanding` no longer building a sentence from each drug's name. Found by diffing the guard's per-file counts against HEAD in a worktree.
+- **The self-referential test sweep, reported before anything is changed.** Three passes over 121 test files: the expected side of an assertion naming a product import (60 hits), the same through one local (101), and a query finding an element by a product import (23). Read and sorted:
+  - **A. Visible words asserted or found through the constant that renders them: 33 sites in 23 files.** The shape of "drug PIN". Asserted: `activities.test.tsx:82` invitedLine; `goals.test.tsx:83` noDateLine; `mar.test.tsx:294` NOT_GIVEN_REASON_LABEL, `:542` monthLabel; `omissions.test.tsx:82` noListYetLine; `register.test.tsx:136` COUNTERSIGN_QUOTED; `medications-tab.test.tsx:188` quantityWithUnit; `round-pin-allergies.test.tsx:121` allergyNotCheckedLine; `refused-composer.test.tsx:20,26` notOnYourListLine, noListYetLine; `round-screen.test.tsx:130,170` listName; `consent.test.tsx:76` CONSENT_MEANS. Found by: `shell.test.tsx:160,173`; `consent-list-screen.test.tsx:45`; `dashboard.test.tsx:90,105`; `handover.test.tsx:105`; `incidents.test.tsx:139`; `round-pin-allergies.test.tsx:74`; `round-window.test.tsx:106,153`; `round.test.tsx:193,198,208,284`; `care-notes-route.test.tsx:123`; `composer.test.tsx:160`; `picker.test.tsx:74`; `phone.test.tsx:160`; `assessment-screen.test.tsx:73`; `risk-screen.test.tsx:36`.
+  - **B. A screen's figure checked against the function the screen calls: about 40 sites in 14 files.** `dueSoon`, `summariseWeek`, `countExpiry`, `carePlanGaps`, `consentGaps`, `riskAssessmentGaps`, `isOwed`, `historyOf`, and store reads (`notesFor`, `getCareNotes`, `getOmissions`, `residentDocuments`) that the screen also reads. The wiring is tested; the figure is not.
+  - **C. The build's own lists and settings: about 30 sites**, mostly anchored by a literal length beside them (seven plan entries, seven categories). **One is not**: `documents.test.tsx:139` is named "lists all seven categories" and compares the screen with `DOCUMENT_CATEGORIES`, so a category dropped from the list passes it (§1, absence from a list).
+  - **D. Formatters inside an expected string** (`formatCount`, `formatDate`): about 12 sites. Low risk.
+  - **The filter-copy shape (the PRN pair) cannot be found mechanically**: about 8 test helpers in 6 files rebuild the code's selection (`ordinaryOpen` in both dose-sheet tests, `dosesToday` in the chart test, `round-screen.test.tsx:77,93`, `record-round-refusals.test.ts:116`, `dashboard-figures.test.ts:131`). Several pin a literal count beside the helper, which anchors it; each needs reading.
+  - Not counted: `VOCABULARY.*` in expected strings (the vocabulary layer is a separate owner by design), data-layer cross-checks (`openDosesAt`, `patchedRecords`) and false positives (a constant in a comment, uniqueness checks).
+- **Step 6: a given or not-given dose says it cannot be corrected** (DEPARTURES, phone). `CANNOT_CORRECT_DOSE` in `DoseFacts`, through a new `notBuiltYet` beside `notBuiltOnPhone`, because no surface corrects a dose. Tested on the chart for two people found from the records (given with omitted; not given with due), so every dose of each kind is checked both ways, and on the sheet's recorded row. **Mutations**: dropped from not-given doses; drawn on an omission. Both red.
+- **Screenshots**: seven allergies at 390 × 508 (top, scrolled to the first dose, greyscale); the phone's needs at 390 (at the dose and the foot); the chart's cannot-correct line at 390; the desktop card's need at the dose and count at the foot at 1440; each in greyscale.
+
+## The can't-correct line once per chart, and step 7: the badge out of doses due today (06/11/2026)
+
+- **The can't-correct line is said once on today's chart, in the day card, and only when something today is recorded; on the sheet it stays at the dose** (DEPARTURES, phone). `DoseFacts` takes `cannotCorrect: 'at_dose' | 'said_by_the_screen'`. Tested: one line on the chart, inside the day card, at no dose, for two people found from the records; none for somebody with nothing recorded today; still at the dose on the sheet. **Mutations**: the chart drawing it at each dose; drawing it with nothing recorded; the sheet not drawing it. Each red.
+- **Step 7: the Medication badge, and Today's three dose figures, are out of the doses due today** (`owedDoses`: no as-required drug, no cell where nothing was due), not every chart entry. Today's tiles had the same denominator, and the badge says it is "the same figure Today's tile shows", so it is one fix through one owner: `dosesDueToday` in `phone-chart.ts` words it ("22 doses due today") in all four places, the badge's name, the due-soon tile, the past-window tile and the late sheet's missed line. The numerators are taken over the same doses, so a numerator can never be wider than its denominator.
+- **Before and after, at 20:20 BST on 16/09/2026**, read off the rendered app:
+
+  | Role | Badge before | Badge after | Past their window before | after |
+  |---|---|---|---|---|
+  | Care worker (N. Eze, 4 residents) | 4 of 28 doses on today's chart | 4 of 22 doses due today | 1 of 28 | 1 of 22 |
+  | Senior carer (T. Akinyemi, the home) | 19 of 165 doses on today's chart | 19 of 108 doses due today | 4 of 165 | 4 of 108 |
+
+  The numerators do not move; the denominators fall by 6 and 57, as-required drugs and cells where nothing was due. **22 and 108 were counted a second way before going into the test**: the day's records filtered on each drug's own `isPrn` and on `not_due`, not through `owedDoses`, over Eze's named residents and over the home. Both agreed.
+- The badge's name reads "Due now or in the next 2 hours: 4 of 22 doses due today, on your list." The old "4 of 28 doses on today's chart due now or…" put the denominator's noun phrase in front of the figure's.
+- `badge-denominator.test.tsx` pins the instant and asserts the figures as literals, for both roles. `phone.test.tsx`'s three "on today's chart" patterns now read "due today"; its badge test runs on an unpinned clock, so it checks the sentence's shape and leaves the figures to the pinned file. **Mutations**: each of the three denominators put back on every chart entry. Each red.

@@ -4,8 +4,11 @@ import { NEWLY_PRESCRIBED_CD, medications } from '@/data/fixtures/medications'
 import { staffAkinyemi, staffOsei } from '@/data/fixtures/organisation'
 import {
   UNANSWERED,
+  neededAtLine,
+  needsAt,
   outstanding,
   signsLine,
+  stillNeedLine,
   windowFor,
   type DoseAccess,
   type DoseAnswer,
@@ -97,7 +100,7 @@ describe('a round whose window has not opened', () => {
       prn: [],
     })
     expect(result.notOpenYet.map((dose) => dose.medication.id)).toEqual([ordinary.id])
-    expect(result.waiting).toEqual([])
+    expect(result.needs).toEqual([])
     expect(result.blocked).toEqual([])
     expect(result.ready).toBe(false)
   })
@@ -130,17 +133,17 @@ describe('the opening count', () => {
     })
 
   it('names the count and the witness while either is missing', () => {
-    expect(ask(given).waiting).toEqual([
-      `${neverCounted.name}: no opening count`,
-      `${neverCounted.name}: no witness to the opening count`,
+    expect(needsAt(ask(given).needs, neverCounted.id)).toEqual([
+      'no opening count',
+      'no witness to the opening count',
     ])
     expect(ask(given).ready).toBe(false)
-    expect(ask({ ...given, openingCount: '40' }).waiting).toEqual([
-      `${neverCounted.name}: no witness to the opening count`,
-    ])
-    expect(ask({ ...given, witness: staffOsei.id }).waiting).toEqual([
-      `${neverCounted.name}: no opening count`,
-    ])
+    expect(
+      needsAt(ask({ ...given, openingCount: '40' }).needs, neverCounted.id),
+    ).toEqual(['no witness to the opening count'])
+    expect(
+      needsAt(ask({ ...given, witness: staffOsei.id }).needs, neverCounted.id),
+    ).toEqual(['no opening count'])
   })
 
   it('is ready once both are there, and the PIN says what it signs', () => {
@@ -172,7 +175,7 @@ describe('the opening count', () => {
       balance: () => counted,
       prn: [],
     })
-    expect(result.waiting).toEqual([])
+    expect(result.needs).toEqual([])
     expect(result.ready).toBe(true)
   })
 })
@@ -187,7 +190,7 @@ describe('an unanswered dose inside an open window', () => {
       balance: () => noBalance,
       prn: [],
     })
-    expect(quiet.waiting).toEqual([])
+    expect(quiet.needs).toEqual([])
     expect(quiet.notOpenYet).toEqual([])
 
     const started = outstanding({
@@ -204,7 +207,37 @@ describe('an unanswered dose inside an open window', () => {
       }),
       prn: [],
     })
-    expect(started.waiting).toEqual([`${neverCounted.name}: nothing chosen`])
+    expect(started.needs).toEqual([
+      { medicationId: neverCounted.id, need: 'nothing chosen' },
+    ])
+    expect(started.asked).toBe(2)
     expect(UNANSWERED.kind).toBe('unanswered')
+  })
+})
+
+describe('what a round still needs, said at the dose and counted at the foot', () => {
+  it('says each need at its dose, joined in words', () => {
+    expect(neededAtLine(['no reason chosen'])).toBe('Still needed: no reason chosen.')
+    expect(neededAtLine(['no opening count', 'no witness to the opening count'])).toBe(
+      'Still needed: no opening count and no witness to the opening count.',
+    )
+  })
+
+  it('counts doses at the foot, not needs, out of the doses being answered, and names none of them', () => {
+    const needs = [
+      { medicationId: 'a', need: 'no opening count' },
+      { medicationId: 'a', need: 'no witness to the opening count' },
+      { medicationId: 'b', need: 'nothing chosen' },
+      { medicationId: 'c', need: 'no reason chosen' },
+    ]
+    expect(stillNeedLine(needs, 5)).toBe(
+      '3 of 5 doses still need something before the round can be signed.',
+    )
+    expect(stillNeedLine(needs.slice(3), 1)).toBe(
+      '1 of 1 dose still needs something before the round can be signed.',
+    )
+    expect(stillNeedLine(needs.slice(2), 5)).toBe(
+      '2 of 5 doses still need something before the round can be signed.',
+    )
   })
 })

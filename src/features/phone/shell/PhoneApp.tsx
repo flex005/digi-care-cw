@@ -17,8 +17,9 @@ import { getRound } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import { now } from '@/data/fixtures/clock'
 import type { IsoDateTime } from '@/data/types'
-import { dueSoon } from '@/features/dashboard/dashboard-figures'
-import { formatCount, pluralise, zonedDate } from '@/lib/format'
+import { dueSoon, owedDoses } from '@/features/dashboard/dashboard-figures'
+import { dosesDueToday } from '../phone-chart'
+import { formatCount, zonedDate } from '@/lib/format'
 import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { assertNever } from '@/lib/assert-never'
 import { scopeReaches, type DoseRecord } from '../phone-data'
@@ -28,7 +29,9 @@ import { phoneIcons } from '../phone.icons'
 import { PeopleScreen } from '../screens/PeopleScreen'
 import { RecordScreen } from '../screens/RecordScreen'
 import { SearchScreen } from '../screens/SearchScreen'
+import { ChartScreen } from '../screens/ChartScreen'
 import { NotesScreen } from '../screens/NotesScreen'
+import { RoundScreen } from '../screens/RoundScreen'
 import { TodayScreen } from '../screens/TodayScreen'
 import { NotePickerSheet } from '../notes/NotePickerSheet'
 import { requestComposer } from '../notes/compose-request'
@@ -54,7 +57,7 @@ import styles from './shell.module.css'
 /** Push and pop, in milliseconds. The CSS says the same; removal waits on this. */
 const TRANSITION_MS = 260
 
-const TABS: TabId[] = ['today', 'people']
+const TABS: TabId[] = ['today', 'people', 'round']
 
 /**
  * The phone app: one stack per tab, a fixed tab bar, and nothing else that
@@ -242,15 +245,26 @@ function PlaceScreen({ place }: { place: Place }) {
       return <SearchScreen />
     case 'notes':
       return <NotesScreen id={place.id} />
+    case 'chart':
+      return <ChartScreen id={place.id} />
     case 'record':
       return <RecordScreen id={place.id} />
+    case 'round':
+      return <RoundScreen />
     default:
       return assertNever(place)
   }
 }
 
 type TabItem =
-  | { kind: 'built'; tab: TabId; label: string; icon: IconName }
+  | {
+      kind: 'built'
+      tab: TabId
+      label: string
+      icon: IconName
+      /** Whether it carries the count of doses on a clock. One tab does. */
+      clock: boolean
+    }
   /**
    * The raised centre action: an icon alone in a purple circle, its label only
    * in its accessible name. An act, not a tab: it opens a sheet and leaves the
@@ -267,19 +281,20 @@ type TabItem =
     }
 
 const TAB_ITEMS = (): TabItem[] => [
-  { kind: 'built', tab: 'today', label: 'Today', icon: phoneIcons.today },
+  { kind: 'built', tab: 'today', label: 'Today', icon: phoneIcons.today, clock: false },
   {
     kind: 'built',
     tab: 'people',
     label: VOCABULARY.subject.Many,
     icon: phoneIcons.people,
+    clock: false,
   },
   { kind: 'act', label: 'Write a care note', icon: phoneIcons.writeNote },
   {
-    kind: 'not_built',
+    kind: 'built',
+    tab: 'round',
     label: VOCABULARY.medication.One,
     icon: phoneIcons.dose,
-    note: '',
     clock: true,
   },
   {
@@ -293,12 +308,14 @@ const TAB_ITEMS = (): TabItem[] => [
 ]
 
 type DueCount =
-  { kind: 'counted'; due: number; onChart: number } | { kind: 'not_counted' }
+  { kind: 'counted'; due: number; dueToday: number } | { kind: 'not_counted' }
 
 /**
  * The one count the tab bar carries: doses due now or in the next two hours,
  * on the reader's list, today — the same figure Today's tile shows, from the
- * same owner. **Not counted** while the round loads or for a reader with no
+ * same owner. **Out of the doses due today** (`owedDoses`), not every entry on
+ * today's chart: a cell where nothing was due and an as-required drug are on
+ * the chart and are nobody's dose to give. **Not counted** while the round loads or for a reader with no
  * list, and then no badge is drawn and the tab's name says nothing about doses.
  */
 function useDueCount(): DueCount {
@@ -316,12 +333,13 @@ function useDueCount(): DueCount {
   const todays = resource.data.filter(
     (record) => record.date === today && scopeReaches(viewer.scope, record.residentId),
   )
-  return { kind: 'counted', due: dueSoon(todays, at).doses, onChart: todays.length }
+  const due = owedDoses(todays)
+  return { kind: 'counted', due: dueSoon(due, at).doses, dueToday: due.length }
 }
 
 /** The count in words, with what it is out of and what it is over. */
 const dueSentence = (count: Extract<DueCount, { kind: 'counted' }>): string =>
-  `${count.due} of ${pluralise(count.onChart, 'dose')} on today’s chart due now or in the next 2 hours, on your list.`
+  `Due now or in the next 2 hours: ${count.due} of ${dosesDueToday(count.dueToday)}, on your list.`
 
 /**
  * The tab bar: a white pill floating in the gutter, clear of the home
@@ -336,7 +354,8 @@ const dueSentence = (count: Extract<DueCount, { kind: 'counted' }>): string =>
  *
  * **One badge, on Medication**, because doses are the only thing here on a
  * clock. A badge is a bare number by nature, so its denominator and scope are
- * in the tab's accessible name and in the sheet it opens.
+ * in the tab's accessible name. Medication is a built tab from module 3, so the
+ * badge sits on a link to Your round rather than on a not-built sheet.
  */
 function TabBar({ active, onTap }: { active: TabId; onTap: (tab: TabId) => void }) {
   const [open, setOpen] = useState(false)
@@ -345,18 +364,24 @@ function TabBar({ active, onTap }: { active: TabId; onTap: (tab: TabId) => void 
   const count = useDueCount()
   const nav = usePhoneNav()
   const [picking, setPicking] = useState(false)
-  const badged = (item: Extract<TabItem, { kind: 'not_built' }>) =>
+  const badged = (item: Extract<TabItem, { kind: 'not_built' | 'built' }>) =>
     item.clock && count.kind === 'counted' && count.due > 0 ? count : undefined
 
   return (
     <nav className={styles.tabBar} aria-label="Main navigation">
       <div className={styles.tabPill}>
         {TAB_ITEMS().map((item) => {
-          if (item.kind === 'built')
+          if (item.kind === 'built') {
+            const badge = badged(item)
             return (
               <a
                 key={item.label}
                 href={pathOf(ROOT_OF[item.tab])}
+                aria-label={
+                  badge === undefined
+                    ? undefined
+                    : `${item.label}. ${dueSentence(badge)}`
+                }
                 className={[
                   styles.tab,
                   styles.press,
@@ -372,8 +397,14 @@ function TabBar({ active, onTap }: { active: TabId; onTap: (tab: TabId) => void 
               >
                 <Icon name={item.icon} size={24} />
                 <span className={styles.tabLabel}>{item.label}</span>
+                {badge === undefined ? null : (
+                  <span className={styles.tabBadge} aria-hidden="true" data-badge>
+                    {formatCount(badge.due)}
+                  </span>
+                )}
               </a>
             )
+          }
           if (item.kind === 'act')
             return (
               <button

@@ -1,7 +1,14 @@
 import { vi } from 'vitest'
 
+/*
+ * **A full instant, written with a `Z`**: 16/09/2026 at 19:20 UTC, 20:20 at
+ * the home on British Summer Time. This file depends on the instant: pinned to
+ * 03:00 GMT on 01/12/2026 instead, three tests about doses in and out of their
+ * window fail. `?at=20:20` left the date and the zone to the machine (CLAUDE.md
+ * §8, on pins).
+ */
 vi.hoisted(() => {
-  window.history.replaceState(null, '', '/?at=20:20')
+  window.history.replaceState(null, '', '/?at=2026-09-16T19:20:00Z')
 })
 
 import { describe, expect, it } from 'vitest'

@@ -50,7 +50,9 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { stripComments } from './lib/strip-comments.mjs'
 
-const SRC = new URL('../src', import.meta.url).pathname
+/* Overridden only by check-vocabulary-coverage.test.mjs, which runs this over a copy. */
+const SRC =
+  process.env.VOCABULARY_COVERAGE_SRC ?? new URL('../src', import.meta.url).pathname
 
 /**
  * **A historical measurement, and it cannot be re-derived from this tree.**
@@ -148,8 +150,59 @@ const BASELINE_TSX_ONLY_FILES = 85
  * wordings, or a guard taught to skip specifiers, and both were worse than two.
  * The rise sat red across three phone phases before it was settled; see
  * CLAUDE.md §8. Any further rise is a regression as before.
+ *
+ * **Lowered to 2159 on 05/11/2026. Not a conversion, and not a rename to
+ * duck this check.** The round's signing dialog moved its subject block into
+ * `SigningSubject` (`src/features/medications/`), a component the desktop
+ * round and the phone both draw. Its prop is `person`, not `resident`, because
+ * the subject term is configurable and a generic component naming one choice of
+ * it in its own interface is exactly what the vocabulary work exists to remove:
+ * the better name, decided by the product owner on its merits. The figure fell
+ * because five `resident.` readings left a counted file with the code, and no
+ * wording a reader sees changed. The floor follows the figure so that a
+ * regression of two is not forgiven.
+ *
+ * **Raised to 2165 on 06/11/2026, by six words no reader sees.** The phone's
+ * Your round (module 3, step 2) reads the desktop round's owners rather than
+ * copying them: two module specifiers (`'@/features/medications/round/round'`
+ * and `…/RoundRoute`, which a path cannot convert, the class of the 2161 raise)
+ * and four field names of the shared data shape (`data.medications`,
+ * `data.residents`, `entry.resident`, `dose.medication`), which only a change to
+ * the loaders' types could rename, and that is a change for both builds. The
+ * step first counted 2181; sixteen were removed before raising, nine by naming
+ * the tab `round` rather than after a configurable term. Any further rise is a
+ * regression as before.
+ *
+ * **Raised to 2173 on 06/11/2026, by eight more of the same kind.** Today's chart
+ * on the phone (module 3, step 3) reads the desktop chart's grid and the round's
+ * `doseName`: three module specifiers (`…/medications/mar/mar-grid`,
+ * `…/medications/medication-words`, `…/medications/round/round`), the shared
+ * type `Medication` imported and aliased once as `Drug`, and two shared field
+ * names (`row.medication` on the desktop grid's row, `chart.medications` from
+ * the loader). The step first counted 2218; forty-five were removed before
+ * raising, by naming its own identifiers `drug` as the round does. **Both raises
+ * are this guard counting what no reader sees** — the fix is tracked in
+ * PROGRESS.md for between modules, and it should take the floor below 2159.
+ *
+ * **Re-derived to 1546 on 06/11/2026, from a measurement, when the mis-measure
+ * was fixed.** Module specifiers, type names and type field names are no longer
+ * counted (see `invisible`): 124, 246 and 257 of them on that day. 1546 is the
+ * figure this script printed over the tree at that commit, not 2173 less a
+ * guess. The three raises above are history from the old measure: under this
+ * one there is nothing they forgave. **From here a rise is a real regression,
+ * and the floor is not raised for one** (decided 06/11/2026): fix the code. A
+ * rise believed unavoidable stops the work, and its occurrences are shown to the
+ * product owner before the number moves. This measure no longer over-counts, so
+ * a rise is no longer noise to accommodate. `check-vocabulary-coverage.test.mjs`
+ * holds that a term hardcoded in a
+ * label, a heading and a sentence each still fail. Two of the 1546 are code the
+ * scanner over-reads as text after a generic, which is the safe direction.
+ *
+ * **Lowered to 1541 on 06/11/2026**, measured: `outstanding` in round.ts no
+ * longer builds a sentence from each `medication.name`, and the desktop round
+ * card's as-required list calls its local `drug`.
  */
-const BEST = 2161
+const BEST = 1541
 
 /**
  * Where copy lives, and therefore where this counts.
@@ -392,6 +445,17 @@ function regions(source, isTsx) {
   let inTag = false
   let jsxText = false
   let jsxBraces = 0
+  /*
+   * **JSX text inside an expression is still text.** The brace depth the
+   * current text sits at, and the depths to resume text at when an expression
+   * inside it closes. Without them, everything under `{cond ? (<p>…</p>) :
+   * null}` was placed as code — harmless while every position was counted, and
+   * a hole once code positions could be excused: "Reason: Medication refused"
+   * in a conditional would have read as a type name. Found 06/11/2026 by
+   * reading back every excluded match.
+   */
+  let textDepth = 0
+  const resume = []
 
   while (i < source.length) {
     const c = source[i]
@@ -415,13 +479,18 @@ function regions(source, isTsx) {
     }
 
     /* JSX text, before anything treats a quote as code. */
-    if (isTsx && jsxText && stack.length === 0 && jsxBraces === 0) {
+    if (isTsx && jsxText && stack.length === 0 && jsxBraces === textDepth) {
       if (c === '<') {
         jsxText = false
         if (/[A-Za-z/>]/.test(source[i + 1] ?? '')) inTag = true
       } else if (c === '{') {
         jsxText = false
-        jsxBraces = 1
+        resume.push(textDepth)
+        jsxBraces += 1
+      } else if (c === '}' && textDepth > 0) {
+        /* The expression this text sat in is closing: read the brace as code. */
+        jsxText = false
+        continue
       } else out[i] = 2
       i += 1
       continue
@@ -449,11 +518,16 @@ function regions(source, isTsx) {
       else if (c === '>' && inTag) {
         inTag = false
         jsxText = true
+        textDepth = jsxBraces
       } else if (jsxBraces > 0) {
         if (c === '{') jsxBraces += 1
         else if (c === '}') {
           jsxBraces -= 1
-          if (jsxBraces === 0) jsxText = true
+          if (resume.length > 0 && resume[resume.length - 1] === jsxBraces) {
+            resume.pop()
+            jsxText = true
+            textDepth = jsxBraces
+          }
         }
       }
     }
@@ -483,6 +557,71 @@ function literalAround(source, where, index) {
   return source.slice(a, b + 1)
 }
 
+/**
+ * A match no reader can ever see, and so not terminology: **a module specifier,
+ * a type name, or a type's field name.** Not counted, from 06/11/2026.
+ *
+ * **Why, after "there is no allowlist".** This is not a list of words; it is
+ * three positions in the language where a word cannot reach a screen. Two
+ * phases each raised the floor by these alone (2161, then 2165 and 2173): a
+ * file path, `Medication` imported as a type, `dose.medication` on a shared
+ * loader's shape. Renaming types in two builds to satisfy a counter was
+ * declined, and a floor that rises every step is a ratchet that no longer
+ * holds. Measuring the right thing is the fix.
+ *
+ * **Deliberately narrower than "code".** A local variable, a parameter, a route
+ * string, a discriminant and a key are still counted: none can reach a screen
+ * either, but none was asked to leave, and every position excused here is one a
+ * regression could hide in. The three are told apart by their surroundings:
+ *
+ * - a specifier is a string literal straight after `from` or `import`;
+ * - a type name is a capitalised identifier in a type position — after `:`,
+ *   `<`, `|`, `&`, `as`, `extends`, `type`, `interface` — or inside an import's
+ *   braces;
+ * - a field name is an identifier in code straight after `.` or `?.`, or a key
+ *   straight before `:` that follows `{`, `,`, `;` or a line start — an
+ *   interface member or an object literal's key, never a ternary's branch.
+ *
+ * **Every position a reader can see is still counted**: string and template
+ * literals other than specifiers, and JSX text. `check-vocabulary-coverage.test.mjs`
+ * holds that a hardcoded term in a label, a heading and a sentence each still
+ * fail this check.
+ */
+/*
+ * **A type name is found by its position, never by its capital letter.** The
+ * first version took any capitalised word the scanner placed in code, and the
+ * scanner placed JSX text inside an expression in code, so "omissions on
+ * Medications" on the dashboard and the MAR's caption stopped being counted.
+ * Found by reading back every excluded match before the floor was set; the
+ * scanner is fixed as well (`regions`), and the test probes both.
+ */
+const TYPE_POSITION =
+  /(?:[:<|&]|\bas|\bextends|\bimplements|\btype|\binterface|\bkeyof|\btypeof)\s*$/
+const TYPE_ALIAS = /\btype\s+\w+(?:<[^>]*>)?\s*=\s*$/
+const IMPORTED_NAME = /\b(?:import|export)\s+(?:type\s+)?\{[^}]*$/
+
+function invisible(source, where, at, word) {
+  if (where[at] === 1) {
+    let a = at
+    while (a > 0 && where[a - 1] === 1) a -= 1
+    return /(?:\bfrom|\bimport)\s*\(?\s*$/.test(source.slice(Math.max(0, a - 24), a))
+      ? 'specifier'
+      : false
+  }
+  if (where[at] !== 0) return false
+  const before = source.slice(Math.max(0, at - 300), at)
+  const after = source.slice(at + word.length, at + word.length + 4)
+  if (/^[A-Z]/.test(word))
+    return TYPE_POSITION.test(before) ||
+      TYPE_ALIAS.test(before) ||
+      IMPORTED_NAME.test(before)
+      ? 'typeName'
+      : false
+  if (/\??\.$/.test(before)) return 'field'
+  if (/^\??:(?!:)/.test(after) && /(?:[{,;]|\n)\s*$/.test(before)) return 'field'
+  return false
+}
+
 const walk = (dir) =>
   readdirSync(dir).flatMap((name) => {
     const full = join(dir, name)
@@ -501,6 +640,8 @@ const perTerm = Object.fromEntries(Object.keys(WORDS).map((id) => [id, 0]))
 const perModule = new Map()
 /** Every match, placed. The parts add up to `found`. */
 const placed = { code: 0, paths: 0, keys: 0, fixedCopy: 0, prose: 0 }
+/** What is not counted at all, by position: see `invisible`. */
+const unseen = { specifier: 0, typeName: 0, field: 0 }
 
 for (const file of walk(SRC)) {
   if (!/\.tsx?$/.test(file) || /\.test\./.test(file) || file.endsWith('.d.ts')) continue
@@ -536,9 +677,14 @@ for (const file of walk(SRC)) {
     pattern.lastIndex = 0
     let hit
     while ((hit = pattern.exec(source)) !== null) {
+      const at = hit.index
+      const position = invisible(source, where, at, hit[0])
+      if (position !== false) {
+        unseen[position] += 1
+        continue
+      }
       perTerm[id] += 1
       here += 1
-      const at = hit.index
       if (fixedWholeFile || fixedSpans.some(([a, b]) => at >= a && at < b))
         placed.fixedCopy += 1
       else if (where[at] === 0) placed.code += 1
@@ -599,9 +745,13 @@ console.log(
     `Thirteen per-module tests assert the words on the screens; this does not count ` +
     `them, because the placing below is a scanner and a position count is not the ` +
     `measure (see this file's docblock).` +
-    `\n  Ratchet: ${String(found)} hardcoded in every position (best ${String(BEST)}, ` +
-    `baseline ${String(BASELINE)} at a71e96c); this fails when that rises above the ` +
-    `best, wherever it rises, and does not depend on the placing being right.${stale}` +
+    `\n  Ratchet: ${String(found)} hardcoded in every position a reader could see or a ` +
+    `regression could hide in (best ${String(BEST)}); this fails when that rises above ` +
+    `the best, wherever it rises.${stale}` +
+    `\n  Not counted, because no reader can see them: ${String(unseen.specifier)} module ` +
+    `specifiers, ${String(unseen.typeName)} type names, ${String(unseen.field)} field names. ` +
+    `The baseline, ${String(BASELINE)} at a71e96c, was counted in every position ` +
+    `including those, so it is not comparable with the ratchet.` +
     `\n  Of those ${String(found)}, roughly ${String(floor)} can never be converted — ` +
     `${String(placed.code)} code and type positions, ${String(placed.paths)} paths and ` +
     `specifiers, ${String(placed.keys)} single-token keys and discriminants, ` +

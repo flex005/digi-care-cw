@@ -7,6 +7,7 @@ import { renderSignedIn } from '@/test/render-signed-in'
 import { NOTHING_OUTSTANDING } from './OutstandingLine'
 import { PhoneApp } from './shell/PhoneApp'
 import { PhoneStage } from './shell/PhoneStage'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 vi.mock('next/navigation', () => ({
   usePathname: () => window.location.pathname,
@@ -106,11 +107,13 @@ describe('the phone shell', () => {
     window.history.replaceState(null, '', '/m')
     renderSignedIn(staffEze.id, <PhoneStage />)
     const nav = await screen.findByRole('navigation', { name: 'Main navigation' })
-    fireEvent.click(within(nav).getByRole('button', { name: /^Medication, not built/ }))
-    const sheet = await screen.findByRole('dialog', { name: 'Medication' })
+    fireEvent.click(within(nav).getByRole('button', { name: 'More, not built' }))
+    const sheet = await screen.findByRole('dialog', { name: 'More' })
     expect(sheet.closest('[data-phone-frame]')).not.toBeNull()
     expect(
-      within(sheet).getByText('Medication — not built yet on the phone.'),
+      within(sheet).getByText(
+        'More — not built yet on the phone. Reloading the page signs you out.',
+      ),
     ).toBeTruthy()
     expect(within(sheet).getByRole('button', { name: 'Done' })).toBeTruthy()
   })
@@ -307,7 +310,7 @@ describe('the phone: one record', () => {
     expect(record.querySelector('[data-act-line="not_built"]')).toBeNull()
   })
 
-  it('lists the rest of the record: care notes open, and every other row says it is not built', async () => {
+  it('lists the rest of the record: care notes and today’s chart open, and every other row says it is not built', async () => {
     openAt('/m/people/res-okafor', staffEze.id)
     const record = front('people')
     const rest = (
@@ -315,11 +318,17 @@ describe('the phone: one record', () => {
     ).closest('section') as HTMLElement
     const rows = within(rest).getAllByRole('listitem')
     expect(rows.length).toBeGreaterThanOrEqual(8)
-    const [notes, ...others] = rows
+    const [notes, chart, ...others] = rows
     expect(
       within(notes as HTMLElement).getByRole('link', { name: /Care notes/ }),
     ).toBeTruthy()
     expect(within(notes as HTMLElement).queryByText('Not built yet')).toBeNull()
+    expect(
+      within(chart as HTMLElement)
+        .getByRole('link', { name: VOCABULARY.medication.Many })
+        .getAttribute('href'),
+    ).toBe('/m/people/res-okafor/chart')
+    expect(within(chart as HTMLElement).queryByText('Not built yet')).toBeNull()
     for (const row of others) {
       expect(within(row).getByText('Not built yet')).toBeTruthy()
       expect(within(row).queryByRole('link')).toBeNull()
@@ -409,11 +418,9 @@ describe('the phone: today', () => {
     const today = front('today')
     expect(await within(today).findByText('Already late')).toBeTruthy()
     expect(within(today).getByText('of your 4 residents')).toBeTruthy()
-    expect(within(today).getByText(/^of [\d,]+ doses? on today’s chart$/)).toBeTruthy()
+    expect(within(today).getByText(/^of [\d,]+ doses? due today$/)).toBeTruthy()
     expect(
-      within(today).getByText(
-        /^of [\d,]+ doses? on today’s chart, nothing recorded yet$/,
-      ),
+      within(today).getByText(/^of [\d,]+ doses? due today, nothing recorded yet$/),
     ).toBeTruthy()
     const { sheet } = await counting(today)
     expect(
@@ -430,7 +437,7 @@ describe('the phone: today', () => {
     const { line, sheet } = await counting(today)
     expect(line.textContent).toBe('Counted over your list · 2 things not counted')
     expect(
-      within(sheet).getByText(/missed today, of [\d,]+ doses? on today’s chart$/),
+      within(sheet).getByText(/missed today, of [\d,]+ doses? due today$/),
     ).toBeTruthy()
     expect(within(sheet).getByText(/^Reviews are not counted: .+\.$/)).toBeTruthy()
     expect(within(sheet).getByText(/^Handovers are not counted: .+\.$/)).toBeTruthy()
@@ -521,17 +528,16 @@ describe('the phone tab bar', () => {
       { timeout: 4000 },
     )
     expect(nav.querySelectorAll('[data-badge]')).toHaveLength(1)
-    const tabButton = badge.closest('button') as HTMLElement
-    expect(tabButton.getAttribute('aria-label')).toBe(
-      `Medication, not built. ${badge.textContent} of ${
-        /of ([\d,]+ doses?) on/.exec(tabButton.getAttribute('aria-label') ?? '')?.[1]
-      } on today’s chart due now or in the next 2 hours, on your list.`,
+    const tabLink = badge.closest('a') as HTMLElement
+    // The figures are pinned in badge-denominator.test.tsx; this clock is not.
+    expect(tabLink.getAttribute('aria-label')).toMatch(
+      new RegExp(
+        `^Medication\\. Due now or in the next 2 hours: ${badge.textContent} of [\\d,]+ doses? due today, on your list\\.$`,
+      ),
     )
-    fireEvent.click(tabButton)
-    const sheet = await screen.findByRole('dialog', { name: 'Medication' })
-    expect(
-      within(sheet).getByText(/due now or in the next 2 hours, on your list\.$/),
-    ).toBeTruthy()
+    fireEvent.click(tabLink)
+    await waitFor(() => expect(window.location.pathname).toBe('/m/round'))
+    expect(tabLink.getAttribute('aria-current')).toBe('page')
   })
 
   it('draws the centre action between Residents and Medication, as an act and not a tab', async () => {
@@ -557,8 +563,6 @@ describe('the phone tab bar', () => {
     )
     const nav = screen.getByRole('navigation', { name: 'Main navigation' })
     expect(nav.querySelectorAll('[data-badge]')).toHaveLength(0)
-    expect(
-      within(nav).getByRole('button', { name: 'Medication, not built' }),
-    ).toBeTruthy()
+    expect(within(nav).getByRole('link', { name: 'Medication' })).toBeTruthy()
   })
 })

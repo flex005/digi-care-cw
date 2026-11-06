@@ -1,0 +1,29 @@
+/**
+ * Every allergy by name, in one block that wraps.
+ *
+ * The pill's shape at a smaller radius, because the block can run to three
+ * lines and a pill radius on three lines leaves the words outside the tint.
+ * Text in the critical ink on the critical tint, never the fill (CLAUDE.md §4).
+ */
+.names {
+  display: flex;
+  gap: var(--space-8);
+  align-items: flex-start;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-md);
+  background-color: var(--status-critical-tint);
+  color: var(--status-critical-ink);
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line);
+  font-weight: var(--weight-bold);
+}
+
+/* The pill's dot, on the first line rather than centred on the block. */
+.dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  margin-top: calc((var(--text-caption-line) - 7px) / 2);
+  background-color: currentColor;
+}

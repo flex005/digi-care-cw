@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import { getResidentsBySite } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import type { ResidentId } from '@/data/types'
-import { refusalOf } from '@/app/session/refusal'
+import { phoneRefusalOf } from '../phone-refusal'
 import { useSession } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { Icon } from '@/components/icon/Icon'
@@ -202,7 +202,7 @@ function Rows({
               <span className={styles.rowText}>
                 <span className={styles.rowName}>{listName(person)}</span>
                 <span className={styles.rowMeta}>
-                  {refusalOf(answer, listName(person))}
+                  {phoneRefusalOf(answer, listName(person))}
                 </span>
               </span>
               <span className={styles.room}>{room}</span>

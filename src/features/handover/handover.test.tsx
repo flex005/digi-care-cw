@@ -5,9 +5,14 @@ import { vi } from 'vitest'
  * 20:00 round is the late shift, which is the shift the open handover belongs
  * to, so the board under test is the one a reader would be standing in front
  * of rather than whichever shift the suite happens to run in.
+ *
+ * **A full instant, written with a `Z`**: 16/09/2026 at 19:20 UTC, 20:20 at the
+ * home on British Summer Time. Pinned to 03:00 GMT on 01/12/2026 instead,
+ * “signs one half with the medication PIN” fails. `?at=20:20` left the date and
+ * the zone to the machine (CLAUDE.md §8).
  */
 vi.hoisted(() => {
-  window.history.replaceState(null, '', '/handover?at=20:20')
+  window.history.replaceState(null, '', '/handover?at=2026-09-16T19:20:00Z')
 })
 
 import { screen, waitFor, within } from '@testing-library/react'

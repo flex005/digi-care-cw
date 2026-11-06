@@ -907,3 +907,11 @@
   line-height: var(--text-body-sm-line);
   box-shadow: var(--shadow-card);
 }
+
+/* A dose's answers on the dose sheet: the full width of the sheet, not the width of their words. */
+.doseAnswer {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  gap: var(--space-12);
+}

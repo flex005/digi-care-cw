@@ -20,11 +20,12 @@ import { phoneIcons } from '../phone.icons'
 import { Loaded } from '../ScreenStates'
 import { NoteComposerSheet, type SavedNote } from '../notes/NoteComposerSheet'
 import { takeComposerRequest } from '../notes/compose-request'
-import { refusalOf } from '@/app/session/refusal'
+import { phoneRefusalOf } from '../phone-refusal'
 import { SubjectHeader } from '../SubjectHeader'
 import { useInFront } from '../shell/nav'
 import { Screen } from '../shell/Screen'
 import { StackLink } from '../shell/StackLink'
+import type { Place } from '../phone-paths'
 import shell from '../shell/shell.module.css'
 import styles from '../phone.module.css'
 
@@ -172,7 +173,7 @@ export function RecordScreen({ id }: { id: ResidentId }) {
 
 /**
  * The primary act, in the thumb zone: writing a care note, in a sheet over
- * this record. Where the role table refuses, its words say so at the act
+ * this record. Where the role table refuses, the phone's words say so at the act
  * instead (CLAUDE.md §6).
  */
 function CareNoteAct({
@@ -187,17 +188,7 @@ function CareNoteAct({
   const viewer = useViewer()
   const answer = viewer.ask('write_care_note', id)
   if (answer.kind !== 'yes')
-    return (
-      <ActLine
-        kind={
-          answer.kind === 'not_stated' || answer.kind === 'contradicted'
-            ? 'not_stated'
-            : 'refused'
-        }
-      >
-        {refusalOf(answer, name)}
-      </ActLine>
-    )
+    return <ActLine kind="refused">{phoneRefusalOf(answer, name)}</ActLine>
   return (
     <button
       type="button"
@@ -294,17 +285,25 @@ function OutstandingToday({ items }: { items: Outstanding[] }) {
 }
 
 /**
- * The rest of the record, listed rather than left out. Care notes is built
- * and opens the notes, read-only; the others are not drawn as controls: no
- * chevron, no target, "Not built yet" on each. Named by their owners — the
- * desktop navigation, and the vocabulary for medication and the care plan.
+ * The rest of the record, listed rather than left out. Care notes and the
+ * medication chart are built and open read-only places: the notes, and today's
+ * chart. The others are not drawn as controls: no chevron, no target, "Not
+ * built yet" on each. Named by their owners — the desktop navigation, and the
+ * vocabulary for medication and the care plan.
  */
 function TheRest({ id }: { id: ResidentId }) {
   const fromNav = (picked: (item: NavItem) => boolean) =>
     NAV_ITEMS.filter(picked).map((item) => ({ label: item.label, icon: item.icon }))
   const notes = fromNav((item) => item.module === 'care-notes')
+  const built: { label: string; icon: IconName; to: Place }[] = [
+    ...notes.map((row) => ({ ...row, to: { kind: 'notes', id } as const })),
+    {
+      label: VOCABULARY.medication.Many,
+      icon: phoneIcons.dose,
+      to: { kind: 'chart', id },
+    },
+  ]
   const rows: { label: string; icon: IconName }[] = [
-    { label: VOCABULARY.medication.Many, icon: phoneIcons.dose },
     { label: VOCABULARY.carePlan.One, icon: phoneIcons.carePlan },
     ...fromNav((item) => item.section === 'records'),
   ]
@@ -316,12 +315,9 @@ function TheRest({ id }: { id: ResidentId }) {
         </h2>
       </div>
       <ul className={styles.list}>
-        {notes.map((row) => (
+        {built.map((row) => (
           <li key={row.label}>
-            <StackLink
-              to={{ kind: 'notes', id }}
-              className={`${styles.moduleRow} ${shell.pressRow}`}
-            >
+            <StackLink to={row.to} className={`${styles.moduleRow} ${shell.pressRow}`}>
               <Icon name={row.icon} size={20} />
               <span className={styles.moduleName}>{row.label}</span>
               <Icon name={phoneIcons.open} size={16} className={styles.rowChevron} />
@@ -355,7 +351,7 @@ function NotOnYourListCard({
   const setting = viewer.ask('open_settings_and_team')
   return (
     <div className={styles.card} data-not-on-list={answer.kind}>
-      <p className={styles.cardTitle}>{refusalOf(answer, name)}</p>
+      <p className={styles.cardTitle}>{phoneRefusalOf(answer, name)}</p>
       <p className={styles.body}>
         Their record does not open for you. Your list is set in Team Management.
       </p>

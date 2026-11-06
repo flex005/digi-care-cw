@@ -9,3 +9,10 @@
  */
 export const notBuiltOnPhone = (label: string): string =>
   `${label} — not built yet on the phone.`
+
+/**
+ * The line for something not built anywhere in this build, said on the phone:
+ * correcting a recorded dose has no screen on the desktop either, so "on the
+ * phone" would send somebody to a desk to look for it.
+ */
+export const notBuiltYet = (label: string): string => `${label} — not built yet.`

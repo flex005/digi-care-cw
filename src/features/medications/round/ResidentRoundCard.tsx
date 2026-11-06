@@ -13,17 +13,19 @@ import { now } from '@/data/fixtures/clock'
 import { useSignedIn, useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { Button, Card, CardHead, Dialog } from '@/components/primitives'
-import { Unrecorded } from '@/components/status'
 import { formatDate, pluralise } from '@/lib/format'
 import { SubjectStrip } from '@/features/notes/composer/SubjectStrip'
 import { MedicationPinStep } from '../MedicationPinStep'
+import { SigningSubject } from '../SigningSubject'
 import { registerState } from '../register/register'
 import { DoseRow } from './DoseRow'
 import { PrnRow } from './PrnRow'
 import {
   isRecorded,
   needsOpeningCount,
+  needsAt,
   outstanding,
+  stillNeedLine,
   PRN_NOT_CHOSEN,
   signsLine,
   stateFor,
@@ -51,6 +53,9 @@ import styles from './round.module.css'
  * **One act, one signature, every answer listed.** The medication PIN step
  * names each dose and what it is being recorded as, so a PIN confirms something
  * specific.
+ *
+ * **The allergies come with the subject into the dialog** (`SigningSubject`),
+ * because the dialog covers the card head that shows them.
  */
 export function ResidentRoundCard({
   entry,
@@ -105,7 +110,7 @@ export function ResidentRoundCard({
     medication,
     answer: prn[medication.id] ?? PRN_NOT_CHOSEN,
   }))
-  const { waiting, blocked, notOpenYet, ready } = outstanding({
+  const { needs, asked, blocked, notOpenYet, ready } = outstanding({
     doses,
     answers,
     access,
@@ -212,6 +217,7 @@ export function ResidentRoundCard({
             <DoseRow
               key={dose.medication.id}
               dose={dose}
+              needs={needsAt(needs, dose.medication.id)}
               answer={answerOf(dose)}
               onAnswer={(next) =>
                 setAnswers((current) => ({ ...current, [dose.medication.id]: next }))
@@ -237,16 +243,17 @@ export function ResidentRoundCard({
               recorded.
             </p>
             <ul className={styles.doses}>
-              {prnEntries.map(({ medication, answer }) => (
+              {prnEntries.map(({ medication: drug, answer }) => (
                 <PrnRow
-                  key={medication.id}
-                  medication={medication}
+                  key={drug.id}
+                  medication={drug}
+                  needs={needsAt(needs, drug.id)}
                   answer={answer}
                   onAnswer={(next) =>
-                    setPrn((current) => ({ ...current, [medication.id]: next }))
+                    setPrn((current) => ({ ...current, [drug.id]: next }))
                   }
                   given={prnGivenThisSession(resident.id).filter(
-                    (given) => given.medicationId === medication.id,
+                    (given) => given.medicationId === drug.id,
                   )}
                   onOutcomeRecorded={onRecorded}
                 />
@@ -276,13 +283,14 @@ export function ResidentRoundCard({
               Nothing is left to record for {resident.fullLegalName} at {roundTime}.
             </p>
           ) : (
-            /* What is outstanding and what to do about it, on one line: the
-               act answers the sentence beside it, and stacked under it the
-               button read as the next thing rather than as the answer. */
+            /* How many doses still need something and what to do about it, on
+               one line: the act answers the sentence beside it, and stacked
+               under it the button read as the next thing rather than as the
+               answer. What each needs is said at the dose. */
             <div className={styles.actRow}>
-              {waiting.length === 0 ? null : (
+              {needs.length === 0 ? null : (
                 <p className={styles.waiting} data-waiting>
-                  Waiting on: {waiting.join(' · ')}
+                  {stillNeedLine(needs, asked)}
                 </p>
               )}
               <div className={styles.actRowAct}>
@@ -316,17 +324,7 @@ export function ResidentRoundCard({
       <Dialog open={signing} onOpenChange={setSigning} title={`${actLabel}?`}>
         {signing ? (
           <div className={styles.signing}>
-            <p className={styles.signingSubject} data-signing-subject={resident.id}>
-              <span>{resident.fullLegalName}</span>
-              <span>
-                {resident.room.kind === 'recorded' ? (
-                  `Room ${resident.room.value}`
-                ) : (
-                  <Unrecorded label="Room not recorded" />
-                )}
-              </span>
-              <span data-numeric>Born {formatDate(resident.dateOfBirth)}</span>
-            </p>
+            <SigningSubject person={resident} />
             <MedicationPinStep
               signs={`For ${resident.fullLegalName}, ${roundTime} round on ${formatDate(date)}. ${signs}.`}
               confirmLabel="Record doses"

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { getCareNotes, getResident } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import type { CareNote, ResidentId } from '@/data/types'
-import { refusalOf } from '@/app/session/refusal'
+import { phoneRefusalOf } from '../phone-refusal'
 import { useSignedIn, useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { ActLine } from '@/components/primitives'
@@ -80,7 +80,7 @@ export function NotesScreen({ id }: { id: ResidentId }) {
           answer.kind !== 'yes' ? (
             <div className={styles.card}>
               <p className={styles.cardTitle}>
-                {refusalOf(answer, listName(data.person))}
+                {phoneRefusalOf(answer, listName(data.person))}
               </p>
             </div>
           ) : (
