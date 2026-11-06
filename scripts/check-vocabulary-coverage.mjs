@@ -170,8 +170,19 @@ const BASELINE_TSX_ONLY_FILES = 85
  * step first counted 2181; sixteen were removed before raising, nine by naming
  * the tab `round` rather than after a configurable term. Any further rise is a
  * regression as before.
+ *
+ * **Raised to 2173 on 06/11/2026, by eight more of the same kind.** Today's chart
+ * on the phone (module 3, step 3) reads the desktop chart's grid and the round's
+ * `doseName`: three module specifiers (`…/medications/mar/mar-grid`,
+ * `…/medications/medication-words`, `…/medications/round/round`), the shared
+ * type `Medication` imported and aliased once as `Drug`, and two shared field
+ * names (`row.medication` on the desktop grid's row, `chart.medications` from
+ * the loader). The step first counted 2218; forty-five were removed before
+ * raising, by naming its own identifiers `drug` as the round does. **Both raises
+ * are this guard counting what no reader sees** — the fix is tracked in
+ * PROGRESS.md for between modules, and it should take the floor below 2159.
  */
-const BEST = 2165
+const BEST = 2173
 
 /**
  * Where copy lives, and therefore where this counts.

@@ -7,6 +7,7 @@ import { renderSignedIn } from '@/test/render-signed-in'
 import { NOTHING_OUTSTANDING } from './OutstandingLine'
 import { PhoneApp } from './shell/PhoneApp'
 import { PhoneStage } from './shell/PhoneStage'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 
 vi.mock('next/navigation', () => ({
   usePathname: () => window.location.pathname,
@@ -309,7 +310,7 @@ describe('the phone: one record', () => {
     expect(record.querySelector('[data-act-line="not_built"]')).toBeNull()
   })
 
-  it('lists the rest of the record: care notes open, and every other row says it is not built', async () => {
+  it('lists the rest of the record: care notes and today’s chart open, and every other row says it is not built', async () => {
     openAt('/m/people/res-okafor', staffEze.id)
     const record = front('people')
     const rest = (
@@ -317,11 +318,17 @@ describe('the phone: one record', () => {
     ).closest('section') as HTMLElement
     const rows = within(rest).getAllByRole('listitem')
     expect(rows.length).toBeGreaterThanOrEqual(8)
-    const [notes, ...others] = rows
+    const [notes, chart, ...others] = rows
     expect(
       within(notes as HTMLElement).getByRole('link', { name: /Care notes/ }),
     ).toBeTruthy()
     expect(within(notes as HTMLElement).queryByText('Not built yet')).toBeNull()
+    expect(
+      within(chart as HTMLElement)
+        .getByRole('link', { name: VOCABULARY.medication.Many })
+        .getAttribute('href'),
+    ).toBe('/m/people/res-okafor/chart')
+    expect(within(chart as HTMLElement).queryByText('Not built yet')).toBeNull()
     for (const row of others) {
       expect(within(row).getByText('Not built yet')).toBeTruthy()
       expect(within(row).queryByRole('link')).toBeNull()

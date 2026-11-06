@@ -28,6 +28,7 @@ import { phoneIcons } from '../phone.icons'
 import { PeopleScreen } from '../screens/PeopleScreen'
 import { RecordScreen } from '../screens/RecordScreen'
 import { SearchScreen } from '../screens/SearchScreen'
+import { ChartScreen } from '../screens/ChartScreen'
 import { NotesScreen } from '../screens/NotesScreen'
 import { RoundScreen } from '../screens/RoundScreen'
 import { TodayScreen } from '../screens/TodayScreen'
@@ -243,6 +244,8 @@ function PlaceScreen({ place }: { place: Place }) {
       return <SearchScreen />
     case 'notes':
       return <NotesScreen id={place.id} />
+    case 'chart':
+      return <ChartScreen id={place.id} />
     case 'record':
       return <RecordScreen id={place.id} />
     case 'round':
