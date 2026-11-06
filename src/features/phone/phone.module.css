@@ -512,17 +512,6 @@
   list-style: none;
 }
 
-/* The acts, in a row. They wrap rather than run off the edge: only the pane
-   scrolls (docs/MOBILE_APP_SHELL.md §1), and a clipped chip is a control
-   nobody can reach. */
-.rail {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8);
-  align-items: center;
-  padding: 0 var(--layout-gutter-compact);
-}
-
 .act {
   display: flex;
   flex: none;
@@ -541,6 +530,47 @@
 
 .actIcon {
   color: var(--purple-600);
+}
+
+/*
+ * A row of actions (`ActionRow`), never stacked. One or two share the width;
+ * a label too long for its half wraps inside its own pill. **After `.act`**,
+ * which it overrides at the same specificity.
+ */
+.actionPair {
+  display: flex;
+  gap: var(--space-8);
+}
+
+.actionPair > * {
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: center;
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-8);
+  text-align: center;
+  white-space: normal;
+}
+
+/*
+ * Three or more: a rail that scrolls sideways and bleeds past the gutter to the
+ * screen edge, so the next action is visibly cut off. It never scrolls
+ * vertically: the `hidden` on y is what keeps the pane the one vertical
+ * scroll of its layer, and `check-app-shell` requires it beside a scrolling x.
+ */
+.actionRail {
+  display: flex;
+  gap: var(--space-8);
+  margin: 0 calc(-1 * var(--layout-gutter-compact));
+  padding: 0 var(--layout-gutter-compact);
+  overflow: auto hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.actionRail > * {
+  flex: none;
+  white-space: nowrap;
 }
 
 /* The late list as the day: a time pill on a line, a card beside it. */
@@ -711,13 +741,6 @@
   border-color: var(--purple-600);
   color: var(--purple-600);
   font-weight: var(--weight-semibold);
-}
-
-/* Openers wrap rather than run sideways: only the pane scrolls. */
-.openers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8);
 }
 
 .opener {

@@ -21,9 +21,14 @@
  *     The bar floats, so content passes under it mid-scroll; what this holds
  *     is that the last of it can always be scrolled clear. That the sum
  *     equals the bar's drawn height is measured in a browser, not read here.
- *  5. One scroll pane: `overflow` `auto` or `scroll` on anything but `.pane`
- *     is a finding, `.pane` must contain its overscroll, and the document
- *     root must be locked with `overflow: hidden` (§1).
+ *  5. One vertical scroll pane per layer: a vertical `overflow` of `auto` or
+ *     `scroll` on anything but `.pane` is a finding, `.pane` must contain its
+ *     overscroll, and the document root must be locked with `overflow: hidden`
+ *     (§1). **Read by axis**, from `overflow-x`, `overflow-y` and both halves
+ *     of the `overflow` shorthand. A horizontal rail is allowed, and only as
+ *     one: a rule that scrolls on x must say `hidden` on y in the same rule,
+ *     because CSS turns a `visible` y beside a scrolling x into `auto`, which
+ *     is a second vertical scroller by another name.
  *  8. The app sizes to its container, never the viewport: no `vh`, `dvh`,
  *     `vw` or their kin anywhere, and `position: fixed` only on `.stage`, the
  *     backdrop that is the container on a laptop. A fixed header inside a
@@ -112,6 +117,8 @@ let rules = 0
 let containers = 0
 let medias = 0
 let overflows = 0
+/** Rules that scroll sideways only: rails, which §1 allows. */
+let rails = 0
 let viewportUnits = 0
 let fixed = 0
 let lock = false
@@ -175,13 +182,32 @@ for (const sheet of sheets) {
             `${rel(sheet)}:${block.line} — ${selector} { position: fixed }. Inside a frame it resolves against the window; only .stage is fixed.`,
           )
       }
-      if (/^overflow(-x|-y)?$/.test(property) && /\b(auto|scroll)\b/.test(value)) {
-        overflows += 1
-        if (selector !== '.pane')
-          findings.push(
-            `${rel(sheet)}:${block.line} — ${selector} { ${property}: ${value} }. Only .pane scrolls.`,
-          )
+    }
+
+    /* The two axes this rule sets, from the longhands and the shorthand. */
+    const axes = { x: 'visible', y: 'visible' }
+    for (const { property, value } of decls) {
+      if (property === 'overflow') {
+        const [x, y = x] = value.split(/\s+/)
+        axes.x = x
+        axes.y = y
       }
+      if (property === 'overflow-x') axes.x = value
+      if (property === 'overflow-y') axes.y = value
+    }
+    const scrolls = (v) => /^(auto|scroll)$/.test(v)
+    if (scrolls(axes.y)) {
+      overflows += 1
+      if (selector !== '.pane')
+        findings.push(
+          `${rel(sheet)}:${block.line} — ${selector} scrolls vertically (overflow-y: ${axes.y}). Only .pane scrolls vertically.`,
+        )
+    } else if (scrolls(axes.x)) {
+      rails += 1
+      if (axes.y !== 'hidden')
+        findings.push(
+          `${rel(sheet)}:${block.line} — ${selector} scrolls sideways with overflow-y: ${axes.y}. A rail says hidden on y, or CSS makes it a vertical scroller.`,
+        )
     }
 
     const all = decls.map((d) => `${d.property}: ${d.value}`).join('; ')
@@ -319,12 +345,12 @@ console.log(
   `✓ app shell — ${sheets.length} stylesheets, ${rules} rules: ` +
     `${containers} max-width, every one in ch or 100%, and no auto margin; ` +
     `0 :hover of ${rules} rules; ${medias} @media, all reduced motion; ` +
-    `${overflows} scrolling overflow, all on .pane; root locked; both safe areas set; ` +
+    `${overflows} vertical scrolling overflow, all on .pane; ${rails} horizontal rail(s), each hidden on y; root locked; both safe areas set; ` +
     `both screen ends clear the tab bar; ` +
     `${viewportUnits} viewport units; ${fixed} position: fixed, on .stage only; ` +
     `${placeCount} places of ${placeCount} declared as places, ${routeFiles.length} route file(s), no task addresses; ` +
     `${links} next/link imports of ${components.length} components.`,
 )
 console.log(
-  '  It cannot see whether a push animates, a sheet drags, a tab keeps its scroll, or a field clears the keyboard: those are review.',
+  '  It cannot see whether a push animates, a sheet drags, a tab keeps its scroll, or a field clears the keyboard, nor whether a rail is an action row rather than content that should have been a list: those are review.',
 )

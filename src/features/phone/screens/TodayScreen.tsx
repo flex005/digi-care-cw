@@ -68,6 +68,7 @@ import { Screen } from '../shell/Screen'
 import { Sheet } from '../shell/Sheet'
 import { StackLink } from '../shell/StackLink'
 import shell from '../shell/shell.module.css'
+import { ActionRow } from '../ActionRow'
 import styles from '../phone.module.css'
 import { NOT_ON_THE_PHONE } from '../phone-refusal'
 
@@ -311,29 +312,31 @@ function Counted({ data, at }: { data: TodayData; at: IsoDateTime }) {
         <Icon name={phoneIcons.open} size={16} className={styles.rowChevron} />
       </button>
 
-      <div className={styles.rail}>
-        {lateItems.length === 0 ? null : (
+      <div className={styles.gutter}>
+        <ActionRow>
+          {lateItems.length === 0 ? null : (
+            <button
+              type="button"
+              className={`${styles.act} ${shell.press}`}
+              onClick={() =>
+                document
+                  .getElementById(LATE_ID)
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }
+            >
+              <Icon name={phoneIcons.late} size={20} className={styles.actIcon} />
+              See the {formatCount(lateItems.length)} late
+            </button>
+          )}
           <button
             type="button"
             className={`${styles.act} ${shell.press}`}
-            onClick={() =>
-              document
-                .getElementById(LATE_ID)
-                ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-            }
+            onClick={() => nav.switchTab('people')}
           >
-            <Icon name={phoneIcons.late} size={20} className={styles.actIcon} />
-            See the {formatCount(lateItems.length)} late
+            <Icon name={phoneIcons.people} size={20} className={styles.actIcon} />
+            Find somebody in {VOCABULARY.subject.Many}
           </button>
-        )}
-        <button
-          type="button"
-          className={`${styles.act} ${shell.press}`}
-          onClick={() => nav.switchTab('people')}
-        >
-          <Icon name={phoneIcons.people} size={20} className={styles.actIcon} />
-          Find somebody in {VOCABULARY.subject.Many}
-        </button>
+        </ActionRow>
       </div>
 
       <section id={LATE_ID} aria-labelledby={`${LATE_ID}-title`}>

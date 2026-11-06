@@ -37,7 +37,8 @@
     "lint:app-shell": "node scripts/check-app-shell.mjs",
     "lint:phone-visuals": "node scripts/check-phone-visuals.mjs",
     "check:address": "node scripts/check-address-survives.mjs",
-    "check:sheet-fits": "node scripts/check-dose-sheet-fits.mjs"
+    "check:sheet-fits": "node scripts/check-dose-sheet-fits.mjs",
+    "check:action-rows": "node scripts/check-action-rows.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx}": "eslint --fix",
