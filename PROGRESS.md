@@ -2834,3 +2834,22 @@ Every test file that pinned only the hour was run three ways: under the full ins
   - `phone-chart.test.ts` drops one of Pemberton's 08:00 records from a copy. The dose stays at 08:00 as `not_held`, does not move to "Not due today", and leaves both sides of the figure: it is not recorded and not counted as due, as the desktop chart's row counts it.
   - `chart-not-held.test.tsx` wraps the real `getMarRecords` to leave the same record out. The screen draws the desktop's sentence with no hatch, because no record held is not an omission.
 - **Mutations**: the state dropped from the chart (both red); the state drawn with an omission's hatch (the screen test red).
+
+## Module 3, step 4: the dose sheet (06/11/2026)
+
+- **Reached from today's chart**: one anchored act, "Record the 20:00 round", for the round in front of the reader (`roundInFront`, now the one helper Your round also asks) where the role table lets them record and an ordinary dose has its window open. **No act where nothing can be recorded**: Pemberton's 20:00 is one controlled drug, so there is no act, and the dose says why. The chart's "Recording a dose — not built yet" line is gone, because recording an ordinary dose now has a way in. The controlled-drug line stays.
+- **A full-height sheet.** Pinned under its title: the subject header, allergies in all three states (`AllergyBadge`), and `allergyNotCheckedLine`. Every scheduled dose at the round is listed (`dose-sheet.ts`, one bucket each). Given and Not given have no default. Not given needs a reason from the desktop's list, and Other needs words. "Still needed" comes from the desktop's `outstanding`, so a missing reason reads the same at the trolley and on the phone. **When everything is answered it says signing with the medication PIN is not built yet, and nothing is recorded**: the test compares Lonsdale's records before and after.
+- **Built in the test, not in the fixtures: allergies nobody recorded on a person with a dose open.** No Rosewood resident has both at 20:00 (checked: all four with unrecorded allergies have nothing open). `dose-sheet-allergies.test.tsx` wraps `getResident`.
+- **Mutations**, each confirmed landed and restored:
+  - Given by default;
+  - no reason needed;
+  - allergies not pinned (two tests red);
+  - the nothing-checks line gone (two red);
+  - controlled drugs answerable;
+  - signing offered before ready (two red).
+  The controlled-drug mutation was caught at first only by the no-act test. Bello's round, a controlled drug and an ordinary dose open together, now catches it directly.
+- **Screenshots** at 390, colour and greyscale: the senior carer on Lonsdale (the sheet opened, then answered as far as "say why it was not given"), Bello's mixed round, and Lonsdale's chart with the act. The first sheet capture showed two defects:
+  - The answers and the text field shrank to their words, because `.item` aligns to the start. Fixed with `.doseAnswer`.
+  - Next's dev overlay reported an issue: the reason buttons were built in a `map` without keys.
+  The recapture logged console errors and exceptions through the protocol, and there were none. A care worker at 20:20 has no ordinary dose open on their list (the blocking question), so the care-worker view of the sheet is reached only at another round, as step 1's capture was.
+- **For review: the pinned head is tall.** Subject plus two allergies is about a third of a 390 screen before the first dose. It is what §2 and the allergy decision ask for, and the doses scroll beneath it.

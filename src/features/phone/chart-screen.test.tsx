@@ -192,18 +192,17 @@ describe('today’s chart, as a senior carer', () => {
       expect(text).toContain(drug.name)
   })
 
-  it('says on an ordinary dose that is due that recording one is not built yet, and asks no role question', async () => {
+  it('offers the round in front as one act where an ordinary dose is open, and asks no role question', async () => {
     const open = dosesToday('res-lonsdale').filter((r) => r.state.kind === 'due')
     expect(open.length).toBeGreaterThan(0)
     expect(open.some((r) => drugOf(r.medicationId).isControlledDrug)).toBe(false)
     openChart('res-lonsdale', staffAkinyemi.id)
     await loaded()
-    for (const record of open)
-      expect(
-        doseIn(record.roundTime, record.medicationId)?.querySelector(
-          '[data-cannot-record="any"]',
-        )?.textContent,
-      ).toBe('Recording a dose — not built yet on the phone.')
+    expect(
+      within(people()).getByRole('button', { name: 'Record the 20:00 round' }),
+    ).toBeTruthy()
+    // Recording an ordinary dose has a way in now, so no dose says it is not built.
+    expect(people().querySelector('[data-cannot-record]')).toBeNull()
     expect(people().querySelector('[data-answer]')).toBeNull()
   })
 })

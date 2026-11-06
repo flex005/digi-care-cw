@@ -9,6 +9,7 @@ import {
   windowFor,
 } from '@/features/medications/round/round'
 import { VOCABULARY } from '@/lib/vocabulary-choice'
+import type { Drug } from './phone-chart'
 import type { Person } from './phone-data'
 
 /**
@@ -43,6 +44,32 @@ export interface RoundRow {
   windowClosed: number
 }
 
+/**
+ * The round the reader is standing in front of, and the home's day it is on:
+ * the desktop round's `arrivalRound` over these drugs and records. One helper,
+ * so Your round and the record's act cannot pick two rounds at one moment.
+ */
+export function roundInFront(input: {
+  drugs: Drug[]
+  records: RoundData['records']
+  at: IsoDateTime
+  timeZone: TimeZone
+}): { roundTime: string; date: IsoDate } {
+  const { drugs, records, at, timeZone } = input
+  const date = zonedDate(at, timeZone)
+  const wall = new Date(zonedWallClock(at, timeZone))
+  return {
+    roundTime: arrivalRound(
+      roundTimesOf(drugs),
+      records,
+      date,
+      at,
+      wall.getUTCHours() * 60 + wall.getUTCMinutes(),
+    ),
+    date,
+  }
+}
+
 /** The round's read, as `getRound` returns it. */
 export type RoundData = Awaited<ReturnType<typeof getRound>>
 
@@ -69,15 +96,7 @@ export function yourRound(input: {
   const { data, people, at, timeZone } = input
   const { records } = data
   const drugs = data.medications
-  const date = zonedDate(at, timeZone)
-  const wall = new Date(zonedWallClock(at, timeZone))
-  const roundTime = arrivalRound(
-    roundTimesOf(drugs),
-    records,
-    date,
-    at,
-    wall.getUTCHours() * 60 + wall.getUTCMinutes(),
-  )
+  const { roundTime, date } = roundInFront({ drugs, records, at, timeZone })
   const entries = residentsAt(people, drugs, records, roundTime, date)
 
   const rows = entries.map((entry): RoundRow => {

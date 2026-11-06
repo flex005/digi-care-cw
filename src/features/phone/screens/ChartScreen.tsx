@@ -3,16 +3,12 @@ import { getMarRecords, getResident } from '@/data/access/client'
 import { useResource } from '@/data/access/use-resource'
 import { now } from '@/data/fixtures/clock'
 import { staffLabel } from '@/data/access/team-store'
-import type { IsoDateTime, MarWitness, ResidentId } from '@/data/types'
+import type { IsoDateTime, ResidentId } from '@/data/types'
 import { useSession, useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { ActLine } from '@/components/primitives'
-import { StatusPill, Unrecorded } from '@/components/status'
-import { NOT_GIVEN_REASON_LABEL } from '@/features/medications/medication-words'
 import { doseName } from '@/features/medications/round/round'
-import { assertNever } from '@/lib/assert-never'
 import { formatDate, pluralise } from '@/lib/format'
-import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { notBuiltOnPhone } from '../not-built'
 import { phoneRefusalOf } from '../phone-refusal'
 import {
@@ -22,6 +18,11 @@ import {
   type TodaysChart,
 } from '../phone-chart'
 import { listName, type DoseRecord, type Person } from '../phone-data'
+import { roundInFront } from '../phone-round'
+import { DoseFacts } from '../doses/DoseFacts'
+import { DoseSheet, PRN_NOT_BUILT } from '../doses/DoseSheet'
+import { sheetDoses } from '../doses/dose-sheet'
+import shell from '../shell/shell.module.css'
 import { Loaded } from '../ScreenStates'
 import { Screen } from '../shell/Screen'
 import { SubjectHeader } from '../SubjectHeader'
@@ -55,6 +56,7 @@ export function ChartScreen({ id }: { id: ResidentId }) {
   const viewer = useViewer()
   const [at] = useState(() => now().toISOString() as IsoDateTime)
   const answer = viewer.ask('open_resident_record', id)
+  const recordAct = useRecordAct()
   const load = useCallback(
     () =>
       Promise.all([getResident(id), getMarRecords(id)]).then(
@@ -68,6 +70,9 @@ export function ChartScreen({ id }: { id: ResidentId }) {
   )
   const resource = useResource<ChartData>(load, [id])
   const ready = resource.kind === 'ready' ? resource.data : undefined
+  const [recording, setRecording] = useState(false)
+  const act =
+    ready !== undefined && answer.kind === 'yes' ? recordAct(ready, at) : 'none'
 
   return (
     <Screen
@@ -77,7 +82,31 @@ export function ChartScreen({ id }: { id: ResidentId }) {
           <SubjectHeader person={ready.person} name="here" />
         ) : undefined
       }
+      primary={
+        act === 'none' ? undefined : (
+          <button
+            type="button"
+            className={`${shell.primary} ${shell.press}`}
+            aria-haspopup="dialog"
+            data-record-round={act.roundTime}
+            onClick={() => setRecording(true)}
+          >
+            Record the {act.roundTime} round
+          </button>
+        )
+      }
     >
+      {ready === undefined || act === 'none' ? null : (
+        <DoseSheet
+          person={ready.person}
+          drugs={ready.drugs}
+          records={ready.records}
+          roundTime={act.roundTime}
+          date={act.date}
+          open={recording}
+          onOpenChange={setRecording}
+        />
+      )}
       <Loaded
         resource={resource}
         loading="Loading today’s chart…"
@@ -97,6 +126,33 @@ export function ChartScreen({ id }: { id: ResidentId }) {
       </Loaded>
     </Screen>
   )
+}
+
+/**
+ * The round the reader can record on the phone for this person now, if any:
+ * the round in front of them, where the role table lets them record and at
+ * least one ordinary dose has its window open. **No act where nothing can be
+ * recorded**: a round of controlled drugs alone says so at each dose instead.
+ */
+function useRecordAct() {
+  const { activeSite } = useSession()
+  const viewer = useViewer()
+  return (data: ChartData, at: IsoDateTime) => {
+    if (viewer.ask('record_medication', data.person.id).kind !== 'yes') return 'none'
+    const front = roundInFront({
+      drugs: data.drugs,
+      records: data.records,
+      at,
+      timeZone: activeSite.timeZone,
+    })
+    const doses = sheetDoses({
+      ...data,
+      roundTime: front.roundTime,
+      date: front.date,
+      at,
+    })
+    return doses.some((entry) => entry.kind === 'to_answer') ? front : 'none'
+  }
 }
 
 function Chart({ data, at }: { data: ChartData; at: IsoDateTime }) {
@@ -182,144 +238,6 @@ const isRecorded = (dose: ChartDose) =>
   (dose.cell.state.kind === 'given' || dose.cell.state.kind === 'not_given')
 
 /**
- * One dose, as separate facts: what it is, what the record holds, and, where it
- * is still open, why it cannot be recorded here.
- */
-function DoseFacts({ dose, recordsHere }: { dose: ChartDose; recordsHere: boolean }) {
-  const format = useSiteFormat()
-  const { drug, cell } = dose
-  const name = (
-    <p className={styles.value}>
-      {doseName(drug)}
-      {drug.isControlledDrug ? (
-        <span className={styles.quiet}> · Controlled drug</span>
-      ) : null}
-    </p>
-  )
-
-  if (cell.kind === 'not_held')
-    return (
-      <>
-        {name}
-        <p className={styles.quiet} data-dose="not_held">
-          No record of this round is held here. This is not a record that the dose was
-          missed.
-        </p>
-      </>
-    )
-
-  const state = cell.state
-  switch (state.kind) {
-    case 'due':
-      return (
-        <>
-          {name}
-          <span data-dose="due">
-            <StatusPill tone="info" label="Due" />
-          </span>
-          <p className={styles.quiet}>
-            Window {format.time(state.windowOpensAt)} to{' '}
-            {format.time(state.windowClosesAt)}. Nothing is recorded yet.
-          </p>
-          {recordsHere ? (
-            <span data-cannot-record={drug.isControlledDrug ? 'controlled' : 'any'}>
-              <ActLine kind="not_built">
-                {notBuiltOnPhone(
-                  drug.isControlledDrug
-                    ? 'Recording a controlled drug'
-                    : 'Recording a dose',
-                )}
-              </ActLine>
-            </span>
-          ) : null}
-        </>
-      )
-    case 'given':
-      return (
-        <>
-          {name}
-          <span data-dose="given">
-            <StatusPill tone="positive" label="Given" />
-          </span>
-          <p className={styles.byline}>
-            {format.time(state.givenAt)} · {staffLabel(state.givenBy)}
-          </p>
-          <Witness witness={state.witness} />
-        </>
-      )
-    case 'not_given':
-      return (
-        <>
-          {name}
-          <span data-dose="not_given">
-            <StatusPill
-              tone="critical"
-              label="Not given"
-              detail={NOT_GIVEN_REASON_LABEL[state.reason]}
-            />
-          </span>
-          {state.note === '' ? null : <p className={styles.body}>{state.note}</p>}
-          <p className={styles.byline}>
-            {format.time(state.recordedAt)} · {staffLabel(state.recordedBy)}
-          </p>
-        </>
-      )
-    case 'omitted':
-      return (
-        <>
-          {name}
-          <span data-dose="omitted">
-            <Unrecorded
-              label="No record"
-              detail={`the window for ${format.time(state.dueAt)} closed with nothing recorded`}
-            />
-          </span>
-          <p className={styles.quiet}>
-            {state.escalation.kind === 'escalated'
-              ? `Escalated at ${format.time(state.escalation.at)}.`
-              : 'Not escalated.'}
-          </p>
-          {state.closure.kind === 'closed' ? (
-            <p className={styles.quiet} data-closure="closed">
-              Closed by {staffLabel(state.closure.by)},{' '}
-              {format.dateTime(state.closure.at)}: {state.closure.reason} The dose still
-              has no record.
-            </p>
-          ) : (
-            <p className={styles.quiet} data-closure="open">
-              Not closed: nobody has closed this omission.
-            </p>
-          )}
-        </>
-      )
-    default:
-      return assertNever(state)
-  }
-}
-
-function Witness({ witness }: { witness: MarWitness }) {
-  switch (witness.kind) {
-    case 'not_required':
-      return null
-    case 'witnessed':
-      return (
-        <p className={styles.byline}>Second signature · {staffLabel(witness.by)}</p>
-      )
-    case 'required_not_recorded':
-      return (
-        <span data-second-signature="missing">
-          <Unrecorded
-            label="Second signature not recorded"
-            detail="a controlled drug needs two"
-          />
-        </span>
-      )
-    default:
-      return assertNever(witness)
-  }
-}
-
-/**
  * The PRN medicines, which are available rather than due, so they have no
  * round. Each is listed whether or not any was given, with what was.
  */
@@ -346,9 +264,7 @@ function AsRequiredCard({ chart }: { chart: TodaysChart }) {
           </li>
         ))}
       </ul>
-      <ActLine kind="not_built">
-        {notBuiltOnPhone(`Recording a ${VOCABULARY.medication.one} as required`)}
-      </ActLine>
+      <ActLine kind="not_built">{PRN_NOT_BUILT}</ActLine>
     </section>
   )
 }
