@@ -31,6 +31,7 @@ import { phoneIcons } from '../phone.icons'
 import { Sheet } from '../shell/Sheet'
 import shell from '../shell/shell.module.css'
 import { SubjectHeader } from '../SubjectHeader'
+import { ActionRow } from '../ActionRow'
 import styles from '../phone.module.css'
 
 /** What the record says once a note is saved. */
@@ -234,8 +235,7 @@ function ComposerBody({
           inspector in a year.
         </label>
         {category === 'not_chosen' ? null : (
-          <div
-            className={styles.openers}
+          <ActionRow
             role="group"
             aria-label="Suggested openers, inserted where the cursor is"
             data-phrases={category}
@@ -251,7 +251,7 @@ function ComposerBody({
                 {phrase.trim()}
               </button>
             ))}
-          </div>
+          </ActionRow>
         )}
         <textarea
           id={`${id}-body`}
