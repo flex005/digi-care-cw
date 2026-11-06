@@ -103,8 +103,9 @@ describe('today’s chart, as a care worker', () => {
         'Recording a controlled drug — not built yet on the phone.',
       )
     }
-    // The role table's question is about the role, so it is said once.
-    expect(people().querySelectorAll('[data-answer="contradicted"]')).toHaveLength(1)
+    // The role table's open question is for the PRD's author, never printed at the reader.
+    expect(people().querySelector('[data-answer]')).toBeNull()
+    expect(people().textContent).not.toMatch(/PRD|role table/)
   })
 
   it('draws a given dose and its missing second signature as two facts', async () => {

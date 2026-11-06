@@ -8,9 +8,16 @@ import {
   roundTimesOf,
   windowFor,
 } from '@/features/medications/round/round'
+import { VOCABULARY } from '@/lib/vocabulary-choice'
 import type { Person } from './phone-data'
 
-export { OFF_LIST_LINE } from '@/features/medications/round/RoundRoute'
+/**
+ * Said under Your round where the reader's list leaves people out. **In the
+ * reader's terms**: the desktop round's line adds that the PRD does not say
+ * whether they record those doses, which is a question for the PRD's author and
+ * not something a care worker can act on (`phone-refusal.ts`).
+ */
+export const offListLine = `${VOCABULARY.subject.Many} not on your list are not shown.`
 
 /**
  * One person's doses at the round, sorted into what the phone can do about

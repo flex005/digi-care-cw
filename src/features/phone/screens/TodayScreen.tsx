@@ -64,6 +64,7 @@ import { Sheet } from '../shell/Sheet'
 import { StackLink } from '../shell/StackLink'
 import shell from '../shell/shell.module.css'
 import styles from '../phone.module.css'
+import { NOT_ON_THE_PHONE } from '../phone-refusal'
 
 interface TodayData {
   people: Person[]
@@ -535,7 +536,10 @@ function aDayBefore(at: IsoDateTime): IsoDateTime {
   return new Date(new Date(at).getTime() - 86_400_000).toISOString() as IsoDateTime
 }
 
-/** The role table's line for an act this reader may not take. */
+/**
+ * Why a part is not counted, in the reader's terms: an open question in the
+ * role table is said as what the reader cannot do, never quoted (`phone-refusal.ts`).
+ */
 function reasonOf(answer: Exclude<Answer, { kind: 'yes' }>): string {
   switch (answer.kind) {
     case 'not_your_role':
@@ -543,7 +547,7 @@ function reasonOf(answer: Exclude<Answer, { kind: 'yes' }>): string {
       return answer.reason
     case 'not_stated':
     case 'contradicted':
-      return answer.question
+      return NOT_ON_THE_PHONE
     case 'not_on_your_list':
     case 'no_list_yet':
       return noListYetLine

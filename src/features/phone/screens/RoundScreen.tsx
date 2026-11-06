@@ -7,13 +7,12 @@ import { useSession, useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { Icon } from '@/components/icon/Icon'
 import { ActLine, Avatar } from '@/components/primitives'
-import { ActPoint } from '@/components/layout/ActPoint'
 import { MovedClockLine } from '@/components/shell/MovedClockLine'
 import { Unrecorded } from '@/components/status'
 import { formatDate, pluralise } from '@/lib/format'
 import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { listName, noListYetLine, scopeNote } from '../phone-data'
-import { OFF_LIST_LINE, yourRound, type RoundData, type RoundRow } from '../phone-round'
+import { offListLine, yourRound, type RoundData, type RoundRow } from '../phone-round'
 import { notBuiltOnPhone } from '../not-built'
 import { phoneIcons } from '../phone.icons'
 import { Loaded } from '../ScreenStates'
@@ -89,14 +88,6 @@ function RoundList({ data, at }: { data: RoundData; at: IsoDateTime }) {
     timeZone: activeSite.timeZone,
   })
   const doses = round.rows.reduce((sum, row) => sum + row.doses, 0)
-  /*
-   * The role table's question is about the role, not the person, so it is said
-   * once above the rows that meet it rather than repeated on each.
-   */
-  const question = round.rows
-    .filter((row) => row.controlled > 0)
-    .map((row) => viewer.ask('record_controlled_drug_dose', row.person.id))
-    .find((answer) => answer.kind === 'contradicted' || answer.kind === 'not_stated')
   const recorded = round.rows.reduce((sum, row) => sum + row.recorded, 0)
 
   return (
@@ -115,13 +106,6 @@ function RoundList({ data, at }: { data: RoundData; at: IsoDateTime }) {
           </p>
         )}
         <p className={styles.quiet}>{scopeNote(viewer.scope, activeSite.name)}</p>
-        {question === undefined ? null : (
-          <ActPoint
-            answer={question}
-            label="Given"
-            notBuilt="Recording a controlled drug dose is not built."
-          />
-        )}
       </div>
 
       {round.rows.length === 0 ? null : (
@@ -146,7 +130,7 @@ function RoundList({ data, at }: { data: RoundData; at: IsoDateTime }) {
         </p>
       )}
       {offList ? (
-        <p className={`${styles.quiet} ${styles.gutter}`}>{OFF_LIST_LINE}</p>
+        <p className={`${styles.quiet} ${styles.gutter}`}>{offListLine}</p>
       ) : null}
     </>
   )

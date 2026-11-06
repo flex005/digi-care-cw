@@ -4,11 +4,9 @@ import { useResource } from '@/data/access/use-resource'
 import { now } from '@/data/fixtures/clock'
 import { staffLabel } from '@/data/access/team-store'
 import type { IsoDateTime, MarWitness, ResidentId } from '@/data/types'
-import { refusalOf } from '@/app/session/refusal'
 import { useSession, useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { ActLine } from '@/components/primitives'
-import { ActPoint } from '@/components/layout/ActPoint'
 import { StatusPill, Unrecorded } from '@/components/status'
 import { NOT_GIVEN_REASON_LABEL } from '@/features/medications/medication-words'
 import { doseName } from '@/features/medications/round/round'
@@ -16,6 +14,7 @@ import { assertNever } from '@/lib/assert-never'
 import { formatDate, pluralise } from '@/lib/format'
 import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { notBuiltOnPhone } from '../not-built'
+import { phoneRefusalOf } from '../phone-refusal'
 import {
   todaysChart,
   type ChartDose,
@@ -88,7 +87,7 @@ export function ChartScreen({ id }: { id: ResidentId }) {
           answer.kind !== 'yes' ? (
             <div className={styles.card}>
               <p className={styles.cardTitle}>
-                {refusalOf(answer, listName(data.person))}
+                {phoneRefusalOf(answer, listName(data.person))}
               </p>
             </div>
           ) : (
@@ -111,18 +110,6 @@ function Chart({ data, at }: { data: ChartData; at: IsoDateTime }) {
     timeZone: activeSite.timeZone,
   })
   const records = viewer.ask('record_medication', person.id)
-  const doses = chart.rounds.flatMap((round) => round.doses)
-  /*
-   * Said once, above the rounds, because they are about the role and not about
-   * a dose: who may record for this person, and the role table's question on
-   * controlled drugs where it has one.
-   */
-  const controlledQuestion = doses.some(
-    (dose) => dose.drug.isControlledDrug && isOpen(dose),
-  )
-    ? viewer.ask('record_controlled_drug_dose', person.id)
-    : undefined
-
   return (
     <>
       <section className={styles.card} data-chart-day={chart.date}>
@@ -135,18 +122,7 @@ function Chart({ data, at }: { data: ChartData; at: IsoDateTime }) {
           </p>
         )}
         {records.kind === 'yes' ? null : (
-          <ActPoint
-            answer={records}
-            label="Record a dose"
-            notBuilt={notBuiltOnPhone('Recording a dose')}
-          />
-        )}
-        {controlledQuestion === undefined ? null : (
-          <ActPoint
-            answer={controlledQuestion}
-            label="Given"
-            notBuilt="Recording a controlled drug dose is not built."
-          />
+          <ActLine kind="refused">{phoneRefusalOf(records, listName(person))}</ActLine>
         )}
       </section>
 
@@ -204,9 +180,6 @@ function Chart({ data, at }: { data: ChartData; at: IsoDateTime }) {
 const isRecorded = (dose: ChartDose) =>
   dose.cell.kind === 'recorded' &&
   (dose.cell.state.kind === 'given' || dose.cell.state.kind === 'not_given')
-
-const isOpen = (dose: ChartDose) =>
-  dose.cell.kind === 'recorded' && dose.cell.state.kind === 'due'
 
 /**
  * One dose, as separate facts: what it is, what the record holds, and, where it

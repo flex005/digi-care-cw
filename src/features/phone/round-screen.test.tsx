@@ -116,7 +116,7 @@ describe('your round for a care worker whose open doses are all controlled drugs
     expect(shownRows()).toEqual(expected)
   })
 
-  it('says on each such row why nothing can be recorded here, and the role table’s question once', async () => {
+  it('says on each such row why nothing can be recorded here, and nothing about the PRD', async () => {
     const withOpen = atRound(ezesList()).filter((id) => openAt20(id).length > 0)
     expect(withOpen.length).toBeGreaterThan(0)
     openRound(staffEze.id)
@@ -135,8 +135,9 @@ describe('your round for a care worker whose open doses are all controlled drugs
       )
       expect(row.querySelector('[data-to-record]')).toBeNull()
     }
-    // The question is about the role, so it is said once, not on every row.
-    expect(roundTab().querySelectorAll('[data-answer="contradicted"]')).toHaveLength(1)
+    // The role table's open question is for the PRD's author, never printed at the reader.
+    expect(roundTab().querySelector('[data-answer]')).toBeNull()
+    expect(roundTab().textContent).not.toMatch(/PRD|role table/)
   })
 })
 
