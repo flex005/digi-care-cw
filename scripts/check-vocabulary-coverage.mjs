@@ -148,8 +148,14 @@ const BASELINE_TSX_ONLY_FILES = 85
  * wordings, or a guard taught to skip specifiers, and both were worse than two.
  * The rise sat red across three phone phases before it was settled; see
  * CLAUDE.md §8. Any further rise is a regression as before.
+ *
+ * **Lowered to 2159 on 05/11/2026, and it is not a conversion.** The round's
+ * signing dialog moved its subject into `SigningSubject`, whose prop is
+ * `person`, so five identifier readings of `resident.` left a counted file and
+ * none came in. Nothing a reader sees changed wording; the floor follows the
+ * figure so a regression of two is not forgiven.
  */
-const BEST = 2161
+const BEST = 2159
 
 /**
  * Where copy lives, and therefore where this counts.

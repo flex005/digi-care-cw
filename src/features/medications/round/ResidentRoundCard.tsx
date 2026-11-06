@@ -13,10 +13,10 @@ import { now } from '@/data/fixtures/clock'
 import { useSignedIn, useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
 import { Button, Card, CardHead, Dialog } from '@/components/primitives'
-import { Unrecorded } from '@/components/status'
 import { formatDate, pluralise } from '@/lib/format'
 import { SubjectStrip } from '@/features/notes/composer/SubjectStrip'
 import { MedicationPinStep } from '../MedicationPinStep'
+import { SigningSubject } from '../SigningSubject'
 import { registerState } from '../register/register'
 import { DoseRow } from './DoseRow'
 import { PrnRow } from './PrnRow'
@@ -51,6 +51,9 @@ import styles from './round.module.css'
  * **One act, one signature, every answer listed.** The medication PIN step
  * names each dose and what it is being recorded as, so a PIN confirms something
  * specific.
+ *
+ * **The allergies come with the subject into the dialog** (`SigningSubject`),
+ * because the dialog covers the card head that shows them.
  */
 export function ResidentRoundCard({
   entry,
@@ -316,17 +319,7 @@ export function ResidentRoundCard({
       <Dialog open={signing} onOpenChange={setSigning} title={`${actLabel}?`}>
         {signing ? (
           <div className={styles.signing}>
-            <p className={styles.signingSubject} data-signing-subject={resident.id}>
-              <span>{resident.fullLegalName}</span>
-              <span>
-                {resident.room.kind === 'recorded' ? (
-                  `Room ${resident.room.value}`
-                ) : (
-                  <Unrecorded label="Room not recorded" />
-                )}
-              </span>
-              <span data-numeric>Born {formatDate(resident.dateOfBirth)}</span>
-            </p>
+            <SigningSubject person={resident} />
             <MedicationPinStep
               signs={`For ${resident.fullLegalName}, ${roundTime} round on ${formatDate(date)}. ${signs}.`}
               confirmLabel="Record doses"
