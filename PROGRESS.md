@@ -2827,3 +2827,10 @@ Every test file that pinned only the hour was run three ways: under the full ins
   - specifiers counted again: the suite fails at setup, because the tree is over the floor.
   The capital-letter rule alone, with the scanner fixed, is caught only by the floor test: with text placed correctly it has nothing visible left to excuse.
 - **What it still cannot see**: visible text the scanner places as code in a shape no probe covers. Its success line would still print a tick. The read-back that found this one is the check, and it is worth repeating whenever the scanner changes.
+
+## Today's chart: the not-held dose tested by construction, fixtures untouched (06/11/2026)
+
+- **A dose prescribed at a round with no record held** is now tested at two levels. Neither touches the fixtures.
+  - `phone-chart.test.ts` drops one of Pemberton's 08:00 records from a copy. The dose stays at 08:00 as `not_held`, does not move to "Not due today", and leaves both sides of the figure: it is not recorded and not counted as due, as the desktop chart's row counts it.
+  - `chart-not-held.test.tsx` wraps the real `getMarRecords` to leave the same record out. The screen draws the desktop's sentence with no hatch, because no record held is not an omission.
+- **Mutations**: the state dropped from the chart (both red); the state drawn with an omission's hatch (the screen test red).
