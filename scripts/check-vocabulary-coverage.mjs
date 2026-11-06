@@ -149,11 +149,16 @@ const BASELINE_TSX_ONLY_FILES = 85
  * The rise sat red across three phone phases before it was settled; see
  * CLAUDE.md §8. Any further rise is a regression as before.
  *
- * **Lowered to 2159 on 05/11/2026, and it is not a conversion.** The round's
- * signing dialog moved its subject into `SigningSubject`, whose prop is
- * `person`, so five identifier readings of `resident.` left a counted file and
- * none came in. Nothing a reader sees changed wording; the floor follows the
- * figure so a regression of two is not forgiven.
+ * **Lowered to 2159 on 05/11/2026. Not a conversion, and not a rename to
+ * duck this check.** The round's signing dialog moved its subject block into
+ * `SigningSubject` (`src/features/medications/`), a component the desktop
+ * round and the phone both draw. Its prop is `person`, not `resident`, because
+ * the subject term is configurable and a generic component naming one choice of
+ * it in its own interface is exactly what the vocabulary work exists to remove:
+ * the better name, decided by the product owner on its merits. The figure fell
+ * because five `resident.` readings left a counted file with the code, and no
+ * wording a reader sees changed. The floor follows the figure so that a
+ * regression of two is not forgiven.
  */
 const BEST = 2159
 
