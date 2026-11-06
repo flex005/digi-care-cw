@@ -2770,3 +2770,12 @@ Module 3's reading pass, before any code. The two findings are each fixed in the
 3. **The phone dose sheet in step 4.** For N. Eze at 20:00 the sheet can only say why nothing can be recorded. Step 2's round list says the same thing, by design, rather than leaving her residents off it.
 
 **It needs the PRD's author to resolve it.** Either a care worker records a controlled drug dose as the first signature, with a senior carer countersigning, or a care worker does not record controlled drugs at all. It is one row in `capabilities.ts` either way, and no screen changes its logic. It is already under "Questions for the PRD's author" in `docs/DEPARTURES.md`; this entry records the cost of leaving it open.
+
+## The pinning sweep: four tests depended on the instant, twenty-one did not (06/11/2026)
+
+Every test file that pinned only the hour was run three ways: under the full instant its hour stood for (16/09/2026 at 20:20 or 09:37 BST, written with a `Z`), and under two instants far from it, 03:00 and 14:30 GMT on 01/12/2026. A file that fails under either far instant depends on the instant; a file that passes all three shows no dependence.
+
+- **Four depend on it, and are pinned to the full instant**: `handover.test.tsx`, `dashboard-figures.test.ts`, `dashboard.test.tsx`, `incidents.test.tsx`. Each one's comment names the test that fails under the far pin, as measured, not a guessed reason. That failure is also the proof the suite reads the pin.
+- **Twenty-one show no dependence, and are not pinned for symmetry**: `goals.test.tsx`, `goal-views.test.ts`, `consent-screen.test.tsx`, `upload.test.tsx`, `assessment-screen.test.tsx`, `urgency-screens.test.tsx`, `activities.test.tsx`, `reviews.test.tsx`, and all thirteen `*-vocabulary.test.tsx` files. They keep their `?at=` hour as it was. The fixtures are built relative to the instant, so their results come out the same at all three. **This is evidence from three instants, not a proof**: a test added later that reads a window or a round would make one of them depend on the hour, and the pin would then be half a pin again. Anyone adding such a test pins the file in the same commit.
+- **Two were never pins**: `rules.test.ts` holds `?at=20:20` inside a URL it checks survives sign-in, and `MovedClockLine.test.tsx` holds hour forms because parsing them is its subject.
+- **The first draft of the four comments gave reasons nobody had checked** ("the shift on the board moves with the hour"). They were replaced with the names of the tests that actually fail before anything was committed.
