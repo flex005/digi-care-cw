@@ -5,11 +5,12 @@ import { notOnYourListLine } from '@/app/session/resident-scope'
 /**
  * The phone's words for an act the reader cannot take, **in the reader's terms**.
  *
- * The role table's open questions are for the PRD's author, never for a care
- * worker with a resident waiting. Where the desktop prints the question at the
- * act (CLAUDE.md §6, `not_stated`), the phone says what is true for the reader
- * and nothing about the PRD: the question lives in PROGRESS.md and
- * docs/DEPARTURES.md, phone.
+ * A screen states what cannot be done in the reader's terms, and the project's
+ * open questions live in PROGRESS.md and docs/DEPARTURES.md, never on a screen
+ * (CLAUDE.md §6). The desktop still prints the question at the act through the
+ * shared `refusalOf` and `ActPoint`; that is the non-conforming surface, tracked
+ * in PROGRESS.md for after module 3, and this owner is the phone's until both
+ * read from one.
  *
  * - `not_stated` is only ever a person beyond the reader's list, so it says
  *   that: the same line as a person the table keeps to the list.

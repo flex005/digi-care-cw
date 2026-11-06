@@ -189,8 +189,12 @@ const BASELINE_TSX_ONLY_FILES = 85
  * counted (see `invisible`): 124, 246 and 257 of them on that day. 1546 is the
  * figure this script printed over the tree at that commit, not 2173 less a
  * guess. The three raises above are history from the old measure: under this
- * one there is nothing they forgave. **From here a rise is a regression again**,
- * and `check-vocabulary-coverage.test.mjs` holds that a term hardcoded in a
+ * one there is nothing they forgave. **From here a rise is a real regression,
+ * and the floor is not raised for one** (decided 06/11/2026): fix the code. A
+ * rise believed unavoidable stops the work, and its occurrences are shown to the
+ * product owner before the number moves. This measure no longer over-counts, so
+ * a rise is no longer noise to accommodate. `check-vocabulary-coverage.test.mjs`
+ * holds that a term hardcoded in a
  * label, a heading and a sentence each still fail. Two of the 1546 are code the
  * scanner over-reads as text after a generic, which is the safe direction.
  */

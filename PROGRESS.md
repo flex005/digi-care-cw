@@ -2853,3 +2853,13 @@ Every test file that pinned only the hour was run three ways: under the full ins
   - Next's dev overlay reported an issue: the reason buttons were built in a `map` without keys.
   The recapture logged console errors and exceptions through the protocol, and there were none. A care worker at 20:20 has no ordinary dose open on their list (the blocking question), so the care-worker view of the sheet is reached only at another round, as step 1's capture was.
 - **For review: the pinned head is tall.** Subject plus two allergies is about a third of a 390 screen before the first dose. It is what §2 and the allergy decision ask for, and the doses scroll beneath it.
+
+## CLAUDE.md §6 amended: a screen states what cannot be done in the reader's terms (06/11/2026)
+
+- **§6 now says what the build believes, for every surface**: a screen states what cannot be done in the terms of the person reading it, and the project's open questions live in PROGRESS.md and DEPARTURES.md, never on a screen. The phone's DEPARTURES entry for this is removed, because the phone is no longer departing from anything.
+- **TRACKED, after module 3: the desktop is the non-conforming surface.** It still prints role-table questions at the act. The owners to change, so every screen follows at once:
+  - `refusalOf` in `src/app/session/refusal.ts` (its `not_stated` and `contradicted` branches return the question);
+  - `ActPoint` in `src/components/layout/ActPoint.tsx` (draws the question);
+  - `OFF_LIST_LINE` in `src/features/medications/round/RoundRoute.tsx` ("the PRD does not say whether you record their doses");
+  - Today's-style `reasonOf` copies wherever a screen reads `answer.question` itself.
+  The question strings in `capabilities.ts` stay: they are the record of what is open, and nothing should draw them. When the desktop is fixed, `phone-refusal.ts` folds into the shared owner and its test widens to every surface. No desktop code is changed now.
