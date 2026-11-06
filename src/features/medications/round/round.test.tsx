@@ -41,11 +41,10 @@ import { patchedRecords } from '@/data/access/mar-store'
 import { endSession } from '@/data/access/session-losses'
 import { memberById } from '@/data/access/team-store'
 import { resetMedicationPins, setMedicationPin } from '@/app/session/medication-pins'
-import { noListYetLine, residentScopeFor } from '@/app/session/resident-scope'
+import { residentScopeFor } from '@/app/session/resident-scope'
 import { zonedDate } from '@/lib/format'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { DISCREPANCY_LINE } from '../medication-words'
-import { OFF_LIST_LINE, RoundRoute } from './RoundRoute'
+import { RoundRoute } from './RoundRoute'
 
 const navigation = vi.hoisted(() => ({ pathname: '/medications/round', params: {} }))
 vi.mock('next/navigation', () => ({
@@ -147,6 +146,10 @@ function doseOn(residentId: string, predicate: (id: MedicationId) => boolean) {
   return found
 }
 
+/** The off-list line in words. It names the PRD, which the desktop cleanup after module 3 removes (PROGRESS.md). */
+const OFF_LIST_WORDS =
+  'Residents not on your list are not shown: the PRD does not say whether you record their doses.'
+
 describe('the fixtures reach the states this screen draws', () => {
   it('has the 20:00 round open to answer, with the controlled drugs the tests need', () => {
     expect(openDosesAt('res-okafor' as ResidentId, TODAY, ROUND)).toContain(
@@ -190,12 +193,12 @@ describe('scope', () => {
     const shown = shownCards()
     expect(shown.length).toBeGreaterThan(0)
     for (const id of shown) expect(list.residents).toContain(id)
-    expect(screen.getByText(OFF_LIST_LINE)).toBeInTheDocument()
+    expect(screen.getByText(OFF_LIST_WORDS)).toBeInTheDocument()
   })
 
   it('tells a care worker with no list so, hatched, and shows no round', async () => {
     await openRound(staffOsei.id)
-    const gap = await screen.findByText(noListYetLine)
+    const gap = await screen.findByText('Nobody has given you a list of residents yet.')
     expect(gap.closest('[data-state="unrecorded"]')).not.toBeNull()
     expect(document.querySelector('[data-round-card]')).toBeNull()
     expect(screen.queryByRole('button', { name: /^20:00 ·/ })).toBeNull()
@@ -205,7 +208,7 @@ describe('scope', () => {
     const { user } = await openRound()
     await atRound(user)
     expect(shownCards()).toEqual(expectedAtRound())
-    expect(screen.queryByText(OFF_LIST_LINE)).toBeNull()
+    expect(screen.queryByText(OFF_LIST_WORDS)).toBeNull()
   })
 })
 
@@ -281,7 +284,11 @@ describe('a controlled drug', () => {
       cardFor('res-okafor'),
       GAP_MEDICATION_IDS.controlledDrugWithDiscrepancy,
     )
-    expect(within(dose).getByText(DISCREPANCY_LINE)).toBeInTheDocument()
+    expect(
+      within(dose).getByText(
+        'Stock count does not match the running balance. This must be resolved before any further administration.',
+      ),
+    ).toBeInTheDocument()
     expect(within(dose).getByRole('button', { name: 'Given' })).toBeDisabled()
     expect(within(dose).getByRole('button', { name: 'Not given' })).toBeEnabled()
   })

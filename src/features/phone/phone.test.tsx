@@ -4,7 +4,6 @@ import { staffAkinyemi, staffEze, staffOsei } from '@/data/fixtures/organisation
 import { residentsBySite } from '@/data/fixtures/residents'
 import type { SiteId, StaffId } from '@/data/types'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { NOTHING_OUTSTANDING } from './OutstandingLine'
 import { PhoneApp } from './shell/PhoneApp'
 import { PhoneStage } from './shell/PhoneStage'
 import { VOCABULARY } from '@/lib/vocabulary-choice'
@@ -157,7 +156,11 @@ describe('the phone: your list', () => {
       const recorded = row.querySelectorAll('[data-state="recorded"]').length
       expect(gaps + recorded).toBeLessThanOrEqual(2)
       if (recorded === 1) expect(gaps).toBe(1)
-      if (within(row).queryByText(NOTHING_OUTSTANDING) !== null)
+      if (
+        within(row).queryByText(
+          'No dose due, missed or waiting for a second signature. A care note written today.',
+        ) !== null
+      )
         expect(gaps + recorded).toBe(0)
     }
   })

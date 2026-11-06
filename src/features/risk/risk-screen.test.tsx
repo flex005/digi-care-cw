@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { staffAkinyemi, staffEze, staffOsei } from '@/data/fixtures/organisation'
 import { endSession } from '@/data/access/session-losses'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { NEVER_ASSESSED_IS_NOT_LOW_RISK } from './risk-list'
 import { RiskListRoute } from './RiskListRoute'
 
 const navigation = vi.hoisted(() => ({ pathname: '/risk-assessments', params: {} }))
@@ -33,7 +32,7 @@ const rows = () => [...document.querySelectorAll<HTMLElement>('[data-risk-row]')
 describe('what the screen says', () => {
   it('carries RA-01’s own sentence, which has to appear on the page', async () => {
     await openList()
-    expect(screen.getByText(NEVER_ASSESSED_IS_NOT_LOW_RISK)).toBeTruthy()
+    expect(screen.getByText('Never assessed is not low risk.')).toBeTruthy()
   })
 
   it('leads on the gap, with a hatched edge and what it is out of', async () => {

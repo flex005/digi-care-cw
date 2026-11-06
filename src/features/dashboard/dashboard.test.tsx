@@ -14,18 +14,13 @@ vi.hoisted(() => {
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
-import type { IsoDateTime } from '@/data/types'
-import { marRecordsAll } from '@/data/fixtures/medications'
 import { residentsBySite } from '@/data/fixtures/residents'
-import { now } from '@/data/fixtures/clock'
-import { zonedDate } from '@/lib/format'
-import { dueSoon } from './dashboard-figures'
 import { staffAkinyemi, staffEze, staffOsei } from '@/data/fixtures/organisation'
 import { endSession } from '@/data/access/session-losses'
 import { memberById } from '@/data/access/team-store'
-import { noListYetLine, residentScopeFor } from '@/app/session/resident-scope'
+import { residentScopeFor } from '@/app/session/resident-scope'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { DashboardRoute, NO_COMBINED_LINE } from './DashboardRoute'
+import { DashboardRoute } from './DashboardRoute'
 
 const navigation = vi.hoisted(() => ({ pathname: '/', params: {} }))
 vi.mock('next/navigation', () => ({
@@ -87,7 +82,9 @@ describe('reach', () => {
   it('counts nothing for a care worker nobody has given a list', async () => {
     const user = userEvent.setup()
     renderSignedIn(staffOsei.id, <DashboardRoute />, ROSEWOOD)
-    const said = await screen.findByText(noListYetLine)
+    const said = await screen.findByText(
+      'Nobody has given you a list of residents yet.',
+    )
     expect(said.closest('[data-state="unrecorded"]')).not.toBeNull()
     expect(document.querySelector('[data-bar]')).toBeNull()
     expect(document.querySelector('[data-late]')).toBeNull()
@@ -102,7 +99,11 @@ describe('the figures', () => {
     expect(banner?.textContent).toMatch(/dose(s)? with no record/)
     expect(banner?.textContent).toMatch(/review(s)? past its date/)
     expect(banner?.textContent).toMatch(/handover(s)? never countersigned/)
-    expect(screen.getByText(NO_COMBINED_LINE)).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'These three are not added together: a dose an hour late and a review four hundred days late are not one unit, and a handover belongs to a shift rather than to a resident.',
+      ),
+    ).toBeInTheDocument()
   })
 
   /*
@@ -112,24 +113,18 @@ describe('the figures', () => {
    */
   it('shows the doses due in the next two hours that the records hold', async () => {
     await openDashboard()
-    const at = now().toISOString() as IsoDateTime
-    const today = zonedDate(at, 'Europe/London')
-    const ids = new Set(residentsBySite(ROSEWOOD).map((resident) => resident.id))
-    const expected = dueSoon(
-      marRecordsAll.filter(
-        (record) => ids.has(record.residentId) && record.date === today,
-      ),
-      at,
-    )
-    expect(expected.doses).toBeGreaterThan(0)
+    /*
+     * Figures, not `dueSoon` asked again: a tile checked against the function
+     * that computed it agrees by construction. At 20:20 BST on 16/09/2026 they
+     * were counted a second way, as the 20:00 round's open doses at Rosewood
+     * (no round opens before 22:20), and agreed: 19 doses, 15 residents.
+     */
 
     const tile = screen
       .getByText('Due now or in the next 2 hours')
       .closest('section, article, div')
-    expect(tile?.textContent).toContain(String(expected.doses))
-    expect(tile?.textContent).toContain(
-      `across ${expected.residents} resident${expected.residents === 1 ? '' : 's'}`,
-    )
+    expect(tile?.textContent).toContain('19')
+    expect(tile?.textContent).toContain('across 15 residents')
   })
 
   it('hatches the residents nobody wrote up today, and never a zero', async () => {

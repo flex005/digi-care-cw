@@ -28,7 +28,7 @@ import { memberById } from '@/data/access/team-store'
 import { residentScopeFor } from '@/app/session/resident-scope'
 import { resetMedicationPins } from '@/app/session/medication-pins'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { WHOLE_HOME_LINE, HandoverRoute } from './HandoverRoute'
+import { HandoverRoute } from './HandoverRoute'
 
 const navigation = vi.hoisted(() => ({ pathname: '/handover', params: {} }))
 vi.mock('next/navigation', () => ({
@@ -102,7 +102,11 @@ describe('the board', () => {
     const banner = document.querySelector('[data-action-card]')
     expect(banner?.textContent).toContain(String(notReviewed))
     expect(banner?.textContent).toContain(`of ${total} residents living at`)
-    expect(screen.getAllByText(WHOLE_HOME_LINE).length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByText(
+        'Every resident at this home, whether or not anybody has got to them yet.',
+      ).length,
+    ).toBeGreaterThan(0)
     expect(document.querySelector('[data-act-line]')).toBeNull()
   })
 

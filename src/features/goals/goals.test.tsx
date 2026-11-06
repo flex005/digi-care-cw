@@ -18,7 +18,7 @@ import { memberById } from '@/data/access/team-store'
 import { residentScopeFor } from '@/app/session/resident-scope'
 import { renderSignedIn } from '@/test/render-signed-in'
 import { GoalDetailRoute } from './GoalDetailRoute'
-import { GoalsRoute, noDateLine } from './GoalsRoute'
+import { GoalsRoute } from './GoalsRoute'
 import { goalStanding } from './goal-timing'
 
 const navigation = vi.hoisted(() => ({
@@ -80,7 +80,9 @@ describe('the queue', () => {
       `of ${dated} goals with a target date, across ${here().length} at Rosewood Court`,
     )
     // The goals with no date are stated, not silently left out.
-    expect(banner?.textContent).toContain(noDateLine(undated))
+    expect(banner?.textContent).toContain(
+      `${undated} have no date at all: a goal with no date is not late and is not counted here.`,
+    )
   })
 
   it('opens on the past-date view, longest wait first', async () => {
