@@ -9,7 +9,7 @@ import { endSession } from '@/data/access/session-losses'
 import { ToastViewport } from '@/components/primitives'
 import { renderProfileTab, renderSignedIn } from '@/test/render-signed-in'
 import { SignOutRoute } from '@/features/auth/SignOutRoute'
-import { shiftAt, SHIFT_NAMES } from '@/lib/shift'
+import { shiftAt } from '@/lib/shift'
 import { NoteComposerRoute } from './NoteComposerRoute'
 import { SavedNoteToast } from './SavedNoteToast'
 import { draftHoldings, keptDraft, resetNoteDrafts } from './draft-store'
@@ -157,7 +157,12 @@ describe('the composer', () => {
     const { form } = await openAs()
     const clock = shiftAt(now().toISOString() as IsoDateTime, 'Europe/London')
     expect(
-      within(form).getByText(`${SHIFT_NAMES[clock]} shift`, { exact: false }),
+      within(form).getByText(
+        `${{ early: 'Early', late: 'Late', night: 'Night' }[clock]} shift`,
+        {
+          exact: false,
+        },
+      ),
     ).toBeTruthy()
     expect(
       within(form).getByText(

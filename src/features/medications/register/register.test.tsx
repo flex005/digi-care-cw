@@ -5,7 +5,7 @@ import { staffAkinyemi, staffEze } from '@/data/fixtures/organisation'
 import { GAP_MEDICATION_IDS } from '@/data/fixtures/medications'
 import { patchedRecords, resetSessionAdministrations } from '@/data/access/mar-store'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { COUNTERSIGN_QUOTED, RegisterRoute } from './RegisterRoute'
+import { RegisterRoute } from './RegisterRoute'
 
 const navigation = vi.hoisted(() => ({ pathname: '/medications/register', params: {} }))
 vi.mock('next/navigation', () => ({
@@ -133,7 +133,9 @@ describe('Controlled drug register: a senior carer', () => {
     await loaded()
 
     const quoted = document.querySelector('[data-countersign-silence]')
-    expect(quoted?.textContent).toContain(COUNTERSIGN_QUOTED)
+    expect(quoted?.textContent).toContain(
+      'MED-03 says: “Senior 1 records administration + stock count. System prompts Witness 2. Senior 2 taps Countersign + enters own PIN.”',
+    )
     expect(quoted?.textContent).toContain(
       'It does not say how long after a dose a second signature may still be added',
     )

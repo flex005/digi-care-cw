@@ -31,7 +31,6 @@ import { endSession } from '@/data/access/session-losses'
 import { resetMedicationPins } from '@/app/session/medication-pins'
 import { zonedDate } from '@/lib/format'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { notOpenYetLine } from './DoseRow'
 import { RoundRoute } from './RoundRoute'
 
 const navigation = vi.hoisted(() => ({ pathname: '/medications/round', params: {} }))
@@ -87,6 +86,13 @@ const doseIn = (card: HTMLElement, medicationId: string) => {
 const actFor = (card: HTMLElement) =>
   within(card).getByRole('button', { name: /^Record .+’s 20:00 doses$/ })
 
+/**
+ * The not-open line in words. The zone is BST because every test here pins an
+ * instant in September 2026; `ZONE` is asserted to agree where it is used.
+ */
+const NOT_OPEN_YET_WORDS =
+  'Not due yet — the window opens at 20:00 BST. Giving a drug early is a clinical decision, and nothing in this product can make one.'
+
 describe('the fixtures reach the state this file is about', () => {
   it('has the 20:00 doses on the chart half an hour before the window opens', () => {
     expect(openDosesAt(OKAFOR, TODAY, ROUND)).toContain(
@@ -103,7 +109,8 @@ describe('a dose whose window has not opened', () => {
       cardFor(OKAFOR),
       GAP_MEDICATION_IDS.controlledDrugWithDiscrepancy,
     )
-    expect(within(dose).getByText(notOpenYetLine(`20:00 ${ZONE}`))).toBeInTheDocument()
+    expect(ZONE).toBe('BST')
+    expect(within(dose).getByText(NOT_OPEN_YET_WORDS)).toBeInTheDocument()
     expect(within(dose).getByRole('button', { name: 'Given' })).toBeDisabled()
     expect(within(dose).getByRole('button', { name: 'Not given' })).toBeDisabled()
     // The window is on the dose as well as in the sentence.
@@ -150,7 +157,7 @@ describe('a dose whose window has not opened', () => {
     const { user } = await openRound(staffEze.id)
     await atRound(user)
     const dose = doseIn(cardFor('res-pemberton'), PEMBERTON_OXYCODONE)
-    expect(within(dose).getByText(notOpenYetLine(`20:00 ${ZONE}`))).toBeInTheDocument()
+    expect(within(dose).getByText(NOT_OPEN_YET_WORDS)).toBeInTheDocument()
     const quoted = dose.querySelector('[data-act-line="not_stated"]')
     expect(quoted?.textContent).toMatch(/Medications — record Given\/Not Given\/PRN/)
     expect(quoted?.textContent).toMatch(/Medications — countersign controlled drugs/)

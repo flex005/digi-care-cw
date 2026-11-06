@@ -22,8 +22,6 @@ import { endSession } from '@/data/access/session-losses'
 import { resetMedicationPins } from '@/app/session/medication-pins'
 import { zonedDate } from '@/lib/format'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { NOT_GIVEN_REASON_LABEL } from '../medication-words'
-import { allergyNotCheckedLine } from '../SigningSubject'
 import { RoundRoute } from './RoundRoute'
 
 const navigation = vi.hoisted(() => ({ pathname: '/medications/round', params: {} }))
@@ -72,7 +70,7 @@ async function pinStepFor(residentId: string) {
     await user.click(within(dose).getByRole('button', { name: 'Not given' }))
     await user.click(
       within(dose).getByRole('radio', {
-        name: NOT_GIVEN_REASON_LABEL.resident_refused,
+        name: 'Resident refused',
       }),
     )
   }
@@ -119,7 +117,7 @@ describe('the round’s PIN step shows the resident’s allergies', () => {
   it('says beside them that nothing checked these drugs against them, naming the resident', async () => {
     const { allergies } = await pinStepFor('res-lonsdale')
     expect(allergies.textContent).toContain(
-      allergyNotCheckedLine(residentOf('res-lonsdale').fullLegalName),
+      'Nothing here checks these drugs against Vera Lonsdale’s allergies.',
     )
     expect(allergies.textContent).toMatch(/Nothing here checks these drugs against/)
   })

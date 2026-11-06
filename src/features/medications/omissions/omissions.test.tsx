@@ -8,9 +8,7 @@ import { residentsBySite } from '@/data/fixtures/residents'
 import { now } from '@/data/fixtures/clock'
 import { getOmissions } from '@/data/access/client'
 import { resetSessionAdministrations } from '@/data/access/mar-store'
-import { noListYetLine } from '@/app/session/resident-scope'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { formatCount } from '@/lib/format'
 import { weekBefore } from './omission-views'
 import { OmissionsRoute } from './OmissionsRoute'
 
@@ -80,7 +78,7 @@ describe('Omissions: scope', () => {
       return found!
     })
     expect(panel.querySelector('[data-state="unrecorded"]')?.textContent).toContain(
-      noListYetLine,
+      'Nobody has given you a list of residents yet.',
     )
     expect(document.querySelector('[data-action-card]')).toBeNull()
     expect(document.querySelector('[data-gap-count]')).toBeNull()
@@ -98,31 +96,36 @@ describe('Omissions: figures', () => {
     // The screen's per-resident derivation agrees with the data layer's.
     expect(due).toBe(homeDue)
 
-    const noRecord = omissions.length
-    const escalated = omissions.filter((o) => o.escalatedAt !== 'not_escalated').length
-    const closed = omissions.filter((o) => o.closure.kind === 'closed').length
+    /*
+     * Figures, not the data layer's list counted again: the screen renders that
+     * list, so a count of it agrees by construction. At 20:20 BST on 16/09/2026
+     * they were counted a second way from the raw records (omitted since the
+     * week's start, and escalated among them) and agreed: 60 and 51.
+     */
+    expect(omissions).toHaveLength(60)
+    expect(due).toBe(761)
 
     const gap = document.querySelector('[data-gap-count]')!
     expect(gap.getAttribute('data-state')).toBe('unrecorded')
-    expect(gap.textContent).toContain(formatCount(noRecord))
+    expect(gap.textContent).toContain('60')
     expect(gap.textContent).toContain(
-      `of ${formatCount(due)} doses due this week, across 28 residents at Rosewood Court`,
+      'of 761 doses due this week, across 28 residents at Rosewood Court',
     )
     expect(gap.textContent).toContain('the window closed and nobody wrote anything')
 
-    const of = `of ${formatCount(noRecord)} doses with no record`
+    const of = 'of 60 doses with no record'
     expect(tileOf('Escalated')).toBe(of)
     expect(tileOf('Not yet escalated')).toBe(of)
     expect(tileOf('Closed')).toBe(of)
     const tile = (label: string) =>
       document.querySelector(`[data-metric-tile="${label}"]`)?.textContent
-    expect(tile('Escalated')).toContain(formatCount(escalated))
-    expect(tile('Not yet escalated')).toContain(formatCount(noRecord - escalated))
-    expect(tile('Closed')).toContain(formatCount(closed))
+    expect(tile('Escalated')).toContain('51')
+    expect(tile('Not yet escalated')).toContain('9')
+    expect(tile('Closed')).toContain('11')
 
     const card = document.querySelector('[data-action-card]')!
     expect(card.textContent).toContain('Open omissions')
-    expect(card.textContent).toContain(formatCount(noRecord - closed))
+    expect(card.textContent).toContain('49')
     expect(card.textContent).toContain(`${of} this week`)
     expect(card.textContent).toContain('Oldest open')
   })

@@ -100,6 +100,13 @@ function ezesList(): (id: string) => boolean {
   return (id) => scope.kind !== 'not_decided' && scopeReaches(scope, id as never)
 }
 
+/** The names a reader sees in a row's sentence, written here rather than asked of `listName`. */
+const LIST_NAMES: Record<string, string> = {
+  'res-adeyemi': 'Grace Adeyemi',
+  'res-okafor': 'Emmanuel Okafor',
+  'res-pemberton': 'Arthur Pemberton',
+}
+
 describe('your round for a care worker whose open doses are all controlled drugs', () => {
   it('lists everybody on her list at the round, and the fixtures make every open dose controlled', async () => {
     const reaches = ezesList()
@@ -124,11 +131,11 @@ describe('your round for a care worker whose open doses are all controlled drugs
     for (const id of withOpen) {
       const row = rowOf(id)
       if (row === null) throw new Error(`No row for ${id}`)
-      const person = residents.find((entry) => entry.id === id)
-      if (person === undefined) throw new Error(`No resident ${id}`)
       // The list name, as the row's heading: the legal name under it reads as two people.
+      const name = LIST_NAMES[id]
+      if (name === undefined) throw new Error(`No list name written here for ${id}`)
       expect(row.querySelector('[data-controlled="only"]')?.textContent).toContain(
-        `Nothing can be recorded for ${listName(person)} here`,
+        `Nothing can be recorded for ${name} here`,
       )
       expect(row.textContent).toMatch(
         /Recording a controlled drug — not built yet on the phone\./,
@@ -167,9 +174,7 @@ describe('your round for a senior carer', () => {
     openRound(staffAkinyemi.id)
     await within(roundTab()).findByText(`${ROUND} round, 16/09/2026`)
     const line = rowOf('res-ashworth')?.querySelector('[data-controlled="only"]')
-    expect(line?.textContent).toContain(
-      `Nothing can be recorded for ${listName(ashworth)} here`,
-    )
+    expect(line?.textContent).toContain('Nothing can be recorded for Ron Ashworth here')
     expect(line?.textContent).not.toContain(ashworth.fullLegalName)
   })
 

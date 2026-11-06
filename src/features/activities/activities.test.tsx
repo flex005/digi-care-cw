@@ -15,7 +15,7 @@ import { getActivity } from '@/data/access/client'
 import { endSession } from '@/data/access/session-losses'
 import { resetSessionActivities } from '@/data/access/activity-store'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { ActivitiesRoute, invitedLine } from './ActivitiesRoute'
+import { ActivitiesRoute } from './ActivitiesRoute'
 import { AttendanceRoute } from './AttendanceRoute'
 import {
   countsOf,
@@ -79,7 +79,10 @@ describe('the week', () => {
     expect(banner?.textContent).toContain(
       `of ${summary.sessions} sessions at Rosewood Court this week happened with nobody recorded`,
     )
-    expect(banner?.textContent).toContain(invitedLine(summary.residentsInvited))
+    expect(summary.residentsInvited).toBeGreaterThan(1)
+    expect(banner?.textContent).toContain(
+      `${summary.residentsInvited} residents were invited to them, and there is no record of whether any of them came.`,
+    )
   })
 
   it('draws seven days, and says so where nothing is planned', async () => {

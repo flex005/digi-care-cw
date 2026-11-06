@@ -1,6 +1,5 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { noListYetLine, notOnYourListLine } from '@/app/session/resident-scope'
 import { RefusedComposer } from './NoteComposerRoute'
 
 /**
@@ -18,12 +17,14 @@ const said = (answer: Parameters<typeof RefusedComposer>[0]['answer']) =>
 describe('a composer the role table refuses', () => {
   it('says the resident is not on the list, in the same words as the record', () => {
     expect(said({ kind: 'not_on_your_list' })).toContain(
-      notOnYourListLine('Emmanuel Okafor'),
+      'Emmanuel Okafor is not on your list.',
     )
   })
 
   it('says nobody has given the reader a list', () => {
-    expect(said({ kind: 'no_list_yet' })).toContain(noListYetLine)
+    expect(said({ kind: 'no_list_yet' })).toContain(
+      'Nobody has given you a list of residents yet.',
+    )
   })
 
   it('says the role table’s own reason when the role cannot', () => {

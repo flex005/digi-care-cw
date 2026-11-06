@@ -42,7 +42,9 @@ describe('what the screen says', () => {
    */
   it('carries CON-01’s sentence, word for word', async () => {
     await openList()
-    expect(screen.getByText(NEVER_SOUGHT_IS_NOT)).toBeTruthy()
+    expect(
+      screen.getByText('Never sought is not refusal and it is not permission.'),
+    ).toBeTruthy()
     expect(NEVER_SOUGHT_IS_NOT).toBe(
       'Never sought is not refusal and it is not permission.',
     )

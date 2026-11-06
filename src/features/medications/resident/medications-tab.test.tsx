@@ -13,7 +13,6 @@ import { recordPrn, stockBalanceFor } from '@/data/access/client'
 import { resetSessionAdministrations } from '@/data/access/mar-store'
 import { CARE_ACTS } from '@/app/session/capabilities'
 import { renderProfileTab } from '@/test/render-signed-in'
-import { quantityWithUnit } from '../register/units'
 import { MedicationsTab } from './MedicationsTab'
 
 /**
@@ -184,10 +183,8 @@ describe('the maximum in 24 hours, in its three answers', () => {
     const quantity = field(card(tab, recorded), 'maximum')
     expect(quantity.querySelector('[data-maximum="recorded"]')).toBeTruthy()
     expect(hatched(quantity)).toBeNull()
-    if (recorded.maximumIn24Hours.kind !== 'recorded') throw new Error('Not recorded')
-    expect(quantity.querySelector('dd')?.textContent).toBe(
-      `${quantityWithUnit(recorded.maximumIn24Hours.quantity, recorded.stockUnit)} in any 24 hours`,
-    )
+    expect(recorded.name).toBe('Salbutamol inhaler')
+    expect(quantity.querySelector('dd')?.textContent).toBe('8 puffs in any 24 hours')
   })
 })
 

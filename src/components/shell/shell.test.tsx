@@ -10,8 +10,8 @@ import { TooltipProvider } from '@/components/primitives'
 import { SignOutDialog } from '@/features/auth/SignOutDialog'
 import { AppList } from './AppSwitcher'
 import { NotificationsSummary } from './NotificationsMenu'
-import { DIGI_APPS, NOT_IN_THIS_BUILD } from '@/app/digi-apps'
-import { NOTHING_IS_SENT, NOTIFICATIONS } from '@/features/profile/notification-table'
+import { DIGI_APPS } from '@/app/digi-apps'
+import { NOTIFICATIONS } from '@/features/profile/notification-table'
 import { Rail } from './Rail'
 import { NavPill } from './NavPill'
 import { TopBar } from './TopBar'
@@ -157,7 +157,11 @@ describe('the bell and the grid', () => {
     render(<NotificationsSummary />)
     const said = screen.getByText(/notifications this product defines/)
     expect(said.textContent).toContain(String(NOTIFICATIONS.length))
-    expect(screen.getByText(NOTHING_IS_SENT)).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Nothing is sent either way: this build has no push, no email and nothing to send them from. A switch here changes what this screen remembers, not what arrives.',
+      ),
+    ).toBeInTheDocument()
   })
 
   it('lists the diGi family, and offers none of them as a control', () => {
@@ -170,7 +174,9 @@ describe('the bell and the grid', () => {
     // Exactly one is this one, and the others say so in visible text rather
     // than by being drawn as controls that refuse.
     expect(rows.filter((row) => row.textContent?.includes('This app'))).toHaveLength(1)
-    expect(screen.getAllByText(NOT_IN_THIS_BUILD)).toHaveLength(DIGI_APPS.length - 1)
+    expect(screen.getAllByText('Not part of this prototype')).toHaveLength(
+      DIGI_APPS.length - 1,
+    )
     for (const row of rows)
       expect(within(row as HTMLElement).queryByRole('menuitem')).toBeNull()
   })

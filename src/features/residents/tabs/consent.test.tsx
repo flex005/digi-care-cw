@@ -14,7 +14,6 @@ import { signInRoleOf } from '@/app/session/roles'
 import { consentGaps } from '@/features/residents/profile/record-gaps'
 import { renderProfileTab } from '@/test/render-signed-in'
 import { ConsentTab } from './ConsentTab'
-import { CONSENT_MEANS } from './consent-meaning'
 
 /**
  * The Consent tab, read-only.
@@ -56,6 +55,23 @@ const withNeverSought = residents.find((entry) =>
   CONSENT_TYPES.some((type) => entry.consents[type.id].kind === 'not_sought'),
 )!
 
+/** What each of the eight consents means, in the words a reader sees. */
+const CONSENT_WORDS: Record<string, string> = {
+  care_and_support:
+    'Day-to-day personal care: help with washing, dressing and moving about.',
+  medication:
+    'Staff holding and giving their medicines rather than them managing their own.',
+  photography:
+    'Photographs in the home, on the noticeboards, and in the Family Portal.',
+  data_sharing:
+    'Sharing their records with the GP, district nurses and the local authority.',
+  family_portal: 'Named families seeing their care records through the Family Portal.',
+  research_audit: 'Their anonymised records being used in service audits and research.',
+  medical_treatment:
+    'Routine treatment arranged through the home, such as a flu vaccination.',
+  electronic_records: 'Their care being recorded in this system rather than on paper.',
+}
+
 describe('every consent type is listed', () => {
   it('renders one row per type, from the constant', async () => {
     const { container } = openAs(staffAkinyemi, withNeverSought)
@@ -74,7 +90,7 @@ describe('every consent type is listed', () => {
     for (const type of CONSENT_TYPES) {
       const row = panel.querySelector(`[data-consent="${type.id}"]`)
       expect(row?.querySelector('[data-means]')?.textContent, type.id).toBe(
-        CONSENT_MEANS[type.id],
+        CONSENT_WORDS[type.id],
       )
     }
   })

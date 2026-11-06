@@ -1,6 +1,5 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { notOnYourListLine } from '@/app/session/resident-scope'
 import { resetSessionNotes } from '@/data/access/note-store'
 import { staffEze } from '@/data/fixtures/organisation'
 import { residentsBySite } from '@/data/fixtures/residents'
@@ -71,7 +70,7 @@ describe('the phone: who is this note about?', () => {
       target: { value: surname },
     })
     const row = (
-      await within(sheet).findByText(notOnYourListLine(listName(off)))
+      await within(sheet).findByText('Ada Nwachukwu is not on your list.')
     ).closest('li') as HTMLElement
     expect(row.getAttribute('data-refused')).toBe('not_on_your_list')
     expect(within(row).queryByRole('button')).toBeNull()

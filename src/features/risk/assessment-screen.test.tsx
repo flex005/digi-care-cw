@@ -23,7 +23,6 @@ import { resetMedicationPins } from '@/app/session/medication-pins'
 import { renderSignedIn } from '@/test/render-signed-in'
 import { AssessmentFormRoute } from './AssessmentFormRoute'
 import { INSTRUMENT_ITEMS } from './instrument'
-import { PLACEHOLDER_NOTICE } from './instrument'
 
 const navigation = vi.hoisted(() => ({
   pathname: '/residents/res-hutchinson/risk-assessments/falls',
@@ -70,7 +69,11 @@ async function answerEvery(user: ReturnType<typeof userEvent.setup>, choice = 0)
 describe('the form', () => {
   it('says the instrument is a placeholder, on the form itself', async () => {
     await openForm()
-    expect(screen.getAllByText(PLACEHOLDER_NOTICE).length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByText(
+        'This instrument is a placeholder, not a validated clinical scale: make no clinical decision from its score.',
+      ).length,
+    ).toBeGreaterThan(0)
   })
 
   it('shows the running score, what it is out of, and that it is not final', async () => {
