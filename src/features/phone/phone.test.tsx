@@ -106,11 +106,13 @@ describe('the phone shell', () => {
     window.history.replaceState(null, '', '/m')
     renderSignedIn(staffEze.id, <PhoneStage />)
     const nav = await screen.findByRole('navigation', { name: 'Main navigation' })
-    fireEvent.click(within(nav).getByRole('button', { name: /^Medication, not built/ }))
-    const sheet = await screen.findByRole('dialog', { name: 'Medication' })
+    fireEvent.click(within(nav).getByRole('button', { name: 'More, not built' }))
+    const sheet = await screen.findByRole('dialog', { name: 'More' })
     expect(sheet.closest('[data-phone-frame]')).not.toBeNull()
     expect(
-      within(sheet).getByText('Medication — not built yet on the phone.'),
+      within(sheet).getByText(
+        'More — not built yet on the phone. Reloading the page signs you out.',
+      ),
     ).toBeTruthy()
     expect(within(sheet).getByRole('button', { name: 'Done' })).toBeTruthy()
   })
@@ -521,17 +523,15 @@ describe('the phone tab bar', () => {
       { timeout: 4000 },
     )
     expect(nav.querySelectorAll('[data-badge]')).toHaveLength(1)
-    const tabButton = badge.closest('button') as HTMLElement
-    expect(tabButton.getAttribute('aria-label')).toBe(
-      `Medication, not built. ${badge.textContent} of ${
-        /of ([\d,]+ doses?) on/.exec(tabButton.getAttribute('aria-label') ?? '')?.[1]
+    const tabLink = badge.closest('a') as HTMLElement
+    expect(tabLink.getAttribute('aria-label')).toBe(
+      `Medication. ${badge.textContent} of ${
+        /of ([\d,]+ doses?) on/.exec(tabLink.getAttribute('aria-label') ?? '')?.[1]
       } on today’s chart due now or in the next 2 hours, on your list.`,
     )
-    fireEvent.click(tabButton)
-    const sheet = await screen.findByRole('dialog', { name: 'Medication' })
-    expect(
-      within(sheet).getByText(/due now or in the next 2 hours, on your list\.$/),
-    ).toBeTruthy()
+    fireEvent.click(tabLink)
+    await waitFor(() => expect(window.location.pathname).toBe('/m/round'))
+    expect(tabLink.getAttribute('aria-current')).toBe('page')
   })
 
   it('draws the centre action between Residents and Medication, as an act and not a tab', async () => {
@@ -557,8 +557,6 @@ describe('the phone tab bar', () => {
     )
     const nav = screen.getByRole('navigation', { name: 'Main navigation' })
     expect(nav.querySelectorAll('[data-badge]')).toHaveLength(0)
-    expect(
-      within(nav).getByRole('button', { name: 'Medication, not built' }),
-    ).toBeTruthy()
+    expect(within(nav).getByRole('link', { name: 'Medication' })).toBeTruthy()
   })
 })

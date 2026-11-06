@@ -159,8 +159,19 @@ const BASELINE_TSX_ONLY_FILES = 85
  * because five `resident.` readings left a counted file with the code, and no
  * wording a reader sees changed. The floor follows the figure so that a
  * regression of two is not forgiven.
+ *
+ * **Raised to 2165 on 06/11/2026, by six words no reader sees.** The phone's
+ * Your round (module 3, step 2) reads the desktop round's owners rather than
+ * copying them: two module specifiers (`'@/features/medications/round/round'`
+ * and `…/RoundRoute`, which a path cannot convert, the class of the 2161 raise)
+ * and four field names of the shared data shape (`data.medications`,
+ * `data.residents`, `entry.resident`, `dose.medication`), which only a change to
+ * the loaders' types could rename, and that is a change for both builds. The
+ * step first counted 2181; sixteen were removed before raising, nine by naming
+ * the tab `round` rather than after a configurable term. Any further rise is a
+ * regression as before.
  */
-const BEST = 2159
+const BEST = 2165
 
 /**
  * Where copy lives, and therefore where this counts.

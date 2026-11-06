@@ -31,6 +31,7 @@ export function initialStacks(pathname: string): Stacks {
   const stacks: Record<TabId, Entry[]> = {
     today: [entry(ROOT_OF.today)],
     people: [entry(ROOT_OF.people)],
+    round: [entry(ROOT_OF.round)],
   }
   stacks[tab] = places.map(entry)
   return { active: tab, stacks }

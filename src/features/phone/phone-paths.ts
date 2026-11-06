@@ -18,9 +18,10 @@ export const PHONE_PLACES = {
   search: { kind: 'place', tab: 'people' },
   record: { kind: 'place', tab: 'people' },
   notes: { kind: 'place', tab: 'people' },
+  round: { kind: 'place', tab: 'round' },
 } as const
 
-export type TabId = 'today' | 'people'
+export type TabId = 'today' | 'people' | 'round'
 
 export type Place =
   | { kind: 'today' }
@@ -30,10 +31,13 @@ export type Place =
   | { kind: 'record'; id: ResidentId }
   /** One person's care notes, read-only, newest first. */
   | { kind: 'notes'; id: ResidentId }
+  /** Your round: the people you record for at the round in front of you. Writes nothing. */
+  | { kind: 'round' }
 
 export const ROOT_OF: Record<TabId, Place> = {
   today: { kind: 'today' },
   people: { kind: 'people', view: 'yours' },
+  round: { kind: 'round' },
 }
 
 export function pathOf(place: Place): string {
@@ -48,6 +52,8 @@ export function pathOf(place: Place): string {
       return `/m/people/${place.id}`
     case 'notes':
       return `/m/people/${place.id}/notes`
+    case 'round':
+      return '/m/round'
   }
 }
 
@@ -62,6 +68,7 @@ export function pathOf(place: Place): string {
 export function stackOf(pathname: string): { tab: TabId; places: Place[] } {
   const parts = pathname.split('/').filter(Boolean).slice(1)
   const [first, second, third] = parts
+  if (first === 'round') return { tab: 'round', places: [ROOT_OF.round] }
   if (first === 'search')
     return { tab: 'people', places: [ROOT_OF.people, { kind: 'search' }] }
   if (first === 'people' || first === 'list' || first === 'everyone') {
