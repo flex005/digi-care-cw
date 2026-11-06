@@ -69,13 +69,21 @@ export function REVIEW_OUTCOME_LABEL(outcome: ReviewOutcome): string {
  * **Days are rounded from the minutes, never from the rounded hours.** Rounding
  * twice drew 83 hours 39 minutes as 84 hours and then as four days: a flag
  * said to have waited a day longer than it had.
+ *
+ * **Months are too.** `formatLateness` prints a span in days below two months
+ * and rounds it to months above, so it is handed whole days where it prints
+ * them and the unrounded span where it rounds. A whole day count there was a
+ * second rounding: 76.3 days rounded to 76 and read as 2 months, not 3. The
+ * 60 is `formatDuration`'s switch to months; `format-wait.test.ts` fails if
+ * the two part.
  */
 export function formatWait(minutes: number): string {
   const whole = Math.max(0, Math.round(minutes))
   if (whole < 60) return pluralise(whole, 'minute')
   const hours = Math.round(whole / 60)
   if (hours < 48) return pluralise(hours, 'hour')
-  return formatLateness(Math.round(whole / (24 * 60)))
+  const days = whole / (24 * 60)
+  return formatLateness(days < 60 ? Math.round(days) : days)
 }
 
 /** How long between two instants, as a wait. */
