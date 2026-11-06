@@ -68,7 +68,10 @@ export function ChartScreen({ id }: { id: ResidentId }) {
       ),
     [id],
   )
-  const resource = useResource<ChartData>(load, [id])
+  /* Bumped to read the chart again once a recorded round's sheet has closed. */
+  const [reads, setReads] = useState(0)
+  const [recorded, setRecorded] = useState(false)
+  const resource = useResource<ChartData>(load, [id, reads])
   const ready = resource.kind === 'ready' ? resource.data : undefined
   const [recording, setRecording] = useState(false)
   const act =
@@ -104,7 +107,18 @@ export function ChartScreen({ id }: { id: ResidentId }) {
           roundTime={act.roundTime}
           date={act.date}
           open={recording}
-          onOpenChange={setRecording}
+          onOpenChange={(open) => {
+            setRecording(open)
+            /*
+             * Read again on closing, not on recording: the read would take the
+             * act away and the sheet with it, before "Recorded" could be read.
+             */
+            if (!open && recorded) {
+              setRecorded(false)
+              setReads((count) => count + 1)
+            }
+          }}
+          onRecorded={() => setRecorded(true)}
         />
       )}
       <Loaded

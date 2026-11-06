@@ -7,7 +7,7 @@ import {
   type PinCheck,
 } from '@/app/session/medication-pins'
 import { Button, DigitField } from '@/components/primitives'
-import { formatClockTime } from './pin-wording'
+import { formatClockTime, MEDICATION_PIN } from './pin-wording'
 import styles from './MedicationPinStep.module.css'
 
 /**
@@ -27,11 +27,17 @@ import styles from './MedicationPinStep.module.css'
 export function MedicationPinStep({
   signs,
   confirmLabel,
+  cancelLabel = 'Cancel',
   onConfirmed,
   onCancel,
 }: {
   signs: string
   confirmLabel: string
+  /**
+   * The words on the way out. "Cancel" in a dialog; inside the phone's sheet,
+   * whose own Cancel closes everything, this one goes back a step and says so.
+   */
+  cancelLabel?: string
   onConfirmed: () => void
   onCancel: () => void
 }) {
@@ -52,7 +58,7 @@ export function MedicationPinStep({
     <div className={styles.step} data-pin-step={held ? 'held' : 'not_held'}>
       <p className={styles.signs}>{signs}</p>
       <DigitField
-        label="Enter your medication PIN"
+        label={`Enter your ${MEDICATION_PIN}`}
         length={4}
         value={pin}
         onValueChange={setPin}
@@ -63,7 +69,7 @@ export function MedicationPinStep({
       />
       <div className={styles.actions}>
         <Button variant="secondary" size="large" onClick={onCancel}>
-          Cancel
+          {cancelLabel}
         </Button>
         <Button
           size="large"

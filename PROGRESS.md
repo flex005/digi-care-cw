@@ -2863,3 +2863,34 @@ Every test file that pinned only the hour was run three ways: under the full ins
   - `OFF_LIST_LINE` in `src/features/medications/round/RoundRoute.tsx` ("the PRD does not say whether you record their doses");
   - Today's-style `reasonOf` copies wherever a screen reads `answer.question` itself.
   The question strings in `capabilities.ts` stay: they are the record of what is open, and nothing should draw them. When the desktop is fixed, `phone-refusal.ts` folds into the shared owner and its test widens to every surface. No desktop code is changed now.
+
+## Two questions on the sheet, measured (06/11/2026)
+
+- **Five allergies, measured on a constructed case.** Lonsdale's sheet opened in headless Chrome, her two allergy pills cloned in the DOM up to five and then seven, with realistic substances. Nothing in the code or fixtures changed. **The pinned head never scrolls and has no cap; the dose list gets what is left.** Each allergy adds about 44px.
+
+  | Screen | Allergies | Head ends at | Dose pane |
+  |---|---|---|---|
+  | 390 × 844 | 2 | 302px | 542px |
+  | 390 × 844 | 5 | 434px | 410px |
+  | 390 × 844 | 7 | 522px | 322px |
+  | 375 × 667 | 5 | 434px | 260px |
+  | 390 × 508 (≈ keyboard up) | 2 | 302px | 206px |
+  | 390 × 508 | 5 | 434px | 74px |
+  | 390 × 508 | 7 | 522px | 8px |
+
+  **At seven allergies with the keyboard up, no dose is reachable**, and the "Nothing here checks…" line itself is cut off below the screen (`allergies-390x508-7-1.png`). Not fixed: the decision is the product owner's.
+- **"Still needed" at five doses** is one 171-character sentence: "Still needed: Donepezil: nothing chosen, Atorvastatin: no reason chosen, Metformin: nothing chosen, Levothyroxine: say why it was not given and Furosemide: nothing chosen." It nests colons inside a comma list. **The desktop has the same problem**: `ResidentRoundCard` draws "Waiting on: " and every item joined with " · ", 169 characters at five. Both come from `outstanding()` in `round.ts`, so it is one fix for both. Not fixed: proposed in the report.
+
+## Module 3, step 5: the medication PIN on the phone (06/11/2026)
+
+- **Signing inside the sheet.** Once every offered dose is answered, "Sign with your medication PIN" opens the PIN step under the same pinned head (subject, allergies, nothing-checks line). It shows what it signs dose by dose (`signsLine`) and **the time it will record, before the PIN**: "This will be recorded as 20:20 BST: the time this page was opened at, not the moment you sign." It uses the shared `MedicationPinStep` and then `recordRound` with `stateFor`, the desktop round's own owners. "Recorded for Vera Lonsdale at 20:20 BST, held in this session only." The chart reads the record again **when the sheet closes, not when it records**: reading on record would take the act away and the sheet with it, before the line could be read. Cancel at the PIN goes back with the answers kept.
+- **A round is signed whole, and the phone says so before the PIN.** `recordRound` refuses a round short of any dose `openDosesAt` lists, and that includes controlled drugs, doses not yet open and omissions. Bello's 20:00 has morphine open beside donepezil, so her round cannot be signed on the phone. The sheet says so, naming the morphine, and offers no PIN. Found by reading the loader before building, not by a failure at the PIN.
+- **The instant of the act**: DEPARTURES now says what a real build must do (stamp on the server at the moment the signature is accepted, never a client clock, a page-open time or a time shown before the PIN), and why this build cannot. The desktop round stamps the same snapshot instant and says nothing, so it is added to the tracked desktop cleanup.
+- **A defect from step 4, found while building this: the sheet said "Signing with your drug PIN".** A regex rename of locals reached a string. The test compared the constant with itself, and the ratchet fell by the destroyed word. CLAUDE.md §8 has the entry. The credential's name now has one owner, `MEDICATION_PIN`, read by the PIN step's label and the sheet's button. That is also how this step's genuine new "medication PIN" was kept off the ratchet: one owner instead of a second literal, with the floor unmoved at 1546. New tests assert "medication PIN" as a literal.
+- **Screenshots** at 390: the PIN step, the recorded line and Bello's refusal. They showed two "Cancel" buttons on the PIN step doing different things (the sheet's closes everything; the PIN step's goes back). `MedicationPinStep` takes an optional `cancelLabel` now, "Back to the answers" on the phone; the desktop keeps "Cancel". No console errors or exceptions.
+- **Mutations**, each confirmed landed and restored, each red on its own test:
+  - stamped with the device clock;
+  - the time said not the time stamped;
+  - the whole-round rule dropped;
+  - the chart never reading again;
+  - back from the PIN losing the answers.

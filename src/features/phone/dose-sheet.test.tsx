@@ -17,7 +17,6 @@ import { medications } from '@/data/fixtures/medications'
 import { residents } from '@/data/fixtures/residents'
 import { patchedRecords } from '@/data/access/mar-store'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { SIGNING_NOT_BUILT } from './doses/DoseSheet'
 import { PhoneApp } from './shell/PhoneApp'
 
 vi.mock('next/navigation', () => ({
@@ -118,7 +117,7 @@ describe('the dose sheet', () => {
     expect(sheet.querySelector('[data-sheet-sign]')).toBeNull()
   })
 
-  it('needs a reason for Not given, and words for Other, before it reaches signing — and records nothing', async () => {
+  it('needs a reason for Not given, and words for Other, before it offers the medication PIN — and records nothing before it', async () => {
     const [first, second] = ordinaryOpen('res-lonsdale')
     if (first === undefined || second === undefined)
       throw new Error('Two doses expected')
@@ -152,14 +151,15 @@ describe('the dose sheet', () => {
       target: { value: 'Asleep and could not be woken safely' },
     })
     expect(sheet.querySelector('[data-still-needed]')).toBeNull()
+    // The literal words, not a constant: the credential is named the medication PIN (CLAUDE.md §6).
     expect(sheet.querySelector('[data-sheet-sign]')?.textContent).toBe(
-      SIGNING_NOT_BUILT,
+      'Sign with your medication PIN',
     )
     expect(sheet.querySelector('[data-sheet-answered]')?.textContent).toBe(
       '2 of 2 doses answered',
     )
 
-    // Nothing reaches the record: signing is the next step.
+    // Nothing reaches the record until the PIN is given.
     expect(
       JSON.stringify(
         patchedRecords().filter((record) => record.residentId === 'res-lonsdale'),

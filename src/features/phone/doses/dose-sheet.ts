@@ -4,6 +4,7 @@ import {
   outstanding,
   UNANSWERED,
   windowOf,
+  doseName,
   type DoseAnswer,
   type RoundDose,
 } from '@/features/medications/round/round'
@@ -118,4 +119,21 @@ export function stillNeeded(
     answered,
     asked: asked.length,
   }
+}
+
+/**
+ * The open doses at the round the sheet cannot answer, by name, **asked of the
+ * record's own list of what a round must answer** (`openDosesAt`): a controlled
+ * drug, a dose not open yet, an omission. While any is open the round cannot be
+ * signed on the phone, because the record takes a round whole.
+ */
+export function heldBack(doses: SheetDose[], open: string[]): string[] {
+  return doses
+    .filter(
+      (entry) =>
+        entry.kind !== 'to_answer' &&
+        entry.kind !== 'recorded' &&
+        open.includes(entry.dose.medication.id),
+    )
+    .map((entry) => doseName(entry.dose.medication))
 }
