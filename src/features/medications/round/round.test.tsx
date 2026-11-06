@@ -11,9 +11,15 @@ import { vi } from 'vitest'
  * before its window opens, and `round-window.test.tsx` is where that is
  * asserted. At 20:20 the fixtures have signed for half the round already, so
  * the doses these tests answer are read from `openDosesAt` rather than named.
+ *
+ * **A full instant, written with a `Z`**: 16/09/2026 at 19:20 UTC, which is
+ * 20:20 at Rosewood on British Summer Time. `?at=20:20` named the hour and left
+ * the date and the zone to the machine, so the suite tested a different day in
+ * a different season on every run, and on a machine whose zone is not the
+ * home's, a different hour (CLAUDE.md §8, on pins).
  */
 vi.hoisted(() => {
-  window.history.replaceState(null, '', '/medications/round?at=20:20')
+  window.history.replaceState(null, '', '/medications/round?at=2026-09-16T19:20:00Z')
 })
 
 import { screen, waitFor, within } from '@testing-library/react'
