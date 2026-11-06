@@ -14,7 +14,7 @@ import { now } from '@/data/fixtures/clock'
 import { MoodBadge, Settled, StatusPill, Unrecorded } from '@/components/status'
 import { useSiteFormat } from '@/app/session/use-session'
 import { assertNever } from '@/lib/assert-never'
-import { formatLateness, pluralise } from '@/lib/format'
+import { formatLateness, MONTH_THRESHOLD_DAYS, pluralise } from '@/lib/format'
 import { SHIFT_NAMES, elapsedMinutesBetween } from '@/lib/shift'
 import styles from './notes.module.css'
 
@@ -74,8 +74,7 @@ export function REVIEW_OUTCOME_LABEL(outcome: ReviewOutcome): string {
  * and rounds it to months above, so it is handed whole days where it prints
  * them and the unrounded span where it rounds. A whole day count there was a
  * second rounding: 76.3 days rounded to 76 and read as 2 months, not 3. The
- * 60 is `formatDuration`'s switch to months; `format-wait.test.ts` fails if
- * the two part.
+ * switch is `formatDuration`'s own, imported, so the two cannot part.
  */
 export function formatWait(minutes: number): string {
   const whole = Math.max(0, Math.round(minutes))
@@ -83,7 +82,7 @@ export function formatWait(minutes: number): string {
   const hours = Math.round(whole / 60)
   if (hours < 48) return pluralise(hours, 'hour')
   const days = whole / (24 * 60)
-  return formatLateness(days < 60 ? Math.round(days) : days)
+  return formatLateness(days < MONTH_THRESHOLD_DAYS ? Math.round(days) : days)
 }
 
 /** How long between two instants, as a wait. */
