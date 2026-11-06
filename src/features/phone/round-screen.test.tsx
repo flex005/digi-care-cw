@@ -22,6 +22,7 @@ import { memberById } from '@/data/access/team-store'
 import { residentScopeFor, scopeReaches } from '@/app/session/resident-scope'
 import { zonedDate } from '@/lib/format'
 import { renderSignedIn } from '@/test/render-signed-in'
+import { listName } from './phone-data'
 import { PhoneApp } from './shell/PhoneApp'
 
 vi.mock('next/navigation', () => ({
@@ -124,8 +125,10 @@ describe('your round for a care worker whose open doses are all controlled drugs
       const row = rowOf(id)
       if (row === null) throw new Error(`No row for ${id}`)
       const person = residents.find((entry) => entry.id === id)
+      if (person === undefined) throw new Error(`No resident ${id}`)
+      // The list name, as the row's heading: the legal name under it reads as two people.
       expect(row.querySelector('[data-controlled="only"]')?.textContent).toContain(
-        `Nothing can be recorded for ${person?.fullLegalName} here`,
+        `Nothing can be recorded for ${listName(person)} here`,
       )
       expect(row.textContent).toMatch(
         /Recording a controlled drug — not built yet on the phone\./,
@@ -153,6 +156,20 @@ describe('your round for a senior carer', () => {
     expect(shownRows()).toEqual(
       atRound((id) => residents.some((r) => r.id === id && r.siteId === ROSEWOOD)),
     )
+  })
+
+  it('names a person in the row’s sentence by the list name, where it differs from the legal name', async () => {
+    const ashworth = residents.find((entry) => entry.id === 'res-ashworth')
+    if (ashworth === undefined) throw new Error('No res-ashworth')
+    // The case only exists where the two names differ; say so rather than pass vacuously.
+    expect(listName(ashworth)).not.toBe(ashworth.fullLegalName)
+    openRound(staffAkinyemi.id)
+    await within(roundTab()).findByText(`${ROUND} round, 16/09/2026`)
+    const line = rowOf('res-ashworth')?.querySelector('[data-controlled="only"]')
+    expect(line?.textContent).toContain(
+      `Nothing can be recorded for ${listName(ashworth)} here`,
+    )
+    expect(line?.textContent).not.toContain(ashworth.fullLegalName)
   })
 
   it('opens a record from a row and has nothing on it that records', async () => {

@@ -156,6 +156,12 @@ function RoundList({ data, at }: { data: RoundData; at: IsoDateTime }) {
  * One person at the round: who, where, and what the phone can and cannot do
  * about their doses, each fact on its own line (CLAUDE.md §1, a compound state
  * as separate facts). The row opens their record and records nothing.
+ *
+ * **The sentence names the person as the row's heading does, by the list name.**
+ * The legal name directly under the list name ("Ronald" under "Ron") reads as
+ * two people. This is the phone's form of §2, not a break from the desktop's
+ * legal name in sentences: there the list name is never directly above the
+ * sentence. docs/DEPARTURES.md, phone.
  */
 function RoundRowLink({ row }: { row: RoundRow }) {
   const format = useSiteFormat()
@@ -203,7 +209,7 @@ function RoundRowLink({ row }: { row: RoundRow }) {
             <ActLine kind="not_built">
               {`${
                 nothingHere
-                  ? `Nothing can be recorded for ${person.fullLegalName} here: ${pluralise(row.controlled, 'controlled drug')} open.`
+                  ? `Nothing can be recorded for ${listName(person)} here: ${pluralise(row.controlled, 'controlled drug')} open.`
                   : `${pluralise(row.controlled, 'controlled drug')} open as well.`
               } ${notBuiltOnPhone('Recording a controlled drug')}`}
             </ActLine>
