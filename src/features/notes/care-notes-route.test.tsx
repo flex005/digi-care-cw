@@ -10,7 +10,6 @@ import { submitCareNote } from '@/data/access/client'
 import { now } from '@/data/fixtures/clock'
 import { renderSignedIn } from '@/test/render-signed-in'
 import { formatCount } from '@/lib/format'
-import { waitingSince } from './note-parts'
 import { CareNotesRoute } from './CareNotesRoute'
 
 const navigation = vi.hoisted(() => ({ pathname: '/care-notes', params: {} }))
@@ -119,9 +118,7 @@ describe('the dark card', () => {
       ),
     ).toBeTruthy()
     expect(within(section).getByText('Oldest waiting')).toBeTruthy()
-    expect(
-      within(section).getByText(waitingSince(flagged[0] as IsoDateTime)),
-    ).toBeTruthy()
+    expect(within(section).getByText('3 days')).toBeTruthy()
   })
 
   it('counts over the home for a senior carer', async () => {

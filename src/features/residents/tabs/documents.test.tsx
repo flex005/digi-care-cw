@@ -13,7 +13,6 @@ import { residentScopeFor } from '@/app/session/resident-scope'
 import { signInRoleOf } from '@/app/session/roles'
 import { renderProfileTab } from '@/test/render-signed-in'
 import { DocumentsTab } from './DocumentsTab'
-import { DOCUMENT_CATEGORIES } from './documents/categories'
 import { countExpiry, expiryFinding } from './documents/expiry'
 import { brokenReferences, expectationFor, residentLibrary } from './documents/library'
 
@@ -136,8 +135,17 @@ describe("a resident's library", () => {
     const rendered = [...panel.querySelectorAll('[data-category]')].map((section) =>
       section.getAttribute('data-category'),
     )
-    expect(rendered).toEqual(DOCUMENT_CATEGORIES.map((category) => category.id))
-    expect(rendered[0]).toBe('legal_authority')
+    // Written out: compared with DOCUMENT_CATEGORIES, a category dropped from
+    // that list would be dropped from this expectation too, and pass.
+    expect(rendered).toEqual([
+      'legal_authority',
+      'identity_admission',
+      'health_clinical',
+      'assessments_care_planning',
+      'consent_records',
+      'correspondence',
+      'photographs_media',
+    ])
   })
 
   it('states the denominator on every finding', async () => {

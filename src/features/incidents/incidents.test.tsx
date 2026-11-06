@@ -20,7 +20,7 @@ import { staffAkinyemi, staffEze } from '@/data/fixtures/organisation'
 import { endSession } from '@/data/access/session-losses'
 import { resetSessionIncidents } from '@/data/access/incident-store'
 import { renderSignedIn } from '@/test/render-signed-in'
-import { NO_DETAIL_LINE, IncidentsRoute } from './IncidentsRoute'
+import { IncidentsRoute } from './IncidentsRoute'
 
 const navigation = vi.hoisted(() => ({ pathname: '/incidents', params: {} }))
 vi.mock('next/navigation', () => ({
@@ -136,7 +136,12 @@ describe('the list', () => {
 
   it('says there is nowhere to open to, rather than drawing a link to nothing', async () => {
     await openList()
-    expect(screen.getByText(new RegExp(NO_DETAIL_LINE))).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Each incident is shown whole here. The CW PRD has no screen for one incident on its own, so there is nowhere to open to.',
+        { exact: false },
+      ),
+    ).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /^Open/ })).toBeNull()
   })
 

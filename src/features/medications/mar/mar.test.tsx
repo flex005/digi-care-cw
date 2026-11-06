@@ -48,7 +48,6 @@ import {
 } from '@/data/fixtures/medications'
 import { formatDate } from '@/lib/format'
 import { renderProfileTab } from '@/test/render-signed-in'
-import { NOT_GIVEN_REASON_LABEL } from '../medication-words'
 import { historyOf, keyOf, monthLabel } from './mar-grid'
 import { MarChartRoute } from './MarChartRoute'
 
@@ -143,6 +142,22 @@ async function cellFor(container: HTMLElement, record: MarRecord) {
  * *is* recorded.
  */
 const isHatched = (element: Element) => /unrecorded(?![A-Za-z])/.test(element.className)
+
+/** The month's name in words, written here rather than asked of the grid. */
+const MONTH_WORDS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
 
 describe('a real table', () => {
   it('has a caption, day and round column headers, and a row header per medication', async () => {
@@ -291,8 +306,16 @@ describe('each state distinct, in words and shape', () => {
 
     fireEvent.click(cell)
     const dialog = await screen.findByRole('dialog')
+    const reasonWords = {
+      resident_refused: 'Resident refused',
+      resident_asleep: 'Resident asleep',
+      resident_in_hospital: 'Resident in hospital',
+      medication_unavailable: 'Medication not available',
+      resident_vomiting: 'Resident vomiting',
+      other: 'Other',
+    }
     expect(dialog.querySelector('[data-fact="Reason"]')?.textContent).toContain(
-      NOT_GIVEN_REASON_LABEL[record.state.reason],
+      reasonWords[record.state.reason],
     )
     expect(dialog.querySelector('[data-fact="Recorded by"]')?.textContent).toContain(
       record.state.recordedBy.displayName,
@@ -540,7 +563,7 @@ describe('how much of the record is on screen', () => {
       fireEvent.click(previous)
 
     expect(container.querySelector('[data-range-label]')?.textContent).toBe(
-      `Month of ${monthLabel(history.months[0]!)}`,
+      `Month of ${MONTH_WORDS[history.months[0]!.month - 1]} ${history.months[0]!.year}`,
     )
     expect(
       within(container).getByRole('button', { name: 'Previous month' }),
