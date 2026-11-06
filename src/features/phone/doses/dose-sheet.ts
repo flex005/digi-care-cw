@@ -1,7 +1,10 @@
 import type { IsoDate, IsoDateTime } from '@/data/types'
 import { assertNever } from '@/lib/assert-never'
 import {
+  needsAt,
+  NOTHING_CHOSEN,
   outstanding,
+  type DoseNeed,
   UNANSWERED,
   windowOf,
   doseName,
@@ -79,9 +82,9 @@ export function sheetDoses(input: {
 }
 
 /**
- * What still stands between the sheet and its signature, named dose by dose,
- * **asked of the desktop round's `outstanding`**, so a missing reason is said in
- * the same words at the trolley and on the phone.
+ * What still stands between the sheet and its signature, dose by dose, **asked
+ * of the desktop round's `outstanding`**, so a missing reason is said in the
+ * same words at the trolley and on the phone, at the dose it is about.
  *
  * Only the doses the sheet offers an answer for are passed: a controlled drug
  * is not on the sheet's answers at all, so it neither blocks the doses that are
@@ -90,11 +93,11 @@ export function sheetDoses(input: {
 export function stillNeeded(
   doses: SheetDose[],
   answers: Record<string, DoseAnswer>,
-): { waiting: string[]; ready: boolean; answered: number; asked: number } {
+): { needs: DoseNeed[]; ready: boolean; answered: number; asked: number } {
   const asked = doses.flatMap((entry) =>
     entry.kind === 'to_answer' ? [entry.dose] : [],
   )
-  const { waiting, ready } = outstanding({
+  const { needs, ready } = outstanding({
     doses: asked,
     answers,
     access: () => ({ window: { kind: 'open' }, record: { kind: 'open' } }),
@@ -111,10 +114,11 @@ export function stillNeeded(
    */
   const unanswered = asked
     .filter((dose) => (answers[dose.medication.id] ?? UNANSWERED).kind === 'unanswered')
-    .map((dose) => `${dose.medication.name}: nothing chosen`)
-  const all = [...new Set([...unanswered, ...waiting])]
+    .filter((dose) => needsAt(needs, dose.medication.id).length === 0)
+    .map((dose) => ({ medicationId: dose.medication.id, need: NOTHING_CHOSEN }))
+  const all = [...unanswered, ...needs]
   return {
-    waiting: all,
+    needs: all,
     ready: ready && all.length === 0,
     answered,
     asked: asked.length,

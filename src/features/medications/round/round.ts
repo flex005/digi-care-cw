@@ -10,6 +10,8 @@ import type {
 } from '@/data/types'
 import type { MarRecord } from '@/data/fixtures/medications'
 import { minutesOfDay } from '@/data/fixtures/rounds'
+import { pluralise } from '@/lib/format'
+import { listInWords } from '@/features/notes/composer/note-fields'
 import { NOT_GIVEN_REASON_LABEL } from '../medication-words'
 
 /**
@@ -249,10 +251,24 @@ export function needsOpeningCount(
 const WHOLE_NUMBER = /^\d+$/
 
 /**
- * What stands between a card and its record, named dose by dose.
+ * One thing a dose still needs before its round can be signed: "no reason
+ * chosen", "no opening count". Said **at the dose it is about** (`neededAtLine`),
+ * and only counted at the foot of the round (`stillNeedLine`).
+ */
+export interface DoseNeed {
+  medicationId: string
+  need: string
+}
+
+/**
+ * What stands between a card and its record, dose by dose.
  *
- * **Named, not counted.** "Morphine sulfate oral solution: no reason" tells
- * somebody standing at a trolley where to look.
+ * **Said where it is, counted at the end.** These were once one sentence at the
+ * foot of the round, every dose named with its gap: at five doses that ran to
+ * 169 characters on the desktop and 171 on the phone, colons inside a list, and
+ * somebody had to read it, find the dose, and come back (PROGRESS.md,
+ * 06/11/2026). Each need is now said at its dose, where it is fixed, and the
+ * foot of the round says how many doses still need something, out of how many.
  *
  * **A dose whose window has not opened is not waiting on anybody.** It is not
  * outstanding, it does not block the round, and it is never named here: the
@@ -266,7 +282,12 @@ export function outstanding(input: {
   balance: (medication: Medication) => StockBalance
   prn: { medication: Medication; answer: PrnAnswer }[]
 }): {
-  waiting: string[]
+  needs: DoseNeed[]
+  /**
+   * How many doses the viewer is answering: those open that this viewer can
+   * record, and the as-required doses chosen. What `needs` is counted out of.
+   */
+  asked: number
   /** A dose this viewer cannot record, so the round itself cannot be recorded. */
   blocked: RoundDose[]
   /** Doses nobody can record yet, because the round has not opened. */
@@ -285,46 +306,70 @@ export function outstanding(input: {
   const chosen = open.filter((dose) => answerOf(dose).kind !== 'unanswered')
   const prnChosen = input.prn.filter((entry) => entry.answer.kind === 'prn')
 
-  const waiting: string[] = []
+  const needs: DoseNeed[] = []
   for (const dose of open) {
     const answer = answerOf(dose)
-    const name = dose.medication.name
+    const need = (what: string) =>
+      needs.push({ medicationId: dose.medication.id, need: what })
     switch (answer.kind) {
       case 'unanswered':
         // Only a shortfall once somebody has started the round: a PRN on its
         // own does not need the round answered.
         if (chosen.length > 0 && input.access(dose).record.kind !== 'cannot_record')
-          waiting.push(`${name}: nothing chosen`)
+          need(NOTHING_CHOSEN)
         break
       case 'not_given':
-        if (answer.reason === 'not_chosen') waiting.push(`${name}: no reason chosen`)
+        if (answer.reason === 'not_chosen') need('no reason chosen')
         else if (answer.reason === 'other' && answer.note.trim() === '')
-          waiting.push(`${name}: say why it was not given`)
+          need('say why it was not given')
         break
       case 'given':
         if (
           needsOpeningCount(dose.medication, input.balance(dose.medication), answer)
         ) {
-          if (!WHOLE_NUMBER.test(answer.openingCount.trim()))
-            waiting.push(`${name}: no opening count`)
-          if (answer.witness === 'not_chosen')
-            waiting.push(`${name}: no witness to the opening count`)
+          if (!WHOLE_NUMBER.test(answer.openingCount.trim())) need('no opening count')
+          if (answer.witness === 'not_chosen') need('no witness to the opening count')
         }
         break
     }
   }
   for (const entry of prnChosen) {
     if (entry.answer.kind !== 'prn') continue
-    if (entry.answer.reason.trim() === '')
-      waiting.push(`${entry.medication.name}: no reason for giving it`)
-    if (entry.answer.symptom.trim() === '')
-      waiting.push(`${entry.medication.name}: no symptom`)
+    const need = (what: string) =>
+      needs.push({ medicationId: entry.medication.id, need: what })
+    if (entry.answer.reason.trim() === '') need('no reason for giving it')
+    if (entry.answer.symptom.trim() === '') need('no symptom')
   }
 
+  const asked =
+    open.filter((dose) => input.access(dose).record.kind !== 'cannot_record').length +
+    prnChosen.length
   const roundReady = chosen.length > 0 && blocked.length === 0
   const ready =
-    waiting.length === 0 && (chosen.length > 0 ? roundReady : prnChosen.length > 0)
-  return { waiting, blocked, notOpenYet, ready }
+    needs.length === 0 && (chosen.length > 0 ? roundReady : prnChosen.length > 0)
+  return { needs, asked, blocked, notOpenYet, ready }
+}
+
+/** What an open dose nobody has answered still needs. */
+export const NOTHING_CHOSEN = 'nothing chosen'
+
+/** The needs of one dose, in the order they arose. */
+export const needsAt = (needs: DoseNeed[], medicationId: string): string[] =>
+  needs
+    .filter((entry) => entry.medicationId === medicationId)
+    .map((entry) => entry.need)
+
+/** What one dose still needs, said at the dose: "Still needed: no reason chosen." */
+export const neededAtLine = (needs: string[]): string =>
+  `Still needed: ${listInWords(needs)}.`
+
+/**
+ * The foot of a round: how many doses still need something, out of how many are
+ * being answered. Never the needs themselves, which are at their doses.
+ */
+export function stillNeedLine(needs: DoseNeed[], asked: number): string {
+  const doses = new Set(needs.map((entry) => entry.medicationId)).size
+  return `${doses} of ${pluralise(asked, 'dose')} still ${doses === 1 ? 'needs' : 'need'} something before the round can be signed.`
 }
 
 /** The state a chosen answer becomes, signed by the viewer at the moment of the act. */

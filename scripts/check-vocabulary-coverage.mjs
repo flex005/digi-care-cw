@@ -197,8 +197,12 @@ const BASELINE_TSX_ONLY_FILES = 85
  * holds that a term hardcoded in a
  * label, a heading and a sentence each still fail. Two of the 1546 are code the
  * scanner over-reads as text after a generic, which is the safe direction.
+ *
+ * **Lowered to 1541 on 06/11/2026**, measured: `outstanding` in round.ts no
+ * longer builds a sentence from each `medication.name`, and the desktop round
+ * card's as-required list calls its local `drug`.
  */
-const BEST = 1546
+const BEST = 1541
 
 /**
  * Where copy lives, and therefore where this counts.

@@ -396,14 +396,24 @@ describe('not given', () => {
     const dose = doseIn(card, castledine.id)
     await user.click(within(dose).getByRole('button', { name: 'Not given' }))
     expect(actFor(card)).toBeDisabled()
-    expect(card.querySelector('[data-waiting]')?.textContent).toMatch(
-      /no reason chosen/,
+    // What it needs is said at the dose; the foot only counts.
+    expect(dose.querySelector('[data-needed]')?.textContent).toBe(
+      'Still needed: no reason chosen.',
     )
+    const foot = card.querySelector('[data-waiting]')?.textContent ?? ''
+    const [, of] =
+      /^1 of (\d+) doses? still needs something before the round can be signed\.$/.exec(
+        foot,
+      ) ?? []
+    expect(Number(of)).toBe(
+      openDosesAt('res-castledine' as ResidentId, TODAY, ROUND).length,
+    )
+    expect(foot).not.toMatch(/Atorvastatin|no reason/)
 
     await user.click(within(dose).getByRole('radio', { name: 'Other' }))
     expect(actFor(card)).toBeDisabled()
-    expect(card.querySelector('[data-waiting]')?.textContent).toMatch(
-      /say why it was not given/,
+    expect(dose.querySelector('[data-needed]')?.textContent).toBe(
+      'Still needed: say why it was not given.',
     )
 
     await user.type(

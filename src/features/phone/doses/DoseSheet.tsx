@@ -3,7 +3,7 @@ import { now } from '@/data/fixtures/clock'
 import type { IsoDate, IsoDateTime } from '@/data/types'
 import { useSignedIn, useSiteFormat } from '@/app/session/use-session'
 import { ActLine } from '@/components/primitives'
-import { AllergyBadge, Unrecorded } from '@/components/status'
+import { AllergyBadge, AllergyNames, Unrecorded } from '@/components/status'
 import { allergyNotCheckedLine } from '@/features/medications/SigningSubject'
 import {
   NOT_GIVEN_REASON_LABEL,
@@ -12,7 +12,10 @@ import {
 import { notOpenYetLine } from '@/features/medications/round/DoseRow'
 import {
   doseName,
+  neededAtLine,
+  needsAt,
   signsLine,
+  stillNeedLine,
   stateFor,
   UNANSWERED,
   type DoseAnswer,
@@ -47,6 +50,13 @@ export const PRN_NOT_BUILT = notBuiltOnPhone(
  * (CLAUDE.md §2), their allergies in all three states, and the line saying that
  * nothing here checks the drugs against them. A sheet covers the record, so the
  * allergies on it are out of sight at exactly the moment they matter.
+ *
+ * **The pinned allergies are the substances alone, every one** (`AllergyNames`),
+ * and the reaction and severity of each open the scrolling body, read before the
+ * first dose. The head cannot scroll, so whatever it holds is taken from the
+ * doses: with one row per allergy, seven allergies and the keyboard up left 8px
+ * of doses on a 390-wide phone (PROGRESS.md, 06/11/2026). Names wrap to two or
+ * three lines instead, and none is ever hidden to make room.
  *
  * **Every scheduled dose at the round is listed.** An ordinary dose whose window
  * is open takes Given or Not given, **with no default**: a default is a dose
@@ -92,7 +102,7 @@ export function DoseSheet({
         <>
           <SubjectHeader person={person} name="here" />
           <div className={styles.gutter} data-sheet-allergies={person.allergies.kind}>
-            <AllergyBadge status={person.allergies} />
+            <AllergyNames status={person.allergies} />
             <p className={styles.hint}>{allergyNotCheckedLine(person.fullLegalName)}</p>
           </div>
         </>
@@ -204,6 +214,11 @@ function SheetBody({
 
   return (
     <div className={styles.composer} data-dose-sheet={roundTime}>
+      {person.allergies.kind === 'allergies' ? (
+        <div className={styles.items} data-sheet-allergy-detail>
+          <AllergyBadge status={person.allergies} />
+        </div>
+      ) : null}
       <ul className={styles.items}>
         {doses.map((entry) => (
           <li
@@ -214,6 +229,7 @@ function SheetBody({
           >
             <SheetDoseRow
               entry={entry}
+              needs={needsAt(needed.needs, entry.dose.medication.id)}
               answer={answers[entry.dose.medication.id] ?? UNANSWERED}
               onAnswer={(next) =>
                 setAnswers((all) => ({ ...all, [entry.dose.medication.id]: next }))
@@ -231,16 +247,15 @@ function SheetBody({
             Nothing at the {roundTime} round can be recorded on the phone for{' '}
             {person.preferredName}.
           </p>
+        ) : needed.needs.length > 0 ? (
+          <p className={styles.hint} data-still-needed>
+            {stillNeedLine(needed.needs, needed.asked)}
+          </p>
         ) : (
           <p className={styles.hint} data-sheet-answered>
             {needed.answered} of {pluralise(needed.asked, 'dose')} answered
           </p>
         )}
-        {needed.waiting.length > 0 ? (
-          <p className={styles.hint} data-still-needed>
-            Still needed: {listInWords(needed.waiting)}.
-          </p>
-        ) : null}
         {step.kind === 'refused' ? (
           <p className={styles.refusal} role="alert" data-sheet-refused>
             Nothing was recorded. {step.reason}
@@ -292,10 +307,13 @@ export const heldBackLine = (held: string[]): string =>
 
 function SheetDoseRow({
   entry,
+  needs,
   answer,
   onAnswer,
 }: {
   entry: SheetDose
+  /** What this dose still needs before the round can be signed, said at it. */
+  needs: string[]
   answer: DoseAnswer
   onAnswer: (next: DoseAnswer) => void
 }) {
@@ -337,6 +355,11 @@ function SheetDoseRow({
         <>
           <DoseName entry={entry} />
           <Answers name={doseName(drug)} answer={answer} onAnswer={onAnswer} />
+          {needs.length === 0 ? null : (
+            <p className={styles.hint} data-needed>
+              {neededAtLine(needs)}
+            </p>
+          )}
         </>
       )
     default:

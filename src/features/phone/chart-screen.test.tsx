@@ -15,6 +15,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import type { IsoDateTime, SiteId, StaffId } from '@/data/types'
 import { staffAkinyemi, staffEze } from '@/data/fixtures/organisation'
 import { medications } from '@/data/fixtures/medications'
+import { residents } from '@/data/fixtures/residents'
 import { now } from '@/data/fixtures/clock'
 import { patchedRecords } from '@/data/access/mar-store'
 import { zonedDate } from '@/lib/format'
@@ -123,6 +124,42 @@ describe('today’s chart, as a care worker', () => {
     expect(missing?.querySelector('[data-state="unrecorded"]')).not.toBeNull()
     expect(missing?.textContent).toContain('Second signature not recorded')
   })
+
+  /** Somebody with every one of these kinds of dose today, from the records. */
+  const withToday = (...kinds: string[]) => {
+    const id = residents
+      .map((person) => person.id as string)
+      .find((candidate) =>
+        kinds.every((kind) =>
+          dosesToday(candidate).some((record) => record.state.kind === kind),
+        ),
+      )
+    if (id === undefined) throw new Error(`Nobody has ${kinds.join(' and ')} today`)
+    return id
+  }
+
+  it.each([
+    ['given', 'omitted'],
+    ['not_given', 'due'],
+  ])(
+    'says at every given and not-given dose that it cannot be corrected, and nowhere else (%s, %s)',
+    async (...kinds) => {
+      const id = withToday(...kinds)
+      const today = dosesToday(id)
+      const isRecorded = (kind: string) => kind === 'given' || kind === 'not_given'
+      openChart(id, staffAkinyemi.id)
+      await loaded()
+      for (const record of today) {
+        const dose = doseIn(record.roundTime, record.medicationId)
+        if (dose === null)
+          throw new Error(`No dose ${record.medicationId} on the chart`)
+        const line = dose.querySelector('[data-cannot-correct]')
+        if (isRecorded(record.state.kind))
+          expect(line?.textContent).toBe('Correcting a recorded dose — not built yet.')
+        else expect(line).toBeNull()
+      }
+    },
+  )
 
   it('hatches an omission and says nobody has closed it', async () => {
     const omitted = dosesToday('res-adeyemi').find(

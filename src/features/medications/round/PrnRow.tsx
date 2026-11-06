@@ -7,7 +7,7 @@ import { useSignedIn, useSiteFormat } from '@/app/session/use-session'
 import { staffLabel } from '@/data/access/team-store'
 import { Button, SelectedMark, TextField } from '@/components/primitives'
 import { Settled, Unrecorded } from '@/components/status'
-import type { PrnAnswer } from './round'
+import { neededAtLine, type PrnAnswer } from './round'
 import styles from './round.module.css'
 
 /**
@@ -26,12 +26,15 @@ import styles from './round.module.css'
  */
 export function PrnRow({
   medication,
+  needs,
   answer,
   onAnswer,
   given,
   onOutcomeRecorded,
 }: {
   medication: Medication
+  /** What this dose still needs before it can be signed (`outstanding`). */
+  needs: string[]
   answer: PrnAnswer
   onAnswer: (next: PrnAnswer) => void
   given: PrnAdministration[]
@@ -99,6 +102,11 @@ export function PrnRow({
             </p>
           </div>
         ) : null}
+        {needs.length === 0 ? null : (
+          <p className={styles.needed} data-needed>
+            {neededAtLine(needs)}
+          </p>
+        )}
       </div>
     </li>
   )

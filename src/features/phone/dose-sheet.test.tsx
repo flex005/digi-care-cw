@@ -87,15 +87,13 @@ describe('the dose sheet', () => {
       personOf('res-lonsdale').fullLegalName,
     )
     const allergies = sheet.querySelector<HTMLElement>('[data-sheet-allergies]')
-    expect(allergies?.dataset.sheetAllergies).toBe(
-      personOf('res-lonsdale').allergies.kind,
+    expect(allergies?.dataset.sheetAllergies).toBe('allergies')
+    // Pinned: the substances alone. The reactions open the body (seven-allergies test).
+    expect(allergies?.querySelector('[data-tone="critical"]')?.textContent).toBe(
+      'Allergies: Penicillin, Latex',
     )
-    const lonsdale = personOf('res-lonsdale').allergies
-    if (lonsdale.kind !== 'allergies') throw new Error('Lonsdale’s allergies changed')
-    for (const allergy of lonsdale.items)
-      expect(allergies?.textContent).toContain(`Allergy: ${allergy.substance}`)
     expect(allergies?.textContent).toContain(
-      `Nothing here checks these drugs against ${personOf('res-lonsdale').fullLegalName}’s allergies.`,
+      'Nothing here checks these drugs against Vera Lonsdale’s allergies.',
     )
   })
 
@@ -111,8 +109,13 @@ describe('the dose sheet', () => {
         radios.every((radio) => radio.getAttribute('aria-checked') === 'false'),
       ).toBe(true)
     }
+    for (const record of open)
+      expect(
+        sheet.querySelector(`[data-sheet-dose="${record.medicationId}"] [data-needed]`)
+          ?.textContent,
+      ).toBe('Still needed: nothing chosen.')
     expect(sheet.querySelector('[data-still-needed]')?.textContent).toBe(
-      `Still needed: ${open.map((r) => `${drugOf(r.medicationId).name}: nothing chosen`).join(' and ')}.`,
+      '2 of 2 doses still need something before the round can be signed.',
     )
     expect(sheet.querySelector('[data-sheet-sign]')).toBeNull()
   })
@@ -126,6 +129,8 @@ describe('the dose sheet', () => {
     )
     const sheet = await openSheet('res-lonsdale', staffAkinyemi.id)
     const needed = () => sheet.querySelector('[data-still-needed]')?.textContent ?? ''
+    const neededAt = (id: string) =>
+      sheet.querySelector(`[data-sheet-dose="${id}"] [data-needed]`)?.textContent ?? ''
 
     fireEvent.click(
       within(answersFor(sheet, first.medicationId)).getByRole('radio', {
@@ -138,13 +143,19 @@ describe('the dose sheet', () => {
       }),
     )
     const secondName = drugOf(second.medicationId).name
-    expect(needed()).toBe(`Still needed: ${secondName}: no reason chosen.`)
+    expect(neededAt(first.medicationId)).toBe('')
+    expect(neededAt(second.medicationId)).toBe('Still needed: no reason chosen.')
+    expect(needed()).toBe(
+      '1 of 2 doses still needs something before the round can be signed.',
+    )
 
     const reasons = within(sheet).getByRole('radiogroup', {
       name: `Why ${secondName} ${drugOf(second.medicationId).dose} was not given`,
     })
     fireEvent.click(within(reasons).getByRole('radio', { name: 'Other' }))
-    expect(needed()).toBe(`Still needed: ${secondName}: say why it was not given.`)
+    expect(neededAt(second.medicationId)).toBe(
+      'Still needed: say why it was not given.',
+    )
     expect(sheet.querySelector('[data-sheet-sign]')).toBeNull()
 
     fireEvent.change(within(sheet).getByLabelText('Why was it not given? (required)'), {
@@ -182,6 +193,9 @@ describe('the dose sheet', () => {
     expect(row?.getAttribute('data-sheet-kind')).toBe('recorded')
     expect(row?.querySelector('[role="radio"]')).toBeNull()
     expect(row?.querySelector('[data-dose="given"]')).not.toBeNull()
+    expect(row?.querySelector('[data-cannot-correct]')?.textContent).toBe(
+      'Correcting a recorded dose — not built yet.',
+    )
     expect(sheet.textContent).toContain('as required — not built yet on the phone.')
   })
 })
@@ -207,8 +221,9 @@ describe('a round with a controlled drug and an ordinary dose open together', ()
         'Recording a controlled drug — not built yet on the phone.',
       )
     }
-    expect(sheet.querySelector('[data-sheet-answered]')?.textContent).toBe(
-      `0 of ${ordinaryOpen('res-bello').length} dose${ordinaryOpen('res-bello').length === 1 ? '' : 's'} answered`,
+    expect(ordinaryOpen('res-bello')).toHaveLength(1)
+    expect(sheet.querySelector('[data-still-needed]')?.textContent).toBe(
+      '1 of 1 dose still needs something before the round can be signed.',
     )
   })
 })

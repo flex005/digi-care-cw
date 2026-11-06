@@ -6,13 +6,19 @@ import { StatusPill, Unrecorded } from '@/components/status'
 import { NOT_GIVEN_REASON_LABEL } from '@/features/medications/medication-words'
 import { doseName } from '@/features/medications/round/round'
 import { assertNever } from '@/lib/assert-never'
-import { notBuiltOnPhone } from '../not-built'
+import { notBuiltOnPhone, notBuiltYet } from '../not-built'
 import type { ChartDose } from '../phone-chart'
 import styles from '../phone.module.css'
 
 /**
  * One dose, as separate facts: what it is, what the record holds, and, where it
  * is still open, why it cannot be recorded here.
+ *
+ * **A given or not-given dose says it cannot be corrected**, at the dose, in
+ * the chart and on the round's sheet alike: somebody looking at an entry they
+ * know is wrong is standing at the act. No surface in this build corrects a
+ * dose, so the line does not say "on the phone" (`notBuiltYet`). An omission
+ * and a dose with no record held are not recorded doses, and say nothing.
  */
 export function DoseFacts({
   dose,
@@ -77,6 +83,7 @@ export function DoseFacts({
             {format.time(state.givenAt)} · {staffLabel(state.givenBy)}
           </p>
           <Witness witness={state.witness} />
+          <CannotCorrect />
         </>
       )
     case 'not_given':
@@ -94,6 +101,7 @@ export function DoseFacts({
           <p className={styles.byline}>
             {format.time(state.recordedAt)} · {staffLabel(state.recordedBy)}
           </p>
+          <CannotCorrect />
         </>
       )
     case 'omitted':
@@ -127,6 +135,17 @@ export function DoseFacts({
     default:
       return assertNever(state)
   }
+}
+
+/** Said on a recorded dose wherever the phone shows one. */
+export const CANNOT_CORRECT_DOSE = notBuiltYet('Correcting a recorded dose')
+
+function CannotCorrect() {
+  return (
+    <span data-cannot-correct>
+      <ActLine kind="not_built">{CANNOT_CORRECT_DOSE}</ActLine>
+    </span>
+  )
 }
 
 function Witness({ witness }: { witness: MarWitness }) {

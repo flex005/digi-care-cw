@@ -317,6 +317,14 @@
   font-weight: var(--weight-semibold);
 }
 
+/* What one dose still needs, at the dose: where it is fixed. */
+.needed {
+  color: var(--ink-700);
+  font-size: var(--text-body-sm-size);
+  line-height: var(--text-body-sm-line);
+  font-weight: var(--weight-semibold);
+}
+
 .actRow {
   display: flex;
   flex-wrap: wrap;

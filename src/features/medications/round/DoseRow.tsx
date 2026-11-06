@@ -18,6 +18,7 @@ import {
   NOT_GIVEN_REASONS,
 } from '../medication-words'
 import {
+  neededAtLine,
   needsOpeningCount,
   type DoseAccess,
   type DoseAnswer,
@@ -59,6 +60,7 @@ export const notOpenYetLine = (opensAt: string): string =>
  */
 export function DoseRow({
   dose,
+  needs,
   answer,
   onAnswer,
   access,
@@ -68,6 +70,8 @@ export function DoseRow({
   residentName,
 }: {
   dose: RoundDose
+  /** What this dose still needs before the round can be signed (`outstanding`). */
+  needs: string[]
   answer: DoseAnswer
   onAnswer: (next: DoseAnswer) => void
   access: DoseAccess
@@ -126,6 +130,11 @@ export function DoseRow({
           />
         ) : (
           <RecordedDose dose={dose} />
+        )}
+        {needs.length === 0 ? null : (
+          <p className={styles.needed} data-needed>
+            {neededAtLine(needs)}
+          </p>
         )}
       </div>
     </li>
