@@ -11,6 +11,7 @@ vi.hoisted(() => {
 })
 
 import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { IsoDateTime, SiteId, StaffId } from '@/data/types'
 import { staffAkinyemi, staffEze, staffOsei } from '@/data/fixtures/organisation'
@@ -100,53 +101,115 @@ function ezesList(): (id: string) => boolean {
   return (id) => scope.kind !== 'not_decided' && scopeReaches(scope, id as never)
 }
 
-/** The names a reader sees in a row's sentence, written here rather than asked of `listName`. */
-const LIST_NAMES: Record<string, string> = {
-  'res-adeyemi': 'Grace Adeyemi',
-  'res-okafor': 'Emmanuel Okafor',
-  'res-pemberton': 'Arthur Pemberton',
-}
-
-describe('your round for a care worker whose open doses are all controlled drugs', () => {
-  it('lists everybody on her list at the round, and the fixtures make every open dose controlled', async () => {
-    const reaches = ezesList()
-    const expected = atRound(reaches)
-    expect(expected.length).toBeGreaterThan(0)
-    const open = expected.flatMap(openAt20)
-    expect(open.length).toBeGreaterThan(0)
-    expect(
-      open.every((record) => medicationOf(record.medicationId).isControlledDrug),
-    ).toBe(true)
-
+/**
+ * N. Eze's 20:00 round, the screen this all started from: her residents'
+ * evening rounds held nothing but controlled drugs, so Given and Not given never
+ * appeared for her anywhere in the build. The fixtures now carry an ordinary
+ * evening medicine for each of her four (07/11/2026), and these hold what has
+ * to stay true. Residents, doses and words are literals, from the records at
+ * 20:20 BST on 16/09/2026.
+ */
+describe('your round for a care worker, N. Eze, at 20:00', () => {
+  it('lists everybody on her list at the round', async () => {
+    const expected = atRound(ezesList())
+    expect(expected).toEqual([
+      'res-adeyemi',
+      'res-hutchinson',
+      'res-okafor',
+      'res-pemberton',
+    ])
     openRound(staffEze.id)
     await within(roundTab()).findByText(`${ROUND} round, 16/09/2026`)
     expect(shownRows()).toEqual(expected)
   })
 
-  it('says on each such row that a senior carer records controlled drugs, and nothing about the PRD', async () => {
-    const withOpen = atRound(ezesList()).filter((id) => openAt20(id).length > 0)
-    expect(withOpen.length).toBeGreaterThan(0)
+  it('carries at least one ordinary dose she can record, and at least one controlled dose she cannot', async () => {
+    // From the records: an ordinary dose open on her list, and a controlled one.
+    const open = atRound(ezesList()).flatMap(openAt20)
+    expect(
+      open.some((record) => !medicationOf(record.medicationId).isControlledDrug),
+    ).toBe(true)
+    expect(
+      open.some((record) => medicationOf(record.medicationId).isControlledDrug),
+    ).toBe(true)
+
+    // Beryl Hutchinson's atorvastatin is the only dose open on her round, and
+    // the round row offers it.
+    expect(openAt20('res-hutchinson').map((record) => record.medicationId)).toEqual([
+      'med-res-hutchinson-atorvastatin',
+    ])
     openRound(staffEze.id)
     await within(roundTab()).findByText(`${ROUND} round, 16/09/2026`)
-    for (const id of withOpen) {
-      const row = rowOf(id)
-      if (row === null) throw new Error(`No row for ${id}`)
-      // The list name, as the row's heading: the legal name under it reads as two people.
-      const name = LIST_NAMES[id]
-      if (name === undefined) throw new Error(`No list name written here for ${id}`)
-      expect(row.querySelector('[data-controlled="only"]')?.textContent).toMatch(
-        new RegExp(
-          `^Nothing for you to record for ${name}: \\d+ controlled drugs? open\\. A senior carer records controlled drugs\\.$`,
-        ),
-      )
-      expect(row.textContent).not.toMatch(/not built/)
-      expect(row.querySelector('[data-to-record]')).toBeNull()
-    }
-    // The role table's open question is for the PRD's author, never printed at the reader.
-    expect(roundTab().querySelector('[data-answer]')).toBeNull()
-    expect(roundTab().textContent).not.toMatch(/PRD|role table/)
+    expect(
+      rowOf('res-hutchinson')?.querySelector('[data-to-record]')?.textContent,
+    ).toBe('1 to record now')
+    expect(rowOf('res-hutchinson')?.querySelector('[data-controlled]')).toBeNull()
+
+    // Arthur Pemberton's oxycodone is the only dose open on his, and she is told
+    // who records it.
+    expect(openAt20('res-pemberton').map((record) => record.medicationId)).toEqual([
+      'med-res-pemberton-oxycodone-modified-release',
+    ])
+    expect(
+      rowOf('res-pemberton')?.querySelector('[data-controlled="only"]')?.textContent,
+    ).toBe(
+      'Nothing for you to record for Arthur Pemberton: 1 controlled drug open. A senior carer records controlled drugs.',
+    )
+    expect(rowOf('res-pemberton')?.querySelector('[data-to-record]')).toBeNull()
+    expect(roundTab().textContent).not.toMatch(/PRD|role table|not built/)
+  })
+
+  it('opens Hutchinson’s round with Given and Not given, and a signature she can give', async () => {
+    const user = userEvent.setup()
+    const sheet = await openSheet(user, 'res-hutchinson', 'Beryl')
+    await user.click(
+      within(
+        within(sheet).getByRole('radiogroup', { name: 'Answer for Atorvastatin 20mg' }),
+      ).getByRole('radio', { name: 'Given' }),
+    )
+    expect(within(sheet).getByRole('radio', { name: 'Not given' })).toBeTruthy()
+    expect(
+      within(sheet).getByRole('button', { name: 'Sign with your medication PIN' }),
+    ).toBeEnabled()
+    expect(sheet.querySelector('[data-sheet-held]')).toBeNull()
+  })
+
+  it('says why she cannot sign Okafor’s round, whose morphine is open beside his atorvastatin', async () => {
+    const user = userEvent.setup()
+    expect(
+      openAt20('res-okafor')
+        .map((record) => record.medicationId)
+        .sort(),
+    ).toEqual([
+      'med-res-okafor-atorvastatin',
+      'med-res-okafor-morphine-sulfate-oral-solution',
+    ])
+    const sheet = await openSheet(user, 'res-okafor', 'Emmanuel')
+    expect(sheet.querySelector('[data-sheet-held]')?.textContent).toBe(
+      'A senior carer records controlled drugs. A round is recorded all at once, so you cannot record this round.',
+    )
+    expect(within(sheet).queryByRole('button', { name: /medication PIN/ })).toBeNull()
   })
 })
+
+/** The sheet for one of N. Eze's residents, opened from their chart. */
+async function openSheet(
+  user: ReturnType<typeof userEvent.setup>,
+  id: string,
+  preferred: string,
+) {
+  window.history.replaceState(null, '', `/m/people/${id}/chart`)
+  renderSignedIn(staffEze.id, <PhoneApp />, ROSEWOOD)
+  const people = document.querySelector('[data-tab="people"]') as HTMLElement
+  await user.click(
+    await within(people).findByRole(
+      'button',
+      { name: 'Record the 20:00 round' },
+      { timeout: 4000 },
+    ),
+  )
+  return screen.findByRole('dialog', { name: `20:00 round for ${preferred}` })
+}
 
 describe('your round for a senior carer', () => {
   it('counts what the phone can record now, and draws no role question where the table says yes', async () => {

@@ -3026,3 +3026,30 @@ Scope as decided: all of A, `documents.test.tsx:139`, B where the figure is clin
 **For a senior carer:** permitted and built on the desktop (Given with the opening count and the half-record, countersigned on the register); permitted and not built on the phone.
 
 **One consequence worth naming, not changed:** a round is recorded all at once, so a care worker cannot record any of a resident's doses at a round where that resident has a controlled drug open. Her ordinary dose waits for the senior carer who records the round. The phone's round row still counts such a dose under "to record now", for both roles, as it did before; the sheet then says why it cannot be signed.
+
+## 07/11/2026 — Ordinary evening medicines on N. Eze's rounds; their documents drawn last (option C)
+
+**The finding.** None of N. Eze's four residents had an ordinary medicine at 20:00: their ordinary drugs fell at 08:00 and 18:00, so at 20:20 every open dose on her list was morphine or oxycodone, and Given and Not given never appeared for her anywhere. Unrepresentative data, corrected; not a trim.
+
+**The change, identical in both builds.** Atorvastatin 20mg at 20:00 for Okafor (hypertension, AF), Hutchinson (hypertension) and Pemberton (AF); donepezil 10mg for Adeyemi (vascular dementia). From the generator's own pool, appended after every other prescription: each drug seeds its records from its index, so every existing prescription, dose record and stock count is unchanged, checked by fingerprint with and without the change. At 20:20 the round in progress alternates by index, which leaves Okafor's and Hutchinson's open and Adeyemi's and Pemberton's given.
+
+**Documents: option C.** Their scans are skipped in the residents' loop and drawn after the last existing draw in `documents.ts`, by the same rule, so every existing document is identical (fingerprinted). Three resolve, so **N = 3**. Option B, marking the new scans as on paper so DOC-01's figures held still, was rejected: data shaped to a figure.
+
+**Figures, measured at 20:20 BST on 16/09/2026 and counted a second way from the raw records at that instant:**
+
+| Figure | Before | After |
+|---|---|---|
+| Care worker badge (N. Eze): due in the next two hours, of doses due today | 4 of 22 | 6 of 26 |
+| Care worker: chart entries today | 28 | 32 |
+| Senior carer badge (Rosewood): due in the next two hours, of doses due today | 19 of 108 | 21 of 112 |
+| Senior carer: chart entries today | 165 | 169 |
+| Past their window, care worker / home | 1 / 4 | 1 / 4 |
+| Dashboard: due in the next two hours | 19 across 15 residents | 21 across 16 |
+| Omissions this week (Rosewood) | 55 of 766 | 56 of 794 |
+| Escalated / not / closed / open | 50 / 5 / 14 / 41 | 51 / 5 / 14 / 42 |
+| Documents with an expiry decision (DOC-01 quotes 237 of 306) | 237 of 306, 77% | 239 of 309, 77% |
+| Health and clinical: on file / expired / expiring / no expiry | 109 / 10 / 5 / 21 | 112 / 10 / 5 / 22 |
+
+**The two document test files were unpinned**, and every expiry is relative to the fixtures' clock, so they are pinned to the same instant and their figures measured there. The lead-figure test matched "237" anywhere on the page and the dashboard's "19" anywhere in the tile; both now read the figure against its label.
+
+**The test protecting this screen** replaces "the fixtures make every open dose controlled", which was true and is false by design: N. Eze's 20:00 round carries at least one ordinary dose she can record (Hutchinson's atorvastatin, the only dose open on his round, whose sheet offers Given and Not given and a signature) and at least one controlled dose she cannot (Pemberton's oxycodone, "A senior carer records controlled drugs."), and Okafor's sheet says why she cannot sign a round whose morphine is open beside his atorvastatin. Broken three ways: the medicines removed, a care worker granted controlled drugs, the sheet's line reverted.

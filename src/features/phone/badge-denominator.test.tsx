@@ -25,12 +25,14 @@ vi.mock('next/navigation', () => ({
 /**
  * The Medication badge and Today's dose figures are out of the doses **due
  * today**, not every entry on today's chart. At this instant a care worker's
- * four residents have 28 chart entries today and 22 doses due; the home has 165
- * and 108. The difference is as-required drugs and cells where nothing was due.
+ * four residents have 32 chart entries today and 26 doses due; the home has 169
+ * and 112. The difference is as-required drugs and cells where nothing was due.
  *
- * The figures were counted a second way before they were written here: the
- * day's records filtered on each drug's own `isPrn` and on `not_due`, rather
- * than through `owedDoses` (PROGRESS.md, 06/11/2026).
+ * The figures were counted a second way at this instant before they were
+ * written here: the day's records filtered on each drug's own `isPrn` and on
+ * `not_due`, rather than through `owedDoses` (PROGRESS.md, 06/11/2026). Each
+ * rose by four on 07/11/2026, when four residents were given an evening
+ * medicine; two of the four doses are still open at 20:20.
  */
 async function open(who: StaffId) {
   window.history.replaceState(null, '', '/m')
@@ -52,31 +54,31 @@ async function open(who: StaffId) {
 }
 
 describe('the badge and Today, out of the doses due today', () => {
-  it('for a care worker: 4 of 22, not 4 of 28', async () => {
+  it('for a care worker: 6 of 26, not 6 of 32', async () => {
     const { badge, stat } = await open(staffEze.id)
-    expect(badge.textContent).toBe('4')
+    expect(badge.textContent).toBe('6')
     expect(badge.closest('a')?.getAttribute('aria-label')).toBe(
-      'Medication. Due now or in the next 2 hours: 4 of 22 doses due today, on your list.',
+      'Medication. Due now or in the next 2 hours: 6 of 26 doses due today, on your list.',
     )
     expect(stat('Due now or in the next 2 hours')).toBe(
-      'Due now or in the next 2 hours4of 22 doses due today, nothing recorded yet',
+      'Due now or in the next 2 hours6of 26 doses due today, nothing recorded yet',
     )
     expect(stat('Doses past their window')).toBe(
-      'Doses past their window1of 22 doses due today',
+      'Doses past their window1of 26 doses due today',
     )
   })
 
-  it('for a senior carer: 19 of 108, not 19 of 165', async () => {
+  it('for a senior carer: 21 of 112, not 21 of 169', async () => {
     const { badge, stat } = await open(staffAkinyemi.id)
-    expect(badge.textContent).toBe('19')
+    expect(badge.textContent).toBe('21')
     expect(badge.closest('a')?.getAttribute('aria-label')).toBe(
-      'Medication. Due now or in the next 2 hours: 19 of 108 doses due today, on your list.',
+      'Medication. Due now or in the next 2 hours: 21 of 112 doses due today, on your list.',
     )
     expect(stat('Due now or in the next 2 hours')).toBe(
-      'Due now or in the next 2 hours19of 108 doses due today, nothing recorded yet',
+      'Due now or in the next 2 hours21of 112 doses due today, nothing recorded yet',
     )
     expect(stat('Doses past their window')).toBe(
-      'Doses past their window4of 108 doses due today',
+      'Doses past their window4of 112 doses due today',
     )
   })
 })
