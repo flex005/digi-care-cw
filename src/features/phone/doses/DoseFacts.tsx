@@ -6,7 +6,8 @@ import { StatusPill, Unrecorded } from '@/components/status'
 import { NOT_GIVEN_REASON_LABEL } from '@/features/medications/medication-words'
 import { doseName } from '@/features/medications/round/round'
 import { assertNever } from '@/lib/assert-never'
-import { notBuiltOnPhone, notBuiltYet } from '../not-built'
+import { notBuiltYet } from '../not-built'
+import type { ControlledDrugLine } from './controlled-drug-line'
 import type { ChartDose } from '../phone-chart'
 import styles from '../phone.module.css'
 
@@ -25,11 +26,15 @@ import styles from '../phone.module.css'
  */
 export function DoseFacts({
   dose,
-  recordsHere,
+  controlled,
   cannotCorrect,
 }: {
   dose: ChartDose
-  recordsHere: boolean
+  /**
+   * What a due controlled drug says about why it is not recorded here, for this
+   * reader, or nothing where the screen already says why nothing is.
+   */
+  controlled: ControlledDrugLine | 'not_said'
   /** Whether this dose says it cannot be corrected, or the screen says it once. */
   cannotCorrect: 'at_dose' | 'said_by_the_screen'
 }) {
@@ -69,11 +74,9 @@ export function DoseFacts({
             {format.time(state.windowClosesAt)}. Nothing is recorded yet.
           </p>
           {/* An ordinary dose is recorded through the round's sheet; this one cannot be. */}
-          {recordsHere && drug.isControlledDrug ? (
+          {controlled !== 'not_said' && drug.isControlledDrug ? (
             <span data-cannot-record="controlled">
-              <ActLine kind="not_built">
-                {notBuiltOnPhone('Recording a controlled drug')}
-              </ActLine>
+              <ActLine kind={controlled.kind}>{controlled.words}</ActLine>
             </span>
           ) : null}
         </>

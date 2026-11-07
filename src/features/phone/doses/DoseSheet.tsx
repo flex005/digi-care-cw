@@ -28,6 +28,9 @@ import { assertNever } from '@/lib/assert-never'
 import { formatDate, pluralise } from '@/lib/format'
 import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { notBuiltOnPhone } from '../not-built'
+import { useViewer } from '@/app/session/use-viewer'
+import { roundHeldLine } from '@/features/medications/medication-words'
+import { controlledDrugLine, type ControlledDrugLine } from './controlled-drug-line'
 import type { Drug } from '../phone-chart'
 import type { DoseRecord, Person } from '../phone-data'
 import { DoseFacts } from './DoseFacts'
@@ -144,6 +147,10 @@ function SheetBody({
   const doses = sheetDoses({ drugs, records, roundTime, date, at })
   const needed = stillNeeded(doses, answers)
   const held = heldBack(doses, openDosesAt(person.id, date, roundTime))
+  const controlled = controlledDrugLine(
+    useViewer().ask('record_controlled_drug_dose', person.id),
+    person.fullLegalName,
+  )
   const hasPrn = drugs.some((drug) => drug.isPrn)
   const answered = doses.flatMap((entry) =>
     entry.kind === 'to_answer'
@@ -229,6 +236,7 @@ function SheetBody({
           >
             <SheetDoseRow
               entry={entry}
+              controlled={controlled}
               needs={needsAt(needed.needs, entry.dose.medication.id)}
               answer={answers[entry.dose.medication.id] ?? UNANSWERED}
               onAnswer={(next) =>
@@ -263,7 +271,11 @@ function SheetBody({
         ) : null}
         {needed.asked > 0 && held.length > 0 ? (
           <span data-sheet-held>
-            <ActLine kind="refused">{heldBackLine(held)}</ActLine>
+            <ActLine kind="refused">
+              {controlled.kind === 'refused'
+                ? roundHeldLine(controlled.words, 'this round')
+                : heldBackLine(held)}
+            </ActLine>
           </span>
         ) : needed.ready ? (
           <button
@@ -307,11 +319,14 @@ export const heldBackLine = (held: string[]): string =>
 
 function SheetDoseRow({
   entry,
+  controlled,
   needs,
   answer,
   onAnswer,
 }: {
   entry: SheetDose
+  /** Why a controlled drug is not recorded here, for this reader. */
+  controlled: ControlledDrugLine
   /** What this dose still needs before the round can be signed, said at it. */
   needs: string[]
   answer: DoseAnswer
@@ -327,7 +342,7 @@ function SheetDoseRow({
       return (
         <DoseFacts
           dose={{ drug: drug, cell: { kind: 'recorded', state: record.state } }}
-          recordsHere={false}
+          controlled="not_said"
           cannotCorrect="at_dose"
         />
       )
@@ -336,9 +351,7 @@ function SheetDoseRow({
         <>
           <DoseName entry={entry} />
           <span data-cannot-record="controlled">
-            <ActLine kind="not_built">
-              {notBuiltOnPhone('Recording a controlled drug')}
-            </ActLine>
+            <ActLine kind={controlled.kind}>{controlled.words}</ActLine>
           </span>
         </>
       )

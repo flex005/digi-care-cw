@@ -1955,6 +1955,24 @@ export function countersignControlledDrug(input: {
       'The second signature has to be somebody other than the person who gave it',
     )
   }
+  // Asked of the role table here as well as on the register, which is the only
+  // screen that offers the act: a rule held by a screen is held only there.
+  const signer = memberById(input.by.id)
+  if (signer === undefined || !isSignInRole(signer.role))
+    return reject(
+      `${input.by.displayName} does not sign in to this product, so cannot countersign a dose`,
+    )
+  const answer = answerFor(
+    signInRoleOf(signer),
+    residentScopeFor(signer),
+    'countersign_controlled_drug',
+    { kind: 'resident', id: record.residentId },
+    signer.id,
+  )
+  if (answer.kind !== 'yes')
+    return reject(
+      `${input.by.displayName} may not countersign this dose: ${refusalReason(answer)}`,
+    )
   const signed: MarCellState = {
     ...state,
     witness: { kind: 'witnessed', by: input.by },

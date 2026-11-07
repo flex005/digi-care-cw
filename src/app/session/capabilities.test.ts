@@ -68,8 +68,8 @@ const PRD_TABLE_3: Record<
     senior_carer: 'your_list',
   },
   record_controlled_drug_dose: {
-    row: 'Medications — countersign controlled drugs',
-    care_worker: 'contradicted',
+    row: 'Medications — countersign controlled drugs + MED-03',
+    care_worker: 'no',
     senior_carer: 'your_list',
   },
   close_omission: { row: 'MED-01', care_worker: 'no', senior_carer: 'your_list' },
@@ -195,7 +195,9 @@ describe('the role table', () => {
           ? source.row
           : source.kind === 'screen'
             ? source.screen
-            : source.see,
+            : source.kind === 'role_table_and_screen'
+              ? `${source.row} + ${source.screen}`
+              : source.see,
       ).toBe(expected.row)
     })
   }
@@ -321,7 +323,7 @@ describe('asking', () => {
     ).toBe('yes')
   })
 
-  it('quotes both rows of a contradiction, and does not decide it', () => {
+  it('refuses a care worker a controlled drug dose on her own list, saying who records one', () => {
     const answer = answerFor(
       'care_worker',
       named,
@@ -329,13 +331,21 @@ describe('asking', () => {
       { kind: 'resident', id: listed },
       viewer,
     )
-    expect(answer.kind).toBe('contradicted')
-    expect(answer).toMatchObject({
-      question: expect.stringContaining('Can (PIN required)'),
+    expect(answer).toEqual({
+      kind: 'not_your_role',
+      reason: 'A senior carer records controlled drugs.',
     })
-    expect(answer).toMatchObject({
-      question: expect.stringContaining('Both must be Senior+'),
+  })
+
+  it('sources that refusal to the countersign row and MED-03, never to the row for ordinary doses', () => {
+    const { source } = CARE_ACTS.record_controlled_drug_dose
+    expect(source).toEqual({
+      kind: 'role_table_and_screen',
+      row: 'Medications — countersign controlled drugs',
+      screen: 'MED-03',
+      says: 'Senior 1 records administration + stock count; Senior 2 countersigns',
     })
+    expect(JSON.stringify(source)).not.toContain('Given/Not Given/PRN')
   })
 
   it('surfaces a silence as a question for a resident off the list, never as yes or no', () => {

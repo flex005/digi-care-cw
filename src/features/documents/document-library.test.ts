@@ -1,3 +1,15 @@
+import { vi } from 'vitest'
+
+/*
+ * **Pinned to a full instant before any fixture loads**: 20:20 BST on
+ * 16/09/2026. Every expiry is `daysAgo` or `daysAhead` of the fixtures' clock,
+ * so these counts are the clock's; a figure written in here is measured at
+ * this instant (CLAUDE.md §8).
+ */
+vi.hoisted(() => {
+  window.history.replaceState(null, '', '/documents?at=2026-09-16T19:20:00Z')
+})
+
 import { describe, expect, it } from 'vitest'
 import type { DocumentRecord, IsoDate, IsoDateTime, StaffRef } from '@/data/types'
 import { documentsForSite } from '@/data/fixtures/documents'
@@ -35,24 +47,29 @@ const document = (
 
 describe('the home’s library', () => {
   /*
-   * **DOC-01's own figures.** The PRD quotes 237 of 306 documents carrying an
-   * expiry decision — 77% — and, for the three categories it illustrates:
-   * Health and clinical 109 on file, 10 expired, 5 expiring, 21 with no expiry
-   * recorded; Assessments and care planning 41/5/1/9; Consent records 34/3/3/4.
-   * The fixtures produce exactly those.
+   * **DOC-01's figures, and three more documents.** The PRD quotes 237 of 306
+   * documents carrying an expiry decision — 77% — and, for the three
+   * categories it illustrates: Health and clinical 109 on file, 10 expired, 5
+   * expiring, 21 with no expiry recorded; Assessments and care planning
+   * 41/5/1/9; Consent records 34/3/3/4. The fixtures produced exactly those
+   * until 07/11/2026, when four evening prescriptions were added and three of
+   * their scans resolved, all Health and clinical: one with an expiry date, one
+   * that does not expire, one with no expiry recorded (docs/DEPARTURES.md).
+   * Counted at the pin from the document fixtures without the library: 239 of
+   * 309, Health and clinical 112/10/5/22, the other two unchanged.
    */
-  it('produces the exact figures DOC-01 quotes', () => {
+  it('produces DOC-01’s figures with the three added prescription scans', () => {
     const library = siteLibrary(documentsForSite(ROSEWOOD), TODAY)
-    expect(withAnExpiryDecision(library.counts)).toEqual({ decided: 237, total: 306 })
-    expect(sharePercent(237, 306)).toBe(77)
+    expect(withAnExpiryDecision(library.counts)).toEqual({ decided: 239, total: 309 })
+    expect(sharePercent(239, 309)).toBe(77)
 
     const of = (id: string) =>
       library.categories.find((entry) => entry.id === id)?.counts
     expect(of('health_clinical')).toMatchObject({
-      total: 109,
+      total: 112,
       expired: 10,
       expiring: 5,
-      notRecorded: 21,
+      notRecorded: 22,
     })
     expect(of('assessments_care_planning')).toMatchObject({
       total: 41,

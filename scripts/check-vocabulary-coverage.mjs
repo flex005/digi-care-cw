@@ -201,8 +201,12 @@ const BASELINE_TSX_ONLY_FILES = 85
  * **Lowered to 1541 on 06/11/2026**, measured: `outstanding` in round.ts no
  * longer builds a sentence from each `medication.name`, and the desktop round
  * card's as-required list calls its local `drug`.
+ *
+ * **Lowered to 1540 on 07/11/2026**, measured: the commit making a controlled
+ * drug a senior carer's to record took medication from 298 to 296 and subject
+ * from 1117 to 1118, the contradiction's quoted rows leaving with it.
  */
-const BEST = 1541
+const BEST = 1540
 
 /**
  * Where copy lives, and therefore where this counts.

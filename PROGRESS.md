@@ -2760,7 +2760,9 @@ Module 3's reading pass, before any code. The two findings are each fixed in the
 - **N. Eze cannot reach this dialog at 20:00**, and that is the role table rather than a defect: every open dose on her four residents is a controlled drug, which Table 3 contradicts itself about for a care worker. The care worker capture is therefore S. Patel, who covers Ashgrove, at its 08:00 round, where Ashgrove still had a dose open.
 - **Read-only**: a reader who may record nothing never reaches the dialog, so it has no read-only form to review. The other six states belong to the round screen and are unchanged by this step.
 
-## BLOCKING QUESTION for the PRD's author: a care worker cannot record a single dose at the 20:00 round (06/11/2026)
+## ~~BLOCKING QUESTION~~ RESOLVED 07/11/2026: a care worker cannot record a single dose at the 20:00 round (06/11/2026)
+
+**Resolved by the PRD itself, not by an override: a care worker does not record a controlled drug dose.** MED-03 (PRD row 19, the Controlled Drug Register) says "Two-signature: Senior 1 records administration + stock count. System prompts Witness 2. Senior 2 taps Countersign + enters own PIN." That is who the countersign row's "Both must be Senior+" means: the person who records the dose and the person who countersigns it. "Record Given/Not Given/PRN" governs ordinary medicines; the countersign row with MED-03 governs a controlled drug end to end. There was never a contradiction; the build read one row without the screen that spells it out. `record_controlled_drug_dose` is a plain refusal for a care worker, sourced to both, and the act says "A senior carer records controlled drugs." The second half of the cost below, a care worker with nothing ordinary to record at 20:00, was the fixtures, and is corrected separately (07/11/2026).
 
 **The signed-in care worker, N. Eze, cannot record any dose at the 20:00 round.** Every dose still open there on her list of four is a controlled drug: morphine for Emmanuel Okafor, two for Grace Adeyemi, oxycodone for Arthur Pemberton, and Ernest Hutchinson has none open. For a care worker, Table 3 contradicts itself on a controlled drug. "Medications — record Given/Not Given/PRN" says "Can (PIN required)"; "Medications — countersign controlled drugs" says "Both must be Senior+". This build does not choose between them (`record_controlled_drug_dose` answers `contradicted` and quotes both rows), so her whole round at 20:00 is unrecordable.
 
@@ -3007,3 +3009,47 @@ Scope as decided: all of A, `documents.test.tsx:139`, B where the figure is clin
 **The >60-day residual, fixed after all, without the shared formatter.** It was logged above as needing `formatDuration` to take fractional days. It did not: `formatDuration` prints the day figure only below 60 and rounds to months itself above, so `formatWait` hands it whole days below 60 and the unrounded span above, and months are rounded once, from the minutes, the way days now are. `lib/format.ts` is untouched and no other screen's input changes. 76 days 7 hours 12 minutes (2.507 average months) now reads 3 months, not 2. The cost is that `formatWait` knows `formatDuration`'s switch is 60; `format-wait.test.ts` fails if either side moves (moving `formatDuration`'s to 90 prints "76.3 days"). Mutations: months from whole days again; unrounded days below 60 ("3.485 days"); `formatWait`'s switch at 90; `formatDuration`'s at 90. Each fails.
 
 **The 60 has one owner now.** `MONTH_THRESHOLD_DAYS` is exported from `lib/format.ts`, where `formatDuration` switches to months, and `formatWait` imports it, so the two cannot part. Moving it to 90 moves both: `formatWait` then prints "76 days", whole, where the two-constant version printed "76.3 days". `format-wait.test.ts` still fails on that edit, because it holds the 60-day behaviour; it is now the second line of defence, not the only one.
+
+## 07/11/2026 — A senior carer records controlled drugs (MED-03)
+
+**The rule.** `record_controlled_drug_dose` for a care worker is `mayNot('A senior carer records controlled drugs.')`, sourced through a new `Source` kind, `role_table_and_screen`, to the countersign row and MED-03 together. Senior carers unchanged; completion unchanged (a second senior witness, always). The `contradicted` grant and answer kinds stay in the types and are no longer used by any act.
+
+**A hole found on the way: the loader never asked who may countersign.** `countersignControlledDrug` refused the giver and nothing else, so a care worker passed as the countersigner was accepted; only the register screen, which a care worker cannot open, kept her out. It asks the role table now, the way `recordRound` does. This is the 06/11 §8 entry again: a refusal no screen can reach was a refusal nothing held.
+
+**Tests, each broken on purpose and seen to fail** (`controlled-drug-roles.test.ts`, against the loader, Pemberton's oxycodone at 20:20 BST on 16/09/2026, every literal written out): a care worker's Given is refused in the rule's words while a senior's resolves; a care worker's countersignature is refused and records nothing; the dose stays half a record through the giver's own attempt and a care worker's, and is witnessed only by a second senior carer. In `capabilities.test.ts`: the refusal, and its source, the countersign row and MED-03 and never "record Given/Not Given/PRN". Mutations: a care worker granted `your_list`; the loader's role check disabled; the giver allowed; the source moved to row 1.
+
+**What a care worker reads at the act**, in her terms and nothing about the project:
+- desktop dose row: "A senior carer records controlled drugs." where Given and Not given would be. Before, `ActPoint` drew the PRD's question and would have drawn nothing for a refusal, which was a silent gap waiting to happen;
+- desktop round card foot: "A senior carer records controlled drugs. A round is recorded all at once, so you cannot record any of Arthur Pemberton's 20:00 doses." (`roundHeldLine`, one owner);
+- phone chart, dose sheet and round row, through one owner, `controlledDrugLine`: the refusal for her, and for a senior carer "Recording a controlled drug — not built yet on the phone.", which is true only for a senior carer. The sheet's held line follows the same split.
+
+**For a senior carer:** permitted and built on the desktop (Given with the opening count and the half-record, countersigned on the register); permitted and not built on the phone.
+
+**One consequence worth naming, not changed:** a round is recorded all at once, so a care worker cannot record any of a resident's doses at a round where that resident has a controlled drug open. Her ordinary dose waits for the senior carer who records the round. The phone's round row still counts such a dose under "to record now", for both roles, as it did before; the sheet then says why it cannot be signed.
+
+## 07/11/2026 — Ordinary evening medicines on N. Eze's rounds; their documents drawn last (option C)
+
+**The finding.** None of N. Eze's four residents had an ordinary medicine at 20:00: their ordinary drugs fell at 08:00 and 18:00, so at 20:20 every open dose on her list was morphine or oxycodone, and Given and Not given never appeared for her anywhere. Unrepresentative data, corrected; not a trim.
+
+**The change, identical in both builds.** Atorvastatin 20mg at 20:00 for Okafor (hypertension, AF), Hutchinson (hypertension) and Pemberton (AF); donepezil 10mg for Adeyemi (vascular dementia). From the generator's own pool, appended after every other prescription: each drug seeds its records from its index, so every existing prescription, dose record and stock count is unchanged, checked by fingerprint with and without the change. At 20:20 the round in progress alternates by index, which leaves Okafor's and Hutchinson's open and Adeyemi's and Pemberton's given.
+
+**Documents: option C.** Their scans are skipped in the residents' loop and drawn after the last existing draw in `documents.ts`, by the same rule, so every existing document is identical (fingerprinted). Three resolve, so **N = 3**. Option B, marking the new scans as on paper so DOC-01's figures held still, was rejected: data shaped to a figure.
+
+**Figures, measured at 20:20 BST on 16/09/2026 and counted a second way from the raw records at that instant:**
+
+| Figure | Before | After |
+|---|---|---|
+| Care worker badge (N. Eze): due in the next two hours, of doses due today | 4 of 22 | 6 of 26 |
+| Care worker: chart entries today | 28 | 32 |
+| Senior carer badge (Rosewood): due in the next two hours, of doses due today | 19 of 108 | 21 of 112 |
+| Senior carer: chart entries today | 165 | 169 |
+| Past their window, care worker / home | 1 / 4 | 1 / 4 |
+| Dashboard: due in the next two hours | 19 across 15 residents | 21 across 16 |
+| Omissions this week (Rosewood) | 55 of 766 | 56 of 794 |
+| Escalated / not / closed / open | 50 / 5 / 14 / 41 | 51 / 5 / 14 / 42 |
+| Documents with an expiry decision (DOC-01 quotes 237 of 306) | 237 of 306, 77% | 239 of 309, 77% |
+| Health and clinical: on file / expired / expiring / no expiry | 109 / 10 / 5 / 21 | 112 / 10 / 5 / 22 |
+
+**The two document test files were unpinned**, and every expiry is relative to the fixtures' clock, so they are pinned to the same instant and their figures measured there. The lead-figure test matched "237" anywhere on the page and the dashboard's "19" anywhere in the tile; both now read the figure against its label.
+
+**The test protecting this screen** replaces "the fixtures make every open dose controlled", which was true and is false by design: N. Eze's 20:00 round carries at least one ordinary dose she can record (Hutchinson's atorvastatin, the only dose open on his round, whose sheet offers Given and Not given and a signature) and at least one controlled dose she cannot (Pemberton's oxycodone, "A senior carer records controlled drugs."), and Okafor's sheet says why she cannot sign a round whose morphine is open beside his atorvastatin. Broken three ways: the medicines removed, a care worker granted controlled drugs, the sheet's line reverted.

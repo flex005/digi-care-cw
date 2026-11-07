@@ -12,12 +12,14 @@ import { prnGivenThisSession, recordPrn, recordRound } from '@/data/access/clien
 import { now } from '@/data/fixtures/clock'
 import { useSignedIn, useSiteFormat } from '@/app/session/use-session'
 import { useViewer } from '@/app/session/use-viewer'
+import { refusalOf } from '@/app/session/refusal'
 import { Button, Card, CardHead, Dialog } from '@/components/primitives'
 import { formatDate, pluralise } from '@/lib/format'
 import { SubjectStrip } from '@/features/notes/composer/SubjectStrip'
 import { MedicationPinStep } from '../MedicationPinStep'
 import { SigningSubject } from '../SigningSubject'
 import { registerState } from '../register/register'
+import { roundHeldLine } from '../medication-words'
 import { DoseRow } from './DoseRow'
 import { PrnRow } from './PrnRow'
 import {
@@ -272,10 +274,15 @@ export function ResidentRoundCard({
               {resident.fullLegalName} until {format.time(opensAt(firstNotOpen))}.
             </p>
           )}
-          {blocked.length === 0 ? null : (
+          {/* Blocked only by a controlled drug the viewer may not record, so
+              the reason is the role table's, and the consequence is the round's:
+              it is recorded all at once. */}
+          {blocked.length === 0 || controlledDrugAnswer.kind === 'yes' ? null : (
             <p className={styles.blocked} data-round-blocked>
-              This round cannot be recorded for {resident.fullLegalName} while the
-              controlled drug is unanswered.
+              {roundHeldLine(
+                refusalOf(controlledDrugAnswer, resident.fullLegalName),
+                `any of ${resident.fullLegalName}’s ${roundTime} doses`,
+              )}
             </p>
           )}
           {open.length === 0 && asRequired.length === 0 ? (

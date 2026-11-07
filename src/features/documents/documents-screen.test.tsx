@@ -1,4 +1,15 @@
 import { vi } from 'vitest'
+
+/*
+ * **Pinned to a full instant before any fixture loads**: 20:20 BST on
+ * 16/09/2026. Every expiry is `daysAgo` or `daysAhead` of the fixtures' clock,
+ * so these counts are the clock's; a figure written in here is measured at
+ * this instant (CLAUDE.md §8).
+ */
+vi.hoisted(() => {
+  window.history.replaceState(null, '', '/documents?at=2026-09-16T19:20:00Z')
+})
+
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -39,10 +50,10 @@ describe('the lead figure', () => {
    */
   it('is the share carrying an expiry decision, with its parts beside it', async () => {
     await openList()
-    const said = document.body.textContent ?? ''
-    expect(said).toMatch(/77%/)
-    expect(said).toMatch(/237/)
-    expect(said).toMatch(/306/)
+    // Read from the figure itself: a page-wide match on "239" passes on any 239.
+    const lead = document.querySelector<HTMLElement>('[data-emphasis="lead"]')
+    expect(lead?.querySelector('[data-numeric]')?.textContent).toBe('77%')
+    expect(lead?.textContent).toContain('239 of 309 documents on file')
   })
 
   it('says what an expiry decision is made of', async () => {
@@ -66,13 +77,13 @@ describe('the categories', () => {
   const figureIn = (row: HTMLElement, what: string) =>
     row.querySelector(`[data-figure="${what}"]`)?.textContent ?? ''
 
-  it('draws DOC-01’s three rows with DOC-01’s own counts', async () => {
+  it('draws DOC-01’s three rows, Health and clinical with the three added scans', async () => {
     await openList()
     const health = category('health_clinical')
-    expect(figureIn(health, 'total')).toBe('109on file')
+    expect(figureIn(health, 'total')).toBe('112on file')
     expect(figureIn(health, 'expired')).toBe('10expired')
     expect(figureIn(health, 'expiring')).toBe('5expiring within 30 days')
-    expect(within(health).getByText(/21 with no expiry recorded/)).toBeTruthy()
+    expect(within(health).getByText(/^22 with no expiry recorded/)).toBeTruthy()
 
     const plans = category('assessments_care_planning')
     expect(within(plans).getByText(/9 with no expiry recorded/)).toBeTruthy()
@@ -129,7 +140,7 @@ describe('the categories', () => {
     const health = category('health_clinical')
     const hatched = health.querySelectorAll('[data-state="unrecorded"]')
     expect(hatched).toHaveLength(1)
-    expect(hatched[0]?.textContent).toMatch(/21 with no expiry recorded/)
+    expect(hatched[0]?.textContent).toMatch(/^22 with no expiry recorded/)
 
     // The expired count is a finding somebody recorded, so it never hatches.
     const expired = health.querySelector('[data-figure="expired"]')
@@ -150,8 +161,8 @@ describe('the categories', () => {
   })
 
   /*
-   * A count is not the end of the road: the row says a category holds 109
-   * documents, and the name opens the 109. Without it a reader who wanted a
+   * A count is not the end of the road: the row says a category holds 112
+   * documents, and the name opens the 112. Without it a reader who wanted a
    * clinical letter had to know whose record it was on.
    */
   it('opens every category from its own name', async () => {

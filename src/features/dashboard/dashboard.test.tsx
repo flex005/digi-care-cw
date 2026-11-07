@@ -117,14 +117,17 @@ describe('the figures', () => {
      * Figures, not `dueSoon` asked again: a tile checked against the function
      * that computed it agrees by construction. At 20:20 BST on 16/09/2026 they
      * were counted a second way, as the 20:00 round's open doses at Rosewood
-     * (no round opens before 22:20), and agreed: 19 doses, 15 residents.
+     * (no round opens before 22:20), and agreed: 21 doses, 16 residents. It
+     * was 19 and 15 until four evening medicines were added on 07/11/2026.
      */
 
     const tile = screen
       .getByText('Due now or in the next 2 hours')
       .closest('section, article, div')
-    expect(tile?.textContent).toContain('19')
-    expect(tile?.textContent).toContain('across 15 residents')
+    // The figure against its label, not anywhere in the tile: "21" is in "121".
+    expect(tile?.textContent).toContain(
+      'Due now or in the next 2 hours21doses, across 16 residents of 28',
+    )
   })
 
   it('hatches the residents nobody wrote up today, and never a zero', async () => {

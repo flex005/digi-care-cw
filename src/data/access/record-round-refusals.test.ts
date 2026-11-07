@@ -319,10 +319,10 @@ describe('recordRound refuses what the round screen refuses', () => {
     await expect(send(off, wholeRound(off, staffAkinyemi))).resolves.toBeGreaterThan(0)
   })
 
-  it('refuses a care worker a controlled drug on her own list with the contradiction, and lets a senior carer record it', async () => {
+  it('refuses a care worker a controlled drug on her own list, saying who records one, and lets a senior carer record it', async () => {
     expect(onEzesList(OKAFOR)).toBe(true)
     await expect(send(OKAFOR, wholeRound(OKAFOR, staffEze), staffEze)).rejects.toThrow(
-      /may not record Morphine sulfate oral solution .*Which applies is for the PRD’s author/,
+      'may not record Morphine sulfate oral solution at 20:00 for Emmanuel Okafor: A senior carer records controlled drugs.',
     )
     await expect(
       send(OKAFOR, wholeRound(OKAFOR, staffAkinyemi)),
