@@ -87,7 +87,7 @@ describe('today’s chart, as a care worker', () => {
     expect(shown).toEqual(expected)
   })
 
-  it('keeps a controlled drug that is due on the chart, saying why it cannot be recorded here', async () => {
+  it('keeps a controlled drug that is due on the chart, saying a senior carer records it', async () => {
     const open = dosesToday('res-pemberton').filter(
       (record) => record.state.kind === 'due',
     )
@@ -100,13 +100,29 @@ describe('today’s chart, as a care worker', () => {
     for (const record of open) {
       const dose = doseIn(record.roundTime, record.medicationId)
       if (dose === null) throw new Error(`No dose ${record.medicationId}`)
-      expect(dose.querySelector('[data-cannot-record="controlled"]')?.textContent).toBe(
-        'Recording a controlled drug — not built yet on the phone.',
-      )
+      const line = dose.querySelector('[data-cannot-record="controlled"]')
+      expect(line?.textContent).toBe('A senior carer records controlled drugs.')
+      expect(
+        line?.querySelector('[data-act-line]')?.getAttribute('data-act-line'),
+      ).toBe('refused')
     }
     // The role table's open question is for the PRD's author, never printed at the reader.
     expect(people().querySelector('[data-answer]')).toBeNull()
     expect(people().textContent).not.toMatch(/PRD|role table/)
+  })
+
+  it('tells a senior carer the phone does not record a controlled drug yet, which is true only for her', async () => {
+    openChart('res-pemberton', staffAkinyemi.id)
+    await loaded()
+    const dose = doseIn('20:00', 'med-res-pemberton-oxycodone-modified-release')
+    if (dose === null) throw new Error('No 20:00 oxycodone for Pemberton')
+    const line = dose.querySelector('[data-cannot-record="controlled"]')
+    expect(line?.textContent).toBe(
+      'Recording a controlled drug — not built yet on the phone.',
+    )
+    expect(line?.querySelector('[data-act-line]')?.getAttribute('data-act-line')).toBe(
+      'not_built',
+    )
   })
 
   it('draws a given dose and its missing second signature as two facts', async () => {

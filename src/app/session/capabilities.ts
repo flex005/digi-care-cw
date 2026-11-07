@@ -85,6 +85,13 @@ export type Source =
   | { kind: 'role_table'; row: string }
   | { kind: 'screen'; screen: string; says: string }
   /**
+   * A role table row read with the screen specification that spells it out.
+   * The first is recording a controlled drug: "Both must be Senior+" is the
+   * row, and MED-03 says who the both are, "Senior 1 records administration
+   * … Senior 2 taps Countersign".
+   */
+  | { kind: 'role_table_and_screen'; row: string; screen: string; says: string }
+  /**
    * An act the PRD does not name, decided here and recorded as a departure.
    * The first is correcting a care note: the CW PRD says only that a note
    * "cannot be edited after submission".
@@ -262,16 +269,22 @@ export const CARE_ACTS = {
     confirmation: 'medication_pin',
     completion: done,
   },
+  /**
+   * **Senior carers only, at both signatures.** Not a contradiction with
+   * "record Given/Not Given/PRN", which governs ordinary medicines: the
+   * countersign row's "Both must be Senior+" and MED-03 ("Senior 1 records
+   * administration + stock count … Senior 2 taps Countersign") govern a
+   * controlled drug end to end, recording included.
+   */
   record_controlled_drug_dose: {
     name: 'Record a controlled drug dose',
-    source: row('Medications — countersign controlled drugs'),
-    care_worker: {
-      kind: 'contradicted',
-      rows: [
-        'Medications — record Given/Not Given/PRN: Care Worker “Can (PIN required)”',
-        'Medications — countersign controlled drugs: “Both must be Senior+”',
-      ],
+    source: {
+      kind: 'role_table_and_screen',
+      row: 'Medications — countersign controlled drugs',
+      screen: 'MED-03',
+      says: 'Senior 1 records administration + stock count; Senior 2 countersigns',
     },
+    care_worker: mayNot('A senior carer records controlled drugs.', 'senior_carer'),
     senior_carer: may('your_list'),
     confirmation: 'medication_pin',
     completion: {

@@ -123,7 +123,7 @@ describe('your round for a care worker whose open doses are all controlled drugs
     expect(shownRows()).toEqual(expected)
   })
 
-  it('says on each such row why nothing can be recorded here, and nothing about the PRD', async () => {
+  it('says on each such row that a senior carer records controlled drugs, and nothing about the PRD', async () => {
     const withOpen = atRound(ezesList()).filter((id) => openAt20(id).length > 0)
     expect(withOpen.length).toBeGreaterThan(0)
     openRound(staffEze.id)
@@ -134,12 +134,12 @@ describe('your round for a care worker whose open doses are all controlled drugs
       // The list name, as the row's heading: the legal name under it reads as two people.
       const name = LIST_NAMES[id]
       if (name === undefined) throw new Error(`No list name written here for ${id}`)
-      expect(row.querySelector('[data-controlled="only"]')?.textContent).toContain(
-        `Nothing can be recorded for ${name} here`,
+      expect(row.querySelector('[data-controlled="only"]')?.textContent).toMatch(
+        new RegExp(
+          `^Nothing for you to record for ${name}: \\d+ controlled drugs? open\\. A senior carer records controlled drugs\\.$`,
+        ),
       )
-      expect(row.textContent).toMatch(
-        /Recording a controlled drug — not built yet on the phone\./,
-      )
+      expect(row.textContent).not.toMatch(/not built/)
       expect(row.querySelector('[data-to-record]')).toBeNull()
     }
     // The role table's open question is for the PRD's author, never printed at the reader.

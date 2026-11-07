@@ -25,6 +25,14 @@ export const NOT_GIVEN_REASON_LABEL = {
 export const DISCREPANCY_LINE =
   'Stock count does not match the running balance. This must be resolved before any further administration.'
 
+/**
+ * A round the reader cannot sign because it holds a dose the role table keeps
+ * from them, said after the role table's own reason. A round is recorded all at
+ * once, so one dose they may not record holds every other dose with it.
+ */
+export const roundHeldLine = (reason: string, what: string): string =>
+  `${reason} A round is recorded all at once, so you cannot record ${what}.`
+
 /** The order the round offers them, the PRD's order. */
 export const NOT_GIVEN_REASONS: NotGivenReason[] = [
   'resident_refused',

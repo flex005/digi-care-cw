@@ -153,15 +153,15 @@ describe('a dose whose window has not opened', () => {
     expect(screen.getByText('The 20:00 round has not opened')).toBeInTheDocument()
   })
 
-  it('draws the role table’s contradiction beside the window, not instead of it', async () => {
+  it('draws who records a controlled drug beside the window, not instead of it', async () => {
     const { user } = await openRound(staffEze.id)
     await atRound(user)
     const dose = doseIn(cardFor('res-pemberton'), PEMBERTON_OXYCODONE)
     expect(within(dose).getByText(NOT_OPEN_YET_WORDS)).toBeInTheDocument()
-    const quoted = dose.querySelector('[data-act-line="not_stated"]')
-    expect(quoted?.textContent).toMatch(/Medications — record Given\/Not Given\/PRN/)
-    expect(quoted?.textContent).toMatch(/Medications — countersign controlled drugs/)
-    // The question stands where the answer would be, and no control does.
+    expect(dose.querySelector('[data-act-line="refused"]')?.textContent).toBe(
+      'A senior carer records controlled drugs.',
+    )
+    // The rule stands where the answer would be, and no control does.
     expect(within(dose).queryByRole('button', { name: 'Given' })).toBeNull()
   })
 })

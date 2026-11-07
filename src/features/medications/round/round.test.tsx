@@ -213,18 +213,19 @@ describe('scope', () => {
 })
 
 describe('a controlled drug', () => {
-  it('draws the contradiction for a care worker, quoting both rows, with no usable Given', async () => {
+  it('tells a care worker a senior carer records it, with no Given, and why the round waits', async () => {
     const { user } = await openRound(staffEze.id)
     await atRound(user)
     const card = cardFor('res-pemberton')
     const dose = doseIn(card, PEMBERTON_OXYCODONE)
-    const line = dose.querySelector('[data-act-line="not_stated"]')
-    expect(line?.textContent).toMatch(/Medications — record Given\/Not Given\/PRN/)
-    expect(line?.textContent).toMatch(/Medications — countersign controlled drugs/)
+    expect(dose.querySelector('[data-act-line="refused"]')?.textContent).toBe(
+      'A senior carer records controlled drugs.',
+    )
+    expect(dose.textContent).not.toMatch(/not built|PRD|role table/)
     expect(within(dose).queryByRole('button', { name: 'Given' })).toBeNull()
     expect(within(dose).queryByRole('button', { name: 'Not given' })).toBeNull()
-    expect(card.querySelector('[data-round-blocked]')?.textContent).toMatch(
-      /This round cannot be recorded for .+ while the controlled drug is unanswered\./,
+    expect(card.querySelector('[data-round-blocked]')?.textContent).toBe(
+      'A senior carer records controlled drugs. A round is recorded all at once, so you cannot record any of Arthur Pemberton’s 20:00 doses.',
     )
     expect(openDosesAt('res-pemberton' as ResidentId, TODAY, ROUND)).toContain(
       PEMBERTON_OXYCODONE,

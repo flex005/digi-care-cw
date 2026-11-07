@@ -13,7 +13,7 @@ import { formatDate, pluralise } from '@/lib/format'
 import { VOCABULARY } from '@/lib/vocabulary-choice'
 import { listName, noListYetLine, scopeNote } from '../phone-data'
 import { offListLine, yourRound, type RoundData, type RoundRow } from '../phone-round'
-import { notBuiltOnPhone } from '../not-built'
+import { controlledDrugLine } from '../doses/controlled-drug-line'
 import { phoneIcons } from '../phone.icons'
 import { Loaded } from '../ScreenStates'
 import { Screen } from '../shell/Screen'
@@ -152,6 +152,11 @@ function RoundRowLink({ row }: { row: RoundRow }) {
   const { person } = row
   const nothingHere =
     row.controlled > 0 && row.toRecord === 0 && row.notOpenYet.kind === 'none'
+  const controlled = controlledDrugLine(
+    useViewer().ask('record_controlled_drug_dose', person.id),
+    listName(person),
+  )
+  const open = pluralise(row.controlled, 'controlled drug')
 
   return (
     <StackLink
@@ -190,12 +195,14 @@ function RoundRowLink({ row }: { row: RoundRow }) {
         )}
         {row.controlled === 0 ? null : (
           <span data-controlled={nothingHere ? 'only' : 'also'}>
-            <ActLine kind="not_built">
+            <ActLine kind={controlled.kind}>
               {`${
-                nothingHere
-                  ? `Nothing can be recorded for ${listName(person)} here: ${pluralise(row.controlled, 'controlled drug')} open.`
-                  : `${pluralise(row.controlled, 'controlled drug')} open as well.`
-              } ${notBuiltOnPhone('Recording a controlled drug')}`}
+                !nothingHere
+                  ? `${open} open as well.`
+                  : controlled.kind === 'refused'
+                    ? `Nothing for you to record for ${listName(person)}: ${open} open.`
+                    : `Nothing can be recorded for ${listName(person)} here: ${open} open.`
+              } ${controlled.words}`}
             </ActLine>
           </span>
         )}

@@ -8,8 +8,14 @@ import type {
 } from '@/data/types'
 import { ROUND_WINDOW_MINUTES } from '@/data/fixtures/rounds'
 import { useSiteFormat } from '@/app/session/use-session'
-import { ActPoint } from '@/components/layout/ActPoint'
-import { RadioGroup, Select, SelectedMark, TextField } from '@/components/primitives'
+import { refusalOf } from '@/app/session/refusal'
+import {
+  ActLine,
+  RadioGroup,
+  Select,
+  SelectedMark,
+  TextField,
+} from '@/components/primitives'
 import { Settled, StatusPill, Unrecorded } from '@/components/status'
 import { assertNever } from '@/lib/assert-never'
 import {
@@ -180,14 +186,22 @@ function OpenDose({
         </p>
       ) : null}
 
-      {record.kind === 'cannot_record' && controlledDrugAnswer !== 'not_controlled' ? (
-        <div className={styles.answerRefused}>
-          <ActPoint
-            answer={controlledDrugAnswer}
-            label="Given"
-            notBuilt="Recording a controlled drug dose is not built."
-            residentName={residentName}
-          />
+      {record.kind === 'cannot_record' &&
+      controlledDrugAnswer !== 'not_controlled' &&
+      controlledDrugAnswer.kind !== 'yes' ? (
+        /* Where Given and Not given would be, the role table's own words: for
+           a care worker, who records a controlled drug. */
+        <div className={styles.answerRefused} data-dose-refused>
+          <ActLine
+            kind={
+              controlledDrugAnswer.kind === 'not_stated' ||
+              controlledDrugAnswer.kind === 'contradicted'
+                ? 'not_stated'
+                : 'refused'
+            }
+          >
+            {refusalOf(controlledDrugAnswer, residentName)}
+          </ActLine>
         </div>
       ) : (
         <div className={styles.answers} role="group" aria-label={`Answer for ${name}`}>

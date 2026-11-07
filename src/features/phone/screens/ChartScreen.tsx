@@ -26,6 +26,7 @@ import shell from '../shell/shell.module.css'
 import { Loaded } from '../ScreenStates'
 import { Screen } from '../shell/Screen'
 import { SubjectHeader } from '../SubjectHeader'
+import { controlledDrugLine } from '../doses/controlled-drug-line'
 import styles from '../phone.module.css'
 
 interface ChartData {
@@ -225,7 +226,14 @@ function Chart({ data, at }: { data: ChartData; at: IsoDateTime }) {
               >
                 <DoseFacts
                   dose={dose}
-                  recordsHere={records.kind === 'yes'}
+                  controlled={
+                    records.kind === 'yes'
+                      ? controlledDrugLine(
+                          viewer.ask('record_controlled_drug_dose', person.id),
+                          listName(person),
+                        )
+                      : 'not_said'
+                  }
                   cannotCorrect="said_by_the_screen"
                 />
               </li>
